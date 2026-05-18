@@ -54,6 +54,7 @@ import {
         .then(() => {
           message.textContent = "Login successful ✅";
           message.style.color = "green";
+          window.location.href = "userDashboard.html";
         })
         .catch(() => {
           message.textContent = "Login failed ❌";
