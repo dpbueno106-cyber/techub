@@ -16,6 +16,14 @@ p1 {
   color: darkyellow
  
 }
+.login-box {
+  background:grey;
+  padding:25px;
+  width: 250px;
+  margin: 30px auto;
+  border-radius: 10px;
+}
+
 input
 {
   display: block;
@@ -30,4 +38,19 @@ input:focus{
   border-color:yellow;
   outline: none;
 }
+
+button {
+  padding: 10px 20px;
+  margin: 10px;
+  background-color: black;
+  color: darkyellow;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: yellow;
+}
+
   
