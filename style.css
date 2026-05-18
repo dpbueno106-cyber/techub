@@ -1,18 +1,33 @@
 body {
   font-family:  Arial;
-  background-color: lightgreen;
+  background-color: black;
   text-align: center;
 }
 h1 {
-  color: darkgreen
+  color: darkyellow
 }
 h2 {
-  color: lightpink
+  color: darkyellow
 }
 p2 {
-  color: black
+  color: darkyellow
 }
 p1 {
-  color: yellow
+  color: darkyellow
  
 }
+input
+{
+  display: block;
+  margin: 10px auto;
+  padding: 10px
+  width: 220px;
+  font-size: 20px;
+  border: 1px solid dark yellow;
+  border-radius: 4px;
+}
+input:focus{
+  border-color:yellow;
+  outline: none;
+}
+  
