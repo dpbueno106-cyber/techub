@@ -23,6 +23,66 @@
    <button onclick="sayHello3()">Help
    </button>
   
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import { 
+      getAuth, 
+      signInWithEmailAndPassword,
+      createUserWithEmailAndPassword
+    } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD9i5yfE80MAsiri8SwiRCFParRb9jPyzY",
+      authDomain: "techub-login-system.firebaseapp.com",
+      projectId: "techub-login-system",
+      storageBucket: "techub-login-system.firebasestorage.app",
+      messagingSenderId: "48424106638",
+      appId: "1:48424106638:web:9246d83f302b21ab0327df",
+      measurementId: "G-PQ5RJ1V0BB"
+    };
+
+    //Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    //LOGIN
+    window.Login = function () {
+      let email = document.getElementById("username").value;
+      let password = document.getElementById("password").value;
+      let message = document.getElementById("message");
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then(() => {
+          message.textContent = "Login successful ✅";
+          message.style.color = "green";
+        })
+        .catch(() => {
+          message.textContent = "Login failed ❌";
+          message.style.color = "red";
+        });
+    };
+
+
+    window.signup = function () {
+      let email = document.getElementById("username").value;
+      let password = document.getElementById("password").value;
+      let message = document.getElementById("message");
+
+      createUserWithEmailAndPassword(auth, email, password)
+        .then(() => {
+          message.textContent = "Account created ✅";
+          message.style.color = "green";
+        })
+        .catch((error) => {
+          message.textContent = error.message;
+          message.style.color = "red";
+        });
+    };
+
+  
+    window.sayHello3 = function () {
+      alert("Enter your email and password.\nClick Create Account first if you're new.");
+    };
+
   
   <script src="script.js"> </script>
      
