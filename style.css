@@ -1,6 +1,6 @@
 body {
   font-family:  Arial;
-  background-color: black;
+  background-color: grey;
   text-align: center;
 }
 h1 {
@@ -42,7 +42,7 @@ input:focus{
 button {
   padding: 10px 20px;
   margin: 10px;
-  background-color: black;
+  background-color: grey;
   color: darkyellow;
   border: none;
   border-radius: 5px;
