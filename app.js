@@ -39,6 +39,7 @@ const role = docSnap.data().role;
 
 
 //automatically brings up dash if already loged in
+/*
 onAuthStateChanged(auth, (user) => {
   if (user){
         if (role === "admin")
@@ -50,6 +51,7 @@ onAuthStateChanged(auth, (user) => {
               window.location.href = "studentDashboard.html";
         }
 });
+*/
 
     //LOGIN
     loginBtn.addEventListener("click",() => {
