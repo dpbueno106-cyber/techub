@@ -20,16 +20,23 @@ import {
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-const welcome = document.getElementById("welcome");
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
 onAuthStateChanged(auth, (user) => {
-  if (user) {
-    welcome.textContent = "Welcome, " + user.email;
-  }
-  else
-  { //this might cause issues in future: beware daniel
-    window.location.href = "index.html";
-  }
+  if (!user) return window.location.href = "index.html";
+
+  document.getElementById("welcome").textContent =
+    "Welcome, " + user.email;
 });
+
+// logout
+document.getElementById("logoutBtn").addEventListener("click", () => {
+  signOut(auth).then(() => {
+    window.location.href = "index.html";
+  });
+});
+
 
 
 
