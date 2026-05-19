@@ -37,8 +37,26 @@ const message = document.getElementById("message");
 const db = getFirestore(app);
 const role = docSnap.data().role;
 
+//html elems
+
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
+const loginBtn = document.getElementById("loginBtn");
+const signupBtn = document.getElementById("signupBtn");
+const message = document.getElementById("message");
+
+
 
 //automatically brings up dash if already loged in
+/*
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    routeUser(user.uid);
+  }
+});
+
+*/
 /*
 onAuthStateChanged(auth, (user) => {
   if (user){
@@ -52,40 +70,65 @@ onAuthStateChanged(auth, (user) => {
         }
 });
 */
+//
+async function routeUser(uid) {
+  const docRef = doc(db, "users", uid);
+  const docSnap = await getDoc(docRef);
+
+  if (!docSnap.exists()) return;
+
+  const role = docSnap.data().role;
+
+  if (role === "admin") {
+    window.location.href = "adminDashboard.html";
+  } else if (role === "instructor") {
+    window.location.href = "instructorDashboard.html";
+  } 
+      return
+}
+
 
     //LOGIN
-    loginBtn.addEventListener("click",() => {
-      let email = document.getElementById("username").value;
-      let password = document.getElementById("password").value;
-      let message = document.getElementById("message");
+    
+loginBtn.addEventListener("click", async () => {
+  try {
+    const email = emailInput.value;
+    const password = passwordInput.value;
 
-      signInWithEmailAndPassword(auth, email, password)
-        .then(() => {
-          message.textContent = "Login successful ✅";
-          message.style.color = "green";
-          window.location.href = "userDashboard.html";
-        })
-        .catch(() => {
-          message.textContent = "Login failed ❌";
-          message.style.color = "red";
-        });
-    });
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    routeUser(userCredential.user.uid);
+
+  } catch (error) {
+    message.textContent = error.message;
+    message.style.color = "red";
+  }
+});
+
 
 //SIGNUP
-    signupBtn.addEventListener("click", () => {
-      let email = document.getElementById("username").value;
-      let password = document.getElementById("password").value;
-      let message = document.getElementById("message");
+   
+ignupBtn.addEventListener("click", async () => {
+  try {
+    const email = emailInput.value;
+    const password = passwordInput.value;
 
-      createUserWithEmailAndPassword(auth, email, password).then(() => {
-          message.textContent = "Account created ✅";
-          message.style.color = "green";
-        })
-        .catch((error) => {
-          message.textContent = error.message;
-          message.style.color = "red";
-        });
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+    //  Save role in Firestore
+    await setDoc(doc(db, "users", userCredential.user.uid), {
+      email: email,
+      role: "instructor"   // default role
     });
+
+    message.textContent = "Account created ✅";
+    message.style.color = "green";
+
+  } catch (error) {
+    message.textContent = error.message;
+    message.style.color = "red";
+  }
+});
+
 
 
 //help 
