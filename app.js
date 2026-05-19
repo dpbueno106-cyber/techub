@@ -1,3 +1,4 @@
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 import { 
       getAuth, 
@@ -23,6 +24,14 @@ const loginBtn = document.getElementById("loginBtn");
 const signupBtn = document.getElementById("signupBtn");
 const helpBtn = document.getElementById("helpBtn");
 const message = document.getElementById("message");
+
+
+//automatically brings up userdash if already loged in
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    window.location.href = "userDashboard.html";
+  }
+});
 
     //LOGIN
     loginBtn.addEventListener("click",() => {
@@ -59,7 +68,7 @@ const message = document.getElementById("message");
     });
 
 
-
+//help 
   
     helpBtn.addEventListener("click", () => {
       alert("Enter your email and password.\nClick Create Account first if you're new.");
