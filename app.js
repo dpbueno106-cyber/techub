@@ -44,7 +44,7 @@ const passwordInput = document.getElementById("password");
 const loginBtn = document.getElementById("loginBtn");
 const signupBtn = document.getElementById("signupBtn");
 const message = document.getElementById("message");
-<script type="module" src="js/app.js"></script>
+
 
 
 
