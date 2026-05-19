@@ -6,6 +6,15 @@ import {
       createUserWithEmailAndPassword
     } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
+import { //added db 
+  getFirestore, 
+  setDoc, 
+  doc 
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+import { getDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+
     const firebaseConfig = {
       apiKey: "AIzaSyD9i5yfE80MAsiri8SwiRCFParRb9jPyzY",
       authDomain: "techub-login-system.firebaseapp.com",
@@ -19,18 +28,27 @@ import {
     //Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-
+const docRef = doc(db, "users", user.uid);
+const docSnap = await getDoc(docRef);
 const loginBtn = document.getElementById("loginBtn");
 const signupBtn = document.getElementById("signupBtn");
 const helpBtn = document.getElementById("helpBtn");
 const message = document.getElementById("message");
+const db = getFirestore(app);
+const role = docSnap.data().role;
 
 
-//automatically brings up userdash if already loged in
+//automatically brings up dash if already loged in
 onAuthStateChanged(auth, (user) => {
-  if (user) {
+  if (user){
+        if (role === "admin")
+        {
+        window.location.href = "adminDashboard.html";
+        }else if (role === "instructor"){
     window.location.href = "userDashboard.html";
-  }
+  }else if (role === "student"){
+              window.location.href = "studentDashboard.html";
+        }
 });
 
     //LOGIN
@@ -72,7 +90,24 @@ onAuthStateChanged(auth, (user) => {
   
     helpBtn.addEventListener("click", () => {
       alert("Enter your email and password.\nClick Create Account first if you're new.");
+
     });
+if (email === "danielbueno@macallister.com")
+{      
+ setDoc(doc(db,"users",userCredential.user.uid), {
+      email: email, 
+      role: "admin"
+});
+}else{
+      setDoc(doc(db,"users",userCredential.user.uid), {
+      email: email, 
+      role: "instructor"
+      
+             });
+}
+      
+      
+
 
   
   
