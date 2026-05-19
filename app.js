@@ -107,7 +107,7 @@ loginBtn.addEventListener("click", async () => {
 
 //SIGNUP
    
-ignupBtn.addEventListener("click", async () => {
+signupBtn.addEventListener("click", async () => {
   try {
     const email = emailInput.value;
     const password = passwordInput.value;
@@ -137,6 +137,7 @@ ignupBtn.addEventListener("click", async () => {
       alert("Enter your email and password.\nClick Create Account first if you're new.");
 
     });
+/*
 if (email === "danielbueno@macallister.com")
 {      
  setDoc(doc(db,"users",userCredential.user.uid), {
