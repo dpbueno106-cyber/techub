@@ -29,10 +29,10 @@ import { getDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-fire
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 const db = getFirestore(app);
-const LoginBtn = document.getElementById("loginBtn");
-const SignupBtn = document.getElementById("signupBtn");
-const HelpBtn = document.getElementById("helpBtn");
-const Message = document.getElementById("message");
+const loginBtn = document.getElementById("loginBtn");
+const signupBtn = document.getElementById("signupBtn");
+const helpBtn = document.getElementById("helpBtn");
+const message = document.getElementById("message");
 
 
 
@@ -87,7 +87,7 @@ async function routeUser(uid) {
 
     //LOGIN
     
-LoginBtn.addEventListener("click", async () => {
+loginBtn.addEventListener("click", async () => {
   try {
         alert("Button works!");
     const email = emailInput.value;
@@ -97,15 +97,15 @@ LoginBtn.addEventListener("click", async () => {
     routeUser(userCredential.user.uid);
 
   } catch (error) {
-    Message.textContent = error.message;
-    Message.style.color = "red";
+    message.textContent = error.message;
+    message.style.color = "red";
   }
 });
 
 
 //SIGNUP
    
-SignupBtn.addEventListener("click", async () => {
+signupBtn.addEventListener("click", async () => {
   try {
     const email = emailInput.value;
     const password = passwordInput.value;
@@ -118,12 +118,12 @@ SignupBtn.addEventListener("click", async () => {
       role: "instructor"   // default role
     });
 
-    Message.textContent = "Account created ✅";
-    Message.style.color = "green";
+    message.textContent = "Account created ✅";
+    message.style.color = "green";
 
   } catch (error) {
-    Message.textContent = error.message;
-    Message.style.color = "red";
+    message.textContent = error.message;
+    message.style.color = "red";
   }
 });
 
@@ -131,7 +131,7 @@ SignupBtn.addEventListener("click", async () => {
 
 //help 
   
-    HelpBtn.addEventListener("click", () => {
+    helpBtn.addEventListener("click", () => {
       alert("Enter your email and password.\nClick Create Account first if you're new.");
 
     });
