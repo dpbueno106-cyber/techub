@@ -41,8 +41,7 @@ const message = document.getElementById("message");
 
 //html elems
 
-const emailInput = document.getElementById("email");
-const passwordInput = document.getElementById("password");
+
 
 
 
@@ -59,11 +58,14 @@ onAuthStateChanged(auth, (user) => {
 */
 
 
+let justSignedUp = false;
+
 onAuthStateChanged(auth, (user) => {
-  if (user) {
-    routeUser(user.uid); 
+  if (user && !justSignedUp) {
+    routeUser(user.uid);
   }
 });
+
 
 // this makes signup box visiable when prompted
 const loginBox = document.getElementById("loginBox");
@@ -85,17 +87,23 @@ async function routeUser(uid) {
   const docRef = doc(db, "users", uid);
   const docSnap = await getDoc(docRef);
 
-  if (!docSnap.exists()) return;
+  if (!docSnap.exists()) {
+    console.log("No user record found");
+    return;
+  }
 
   const role = docSnap.data().role;
+  console.log("ROLE:", role); 
 
   if (role === "admin") {
+    console.log("Redirecting to admin...");
     window.location.href = "adminDashboard.html";
   } else if (role === "instructor") {
+    console.log("Redirecting to instructor...");
     window.location.href = "instructorDashboard.html";
-  } 
-      return
+  }
 }
+
 
 
     //LOGIN
@@ -111,7 +119,10 @@ loginBtn.addEventListener("click", async () => {
       loginPassword.value
     );
 
-    routeUser(userCredential.user.uid);
+    // wait briefly for Firestore data to exist
+    setTimeout(() => {
+      routeUser(userCredential.user.uid);
+    }, 500);
 
   } catch (error) {
     message.textContent = error.message;
@@ -134,19 +145,22 @@ signupBtn.addEventListener("click", async () => {
       signupPassword.value
     );
 
+    justSignedUp = true; 
+
     await setDoc(doc(db, "users", userCredential.user.uid), {
       email: signupEmail.value,
-      role: "student"
+      role: "instructor"
     });
 
-    //  SHOW MESSAGE
     signupMessage.textContent = "Account created ✅";
     signupMessage.style.color = "green";
 
-    // DELAY THEN SWITCH
     setTimeout(() => {
       signupBox.style.display = "none";
+      signupMessage.textContent = "";
       loginBox.style.display = "block";
+      justSignedUp = false; 
+
     }, 3000);
 
   } catch (error) {
@@ -154,7 +168,7 @@ signupBtn.addEventListener("click", async () => {
     signupMessage.style.color = "red";
   }
 });
-``
+
 
 
 
