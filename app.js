@@ -57,9 +57,9 @@ onAuthStateChanged(auth, (user) => {
 
 */
 
-/*
-let justSignedUp = false;
 
+let justSignedUp = false;
+/*
 onAuthStateChanged(auth, (user) => {
   if (user && !justSignedUp) {
     routeUser(user.uid);
