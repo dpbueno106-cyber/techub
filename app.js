@@ -28,13 +28,14 @@ import { getDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-fire
     //Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+const db = getFirestore(app);
 const docRef = doc(db, "users", user.uid);
 const docSnap = await getDoc(docRef);
 const LoginBtn = document.getElementById("loginBtn");
 const SignupBtn = document.getElementById("signupBtn");
 const HelpBtn = document.getElementById("helpBtn");
 const Message = document.getElementById("message");
-const db = getFirestore(app);
+
 const role = docSnap.data().role;
 
 //html elems
