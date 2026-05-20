@@ -135,21 +135,7 @@ SignupBtn.addEventListener("click", async () => {
       alert("Enter your email and password.\nClick Create Account first if you're new.");
 
     });
-/*
-if (email === "danielbueno@macallister.com")
-{      
- setDoc(doc(db,"users",userCredential.user.uid), {
-      email: email, 
-      role: "admin"
-});
-}else{
-      setDoc(doc(db,"users",userCredential.user.uid), {
-      email: email, 
-      role: "instructor"
-      
-             });
-}
-      */
+
       
 
 
