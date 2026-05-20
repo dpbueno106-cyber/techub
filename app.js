@@ -54,7 +54,7 @@ onAuthStateChanged(auth, (user) => {
 });
 
 */
-/*
+
 onAuthStateChanged(auth, (user) => {
   if (user){
         if (role === "admin")
@@ -66,8 +66,22 @@ onAuthStateChanged(auth, (user) => {
               window.location.href = "studentDashboard.html";
         }
 });
-*/
-//
+// this makes signup box visiable when prompted
+const loginBox = document.getElementById("loginBox");
+const signupBox = document.getElementById("signupBox");
+
+document.getElementById("showSignup").addEventListener("click", () => {
+  loginBox.style.display = "none";
+  signupBox.style.display = "block";
+});
+
+document.getElementById("showLogin").addEventListener("click", () => {
+  signupBox.style.display = "none";
+  loginBox.style.display = "block";
+});
+
+
+
 async function routeUser(uid) {
   const docRef = doc(db, "users", uid);
   const docSnap = await getDoc(docRef);
@@ -87,42 +101,51 @@ async function routeUser(uid) {
 
     //LOGIN
     
+const loginEmail = document.getElementById("loginEmail");
+const loginPassword = document.getElementById("loginPassword");
+
 loginBtn.addEventListener("click", async () => {
   try {
-        alert("Button works!");
-    const email = emailInput.value;
-    const password = passwordInput.value;
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      loginEmail.value,
+      loginPassword.value
+    );
 
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
     routeUser(userCredential.user.uid);
 
   } catch (error) {
     message.textContent = error.message;
-    message.style.color = "red";
   }
 });
 
 
 //SIGNUP
    
+
+const signupEmail = document.getElementById("signupEmail");
+const signupPassword = document.getElementById("signupPassword");
+const signupMessage = document.getElementById("signupMessage");
+
 signupBtn.addEventListener("click", async () => {
   try {
-    const email = emailInput.value;
-    const password = passwordInput.value;
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      signupEmail.value,
+      signupPassword.value
+    );
 
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-
-    //  Save role in Firestore
+    // Save to Firestore
     await setDoc(doc(db, "users", userCredential.user.uid), {
-      email: email,
-      role: "instructor"   // default role
+      email: signupEmail.value,
+      role: "student"
     });
 
-    message.textContent = "Account created ✅";
-    message.style.color = "green";
+    signupMessage.textContent = "Account created ✅";
 
   } catch (error) {
-    message.textContent = error.message;
+    signupMessage.textContent = error.message;
+
     message.style.color = "red";
   }
 });
