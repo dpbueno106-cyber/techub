@@ -100,7 +100,7 @@ async function routeUser(uid) {
     window.location.href = "adminDashboard.html";
   } else if (role === "instructor") {
     console.log("Redirecting to instructor...");
-    window.location.href = "instructorDashboard.html";
+    window.location.href = "userDashboard.html";
   }
 }
 
