@@ -91,6 +91,7 @@ async function routeUser(uid) {
     
 LoginBtn.addEventListener("click", async () => {
   try {
+        alert("Button works!");
     const email = emailInput.value;
     const password = passwordInput.value;
 
