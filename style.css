@@ -1,55 +1,63 @@
+/* Page background */
 body {
-  font-family:  Arial;
+  font-family: Arial, sans-serif;
+  background-color: #111; /* dark  black */
   text-align: center;
+  color: #f2f2f2;
 }
-h1 {
-  color: darkyellow
-}
-h2 {
-  color: darkyellow
-}
-p2 {
-  color: darkyellow
-}
-p1 {
-  color: darkyellow
- 
-}
+
+/* Login box container */
 .login-box {
-  background:grey;
-  padding:25px;
-  width: 250px;
-  margin: 30px auto;
-  border-radius: 10px;
+  background: #ffcc00; /* use this for CAT yellow */
+  padding: 30px;
+  width: 280px;
+  margin: 50px auto;
+  border-radius: 8px;
+  border: 4px solid #000; /* bold black border */
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
 }
 
-input
-{
+/* Title */
+h2 {
+  color: #000;
+  margin-bottom: 20px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* Inputs */
+input {
   display: block;
-  margin: 10px auto;
-  padding: 10px
+  margin: 15px auto;
+  padding: 12px;
   width: 220px;
-  font-size: 20px;
-  border: 1px solid dark yellow;
+  font-size: 16px;
+  border: 2px solid #000;
   border-radius: 4px;
-}
-input:focus{
-  border-color:yellow;
-  outline: none;
+  background-color: #fff;
+  color: #000;
 }
 
+/* Input focus effect */
+input:focus {
+  outline: none;
+  border-color: #ffcc00;
+  box-shadow: 0 0 5px #ffcc00;
+}
+
+/* Add a button */
 button {
+  margin-top: 15px;
   padding: 10px 20px;
-  margin: 10px;
-  background-color: grey;
-  color: darkyellow;
-  border: none;
-  border-radius: 5px;
+  background-color: #000;
+  color: #ffcc00;
+  border: 2px solid #000;
+  font-weight: bold;
   cursor: pointer;
+  border-radius: 4px;
 }
 
 button:hover {
-  background-color: yellow;
+  background-color: #333;
 }
-
-  
