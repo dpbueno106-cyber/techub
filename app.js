@@ -38,7 +38,7 @@ const message = document.getElementById("message");
 
 //html elems
 
-const emailInput = document.getElementById("loginEmail");
+const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 
 
