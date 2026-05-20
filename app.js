@@ -65,6 +65,7 @@ onAuthStateChanged(auth, (user) => {
   }else if (role === "student"){
               window.location.href = "studentDashboard.html";
         }
+  }
 });
 // this makes signup box visiable when prompted
 const loginBox = document.getElementById("loginBox");
