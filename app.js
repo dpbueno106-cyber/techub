@@ -41,9 +41,6 @@ const role = docSnap.data().role;
 
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
-const loginBtn = document.getElementById("loginBtn");
-const signupBtn = document.getElementById("signupBtn");
-const message = document.getElementById("message");
 
 
 
