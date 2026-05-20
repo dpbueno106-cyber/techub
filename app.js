@@ -38,7 +38,7 @@ const message = document.getElementById("message");
 
 //html elems
 
-const emailInput = document.getElementById("username");
+const emailInput = document.getElementById("loginEmail");
 const passwordInput = document.getElementById("password");
 
 
@@ -135,12 +135,12 @@ signupBtn.addEventListener("click", async () => {
     await setDoc(doc(db, "users", userCredential.user.uid), {
       email: signupEmail.value,
       role: "student"
+          
     });
-
+        
     signupMessage.textContent = "Account created ✅";
         await delay(3000);
         location.reload();
-        
 
   } catch (error) {
     signupMessage.textContent = error.message;
