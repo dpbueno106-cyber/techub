@@ -30,10 +30,10 @@ import { getDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-fire
     const auth = getAuth(app);
 const docRef = doc(db, "users", user.uid);
 const docSnap = await getDoc(docRef);
-const loginBtn = document.getElementById("loginBtn");
-const signupBtn = document.getElementById("signupBtn");
-const helpBtn = document.getElementById("helpBtn");
-const message = document.getElementById("message");
+const LoginBtn = document.getElementById("loginBtn");
+const SignupBtn = document.getElementById("signupBtn");
+const HelpBtn = document.getElementById("helpBtn");
+const Message = document.getElementById("message");
 const db = getFirestore(app);
 const role = docSnap.data().role;
 
@@ -91,7 +91,7 @@ async function routeUser(uid) {
 
     //LOGIN
     
-loginBtn.addEventListener("click", async () => {
+LoginBtn.addEventListener("click", async () => {
   try {
     const email = emailInput.value;
     const password = passwordInput.value;
@@ -100,15 +100,15 @@ loginBtn.addEventListener("click", async () => {
     routeUser(userCredential.user.uid);
 
   } catch (error) {
-    message.textContent = error.message;
-    message.style.color = "red";
+    Message.textContent = error.message;
+    Message.style.color = "red";
   }
 });
 
 
 //SIGNUP
    
-signupBtn.addEventListener("click", async () => {
+SignupBtn.addEventListener("click", async () => {
   try {
     const email = emailInput.value;
     const password = passwordInput.value;
@@ -121,12 +121,12 @@ signupBtn.addEventListener("click", async () => {
       role: "instructor"   // default role
     });
 
-    message.textContent = "Account created ✅";
-    message.style.color = "green";
+    Message.textContent = "Account created ✅";
+    Message.style.color = "green";
 
   } catch (error) {
-    message.textContent = error.message;
-    message.style.color = "red";
+    Message.textContent = error.message;
+    Message.style.color = "red";
   }
 });
 
@@ -134,7 +134,7 @@ signupBtn.addEventListener("click", async () => {
 
 //help 
   
-    helpBtn.addEventListener("click", () => {
+    HelpBtn.addEventListener("click", () => {
       alert("Enter your email and password.\nClick Create Account first if you're new.");
 
     });
