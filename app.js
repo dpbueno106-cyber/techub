@@ -55,18 +55,13 @@ onAuthStateChanged(auth, (user) => {
 
 */
 
+
 onAuthStateChanged(auth, (user) => {
-  if (user){
-        if (role === "admin")
-        {
-        window.location.href = "adminDashboard.html";
-        }else if (role === "instructor"){
-    window.location.href = "userDashboard.html";
-  }else if (role === "student"){
-              window.location.href = "studentDashboard.html";
-        }
+  if (user) {
+    routeUser(user.uid); 
   }
 });
+
 // this makes signup box visiable when prompted
 const loginBox = document.getElementById("loginBox");
 const signupBox = document.getElementById("signupBox");
