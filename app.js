@@ -143,6 +143,9 @@ signupBtn.addEventListener("click", async () => {
     });
 
     signupMessage.textContent = "Account created ✅";
+        await delay(3000);
+        location.reload();
+        
 
   } catch (error) {
     signupMessage.textContent = error.message;
