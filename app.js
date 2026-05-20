@@ -33,6 +33,9 @@ const loginBtn = document.getElementById("loginBtn");
 const signupBtn = document.getElementById("signupBtn");
 const helpBtn = document.getElementById("helpBtn");
 const message = document.getElementById("message");
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 
 
