@@ -57,7 +57,7 @@ onAuthStateChanged(auth, (user) => {
 
 */
 
-
+/*
 let justSignedUp = false;
 
 onAuthStateChanged(auth, (user) => {
@@ -65,7 +65,7 @@ onAuthStateChanged(auth, (user) => {
     routeUser(user.uid);
   }
 });
-
+*/
 
 // this makes signup box visiable when prompted
 const loginBox = document.getElementById("loginBox");
