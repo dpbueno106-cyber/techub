@@ -151,6 +151,8 @@ signupBtn.addEventListener("click", async () => {
     signupMessage.textContent = error.message;
 
     message.style.color = "red";
+        await delay(3000);
+        signupMessage.textContent = "";
   }
 });
 
