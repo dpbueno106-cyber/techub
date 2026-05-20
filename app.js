@@ -33,10 +33,10 @@ const loginBtn = document.getElementById("loginBtn");
 const signupBtn = document.getElementById("signupBtn");
 const helpBtn = document.getElementById("helpBtn");
 const message = document.getElementById("message");
-function delay(ms) {
+/*function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
-
+*/
 
 
 //html elems
@@ -134,25 +134,27 @@ signupBtn.addEventListener("click", async () => {
       signupPassword.value
     );
 
-    // Save to Firestore
     await setDoc(doc(db, "users", userCredential.user.uid), {
       email: signupEmail.value,
       role: "student"
-          
     });
-        
+
+    //  SHOW MESSAGE
     signupMessage.textContent = "Account created ✅";
-        await delay(3000);
-        location.reload();
+    signupMessage.style.color = "green";
+
+    // DELAY THEN SWITCH
+    setTimeout(() => {
+      signupBox.style.display = "none";
+      loginBox.style.display = "block";
+    }, 3000);
 
   } catch (error) {
     signupMessage.textContent = error.message;
-
-    message.style.color = "red";
-        await delay(3000);
-        signupMessage.textContent = "";
+    signupMessage.style.color = "red";
   }
 });
+``
 
 
 
