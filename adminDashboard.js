@@ -16,6 +16,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const welcome = document.getElementById("welcome");
+const role = docSnap.exists() ? docSnap.data().role : null;
 
 // Check user
 onAuthStateChanged(auth, async (user) => {
@@ -36,25 +37,49 @@ onAuthStateChanged(auth, async (user) => {
 
 // Change roles
 document.getElementById("makeAdmin").addEventListener("click", async () => {
-  const uid = document.getElementById("userId").value;
+  const uid = document.getElementById("userId").value.trim();
 
-  await setDoc(doc(db, "users", uid), { role: "admin" }, { merge: true });
+  if (!uid) {
+    alert("Please enter a email");
+    return;
+  }
 
-  alert("User is now admin ✅");
+  try {
+    await setDoc(doc(db, "users", uid), { role: "admin" }, { merge: true });
+    alert("✅ User is now Admin");
+  } catch (error) {
+    console.error(error);
+    alert("❌ Error updating role");
+  }
 });
 
 document.getElementById("makeInstructor").addEventListener("click", async () => {
-  const uid = document.getElementById("userId").value;
+  const uid = document.getElementById("userId").value.trim();
 
-  await setDoc(doc(db, "users", uid), { role: "instructor" }, { merge: true });
+  if (!uid) {
+    alert("Please enter a email ⚠️");
+    return;
+  }
 
-  alert("User is now instructor ✅");
+  try {
+    await setDoc(doc(db, "users", uid), { role: "instructor" }, { merge: true });
+    alert("✅ User is now Instructor");
+  } catch (error) {
+    console.error(error);
+    alert("❌ Error updating role");
+  }
 });
+
 
 // Logout
-document.getElementById("logoutBtn").addEventListener("click", () => {
-  signOut(auth).then(() => {
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+  try {
+    await signOut(auth);
     window.location.href = "index.html";
-  });
+  } catch (error) {
+    console.error(error);
+    alert("❌ Logout failed");
+  }
 });
+
 
