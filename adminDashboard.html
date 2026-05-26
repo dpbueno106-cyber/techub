@@ -1,21 +1,40 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
 <body>
-<h1>Admin Dashboard</h1>
 
-<div class="card">
-  <h3>User Management</h3>
-  <input id="userId" placeholder="Enter Email">
-  <button id="makeAdmin">Make Admin</button>
-</div>
+  <header>
+    <h1>⚙️ Admin Dashboard</h1>
+    <p id="welcome"></p>
+    <button id="logoutBtn">Logout</button>
+  </header>
 
-<div class="card">
-  <h3>System Info</h3>
-  <p>Total users: ...</p>
-</div>
+  <main class="menu">
 
-<button id="logoutBtn">Logout</button>
-<script type="module" src="adminDashboard.js"></script>
+    <!-- Calendar -->
+    <div class="card" onclick="location.href='calendar
+    </div>
 
+    <!-- Instructor Management -->
+    <div class="card" onclick="location.href='instructors   <p>Add / remove instructors</p>
+    </div>
+
+    <!-- Admin Role Management -->
+    <div class="card admin-tools">
+      <h2>Role Management</h2>
+
+      <input id="userId" placeholder="Enter User UID">
+
+      <button id="makeAdmin">Make Admin</button>
+      <button id="makeInstructor">Make Instructor</button>
+    </div>
+
+  </main>
+
+  <script type="module" src="admin.js"></script>
 </body>
 </html>
