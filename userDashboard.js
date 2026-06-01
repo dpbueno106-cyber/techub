@@ -37,19 +37,29 @@ onAuthStateChanged(auth, async (user) => {
 
   welcome.textContent = "Welcome, " + user.email;
 
-  // Check role
-  const docRef = doc(db, "users", user.uid);
-  const docSnap = await getDoc(docRef);
+  try {
+    const docRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(docRef);
 
-  if (!docSnap.exists() || docSnap.data().role !== "instructor") {
-    alert("Access denied ");
-    window.location.href = "index.html";
-    return;
+    //  WAIT until Firestore data exists
+    if (!docSnap.exists()) {
+      console.log("User document not ready yet");
+      return; // ← DO NOT redirect
+    }
+
+    const role = docSnap.data().role;
+    console.log("ROLE:", role);
+
+    //  Only block if role is DEFINITELY wrong
+    if (role !== "instructor") {
+      alert("Access denied 🚫");
+      window.location.href = "index.html";
+    }
+
+  } catch (err) {
+    console.error("Permission check failed:", err);
   }
-
-  loadTeachingOutlook();
 });
-
 //  Placeholder outlook (until calendar is built)
 function loadTeachingOutlook() {
   const upcomingDays = [
