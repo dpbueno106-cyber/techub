@@ -24,9 +24,9 @@ const makeInstructorBtn = document.getElementById("makeInstructor");
 const userIdInput = document.getElementById("userId");
 
 // Protect page + show user
-onAuthStateChanged(auth, async (user) => {
+onAuthStateChanged1(auth, async (user) => {
   if (!user) {
-    window.location.href = "/techub/index.html";
+    window.location.href = "index.html";
     return;
   }
 
@@ -45,14 +45,14 @@ onAuthStateChanged(auth, async (user) => {
 
   if (role !== "admin") {
     alert("Access denied 🚫");
-    window.location.href = "/techub/index.html";
+    window.location.href = "index.html";
   }
 });
 
 //  logout
 logoutBtn.addEventListener("click", () => {
   signOut(auth).then(() => {
-    window.location.href = "/techub/index.html";
+    window.location.href = "\index.html";
   });
 });
 //  make admin
