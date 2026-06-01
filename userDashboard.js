@@ -19,22 +19,58 @@ import {
       measurementId: "G-PQ5RJ1V0BB"
     };
 
-    //Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
+  
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-onAuthStateChanged(auth, (user) => {
-  if (!user) return window.location.href = "index.html";
+const welcome = document.getElementById("welcome");
+const logoutBtn = document.getElementById("logoutBtn");
+const outlookList = document.getElementById("outlookList");
 
-  document.getElementById("welcome").textContent =
-    "Welcome, " + user.email;
+//  Protect page + load outlook
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  welcome.textContent = "Welcome, " + user.email;
+
+  // Check role
+  const docRef = doc(db, "users", user.uid);
+  const docSnap = await getDoc(docRef);
+
+  if (!docSnap.exists() || docSnap.data().role !== "instructor") {
+    alert("Access denied ");
+    window.location.href = "index.html";
+    return;
+  }
+
+  loadTeachingOutlook();
 });
 
-// logout
-document.getElementById("logoutBtn").addEventListener("click", () => {
+//  Placeholder outlook (until calendar is built)
+function loadTeachingOutlook() {
+  const upcomingDays = [
+    "Monday – Teaching",
+    "Tuesday – Teaching",
+    "Wednesday – No Classes",
+    "Thursday – Teaching",
+    "Friday – Teaching"
+  ];
+
+  outlookList.innerHTML = "";
+
+  upcomingDays.forEach(day => {
+    const li = document.createElement("li");
+    li.textContent = day;
+    outlookList.appendChild(li);
+  });
+}
+
+// Logout
+logoutBtn.addEventListener("click", () => {
   signOut(auth).then(() => {
     window.location.href = "index.html";
   });
