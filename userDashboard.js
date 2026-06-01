@@ -24,6 +24,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+
 const welcome = document.getElementById("welcome");
 const logoutBtn = document.getElementById("logoutBtn");
 const outlookList = document.getElementById("outlookList");
@@ -52,7 +53,7 @@ onAuthStateChanged(auth, async (user) => {
 
     //  Only block if role is DEFINITELY wrong
     if (role !== "instructor") {
-      alert("Access denied 🚫");
+      alert("Access denied");
       window.location.href = "index.html";
     }
 
@@ -79,13 +80,19 @@ function loadTeachingOutlook() {
   });
 }
 
-// Logout
 logoutBtn.addEventListener("click", () => {
-  signOut(auth).then(() => {
-    window.location.href = "index.html";
-  });
-});
+  const auth = getAuth();
 
+  signOut(auth)
+    .then(() => {
+      // ✅ Redirect back to login page
+      window.location.href = "index.html";
+    })
+    .catch((error) => {
+      console.error("Sign out error:", error);
+      alert("Error signing out");
+    });
+});
 
 
 
