@@ -24,7 +24,7 @@ const makeInstructorBtn = document.getElementById("makeInstructor");
 const userIdInput = document.getElementById("userId");
 
 // Protect page + show user
-onAuthStateChanged1(auth, async (user) => {
+onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "index.html";
     return;
