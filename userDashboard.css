@@ -73,29 +73,3 @@ h1 {
   font-size: 12px;
   opacity: 0.7;
 }
-#userList {
-  margin-top: 10px;
-}
-
-.user-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #1e1e1e;
-  border: 2px solid #ffd400;
-  padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 8px;
-}
-
-.user-row span {
-  font-weight: bold;
-}
-
-.user-row select {
-  padding: 6px;
-  background: black;
-  color: #ffd400;
-  border: 1px solid #ffd400;
-  cursor: pointer;
-}
