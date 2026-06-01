@@ -50,10 +50,14 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 //  logout
-logoutBtn.addEventListener("click", () => {
-  signOut(auth).then(() => {
+logoutBtn.addEventListener("click", async () => {
+  try {
+    await signOut(auth);
     window.location.href = "index.html";
-  });
+  } catch (err) {
+    console.error("Sign out error:", err);
+    alert("Failed to sign out");
+  }
 });
 //  make admin
 makeAdminBtn.addEventListener("click", async () => {
