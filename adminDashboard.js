@@ -80,3 +80,9 @@ makeInstructorBtn.addEventListener("click", async () => {
 
   alert("User is now instructor ✅");
 });
+
+//updates role status
+window.updateRole = async (uid, role) => {
+  await setDoc(doc(db, "users", uid), { role }, { merge: true });
+  loadUsers();
+};
