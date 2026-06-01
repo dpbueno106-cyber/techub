@@ -2,17 +2,44 @@
 <html>
 <head>
   <title>User Dashboard</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="userDashboard.css">
 </head>
 
 <body>
-
-  <h1>Welcome to TechHub Dashboard 🎉</h1>
-  <p>You are successfully logged in.</p>
-
-  <button id="logoutBtn">Logout</button>
-
+  <header>   
+    <h1>Welcome to TechHub Dashboard 🎉</h1>
+    <p>You are successfully logged in.</p> 
   
+    <p id="welcome"></p>
+    <button id="logoutBtn">Logout</button>
+</header>
+  
+  <main class="menu">
+
+    <!-- Calendar -->
+    <div class="card" onclick="location.href='calendar.html'"
+      <h2>Calendar</h2>
+      <p>View your schedule</p>
+    </div>
+
+    <!-- Instructor Management -->
+    <div class="card" onclick="location.href='cap.html'" 
+      <h2>Edit Capabilities</h2>
+      <p>Manage personal scheduling parameters</p>
+    </div>
+
+    <!-- Teaching Outlook -->
+    <div class="card outlook-card">
+      <h2>Class Outlook</h2>
+      <ul id="outlookList">
+        <!-- Filled by JS (fill later)-->
+      </ul>
+      <p class="hint">Preview only – calendar integration coming soon</p>
+    </div>
+
+  </main>
+
+  <script type="module" src="adminDashboard.js"></script>
   <script type="module" src="userDashboard.js"></script>
 
 </body>
