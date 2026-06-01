@@ -92,7 +92,7 @@ h1 {
 
 .card2:hover {
   background: #ffd400;
-  color: #ffd400;
+  color: black;
   transform: scale(1.01);
 }
 
