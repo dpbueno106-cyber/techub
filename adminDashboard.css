@@ -72,6 +72,29 @@ h1 {
   color: black;
   transform: scale(1.05);
 }
+.card {
+  background: #1e1e1e;
+  border: 2px solid #ffd400;
+  border-radius: 10px;
+  padding: 20px;
+  cursor: pointer;
+  text-align: center;
+  transition: 0.2s;
+}
+
+.card2 h2 {
+  margin-top: 0;
+}
+
+.card2 p {
+  opacity: 0.8;
+}
+
+.card2:hover {
+  background: #ffd400;
+  color: #ffd400;
+  transform: scale(1.01);
+}
 
 #userList {
   margin-top: 10px;
