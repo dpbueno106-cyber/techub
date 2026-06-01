@@ -52,7 +52,7 @@ onAuthStateChanged1(auth, async (user) => {
 //  logout
 logoutBtn.addEventListener("click", () => {
   signOut(auth).then(() => {
-    window.location.href = "\index.html";
+    window.location.href = "index.html";
   });
 });
 //  make admin
