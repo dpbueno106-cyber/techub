@@ -92,8 +92,8 @@ h1 {
 
 .card2:hover {
   background: #ffd400;
-  color: black;
-  transform: scale(1.01);
+  color: white;
+  transform: scale(1.03);
 }
 
 #userList {
