@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
 import { 
       getAuth, 
@@ -80,18 +79,15 @@ function loadTeachingOutlook() {
   });
 }
 
-logoutBtn.addEventListener("click", () => {
-  const auth = getAuth();
 
-  signOut(auth)
-    .then(() => {
-      // ✅ Redirect back to login page
-      window.location.href = "index.html";
-    })
-    .catch((error) => {
-      console.error("Sign out error:", error);
-      alert("Error signing out");
-    });
+logoutBtn.addEventListener("click", async () => {
+  try {
+    await signOut(auth);
+    window.location.href = "index.html";
+  } catch (err) {
+    console.error("Sign out error:", err);
+    alert("Failed to sign out");
+  }
 });
 
 
