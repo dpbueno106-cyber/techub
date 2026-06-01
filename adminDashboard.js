@@ -1,45 +1,36 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
-import { collection, getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import { collection, getFirestore, doc, getDoc, setDoc, getDocs } 
+from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD9i5yfE80MAsiri8SwiRCFParRb9jPyzY",
+  apiKey: "AIzaSy...",
   authDomain: "techub-login-system.firebaseapp.com",
-  projectId: "techub-login-system",
-  storageBucket: "techub-login-system.firebasestorage.app",
-  messagingSenderId: "48424106638",
-  appId: "1:48424106638:web:9246d83f302b21ab0327df",
-  measurementId: "G-PQ5RJ1V0BB" };
-
+  projectId: "techub-login-system"
+};
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-//  Get elements
+/* ELEMENTS */
 const welcome = document.getElementById("welcome");
 const logoutBtn = document.getElementById("logoutBtn");
-const makeAdminBtn = document.getElementById("makeAdmin");
-const makeInstructorBtn = document.getElementById("makeInstructor");
-const userIdInput = document.getElementById("userId");
 
-// Protect page + show user
+/* AUTH PROTECTION */
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "index.html";
     return;
   }
 
-  welcome.textContent = "Welcome, " + user.email;
-
-  //  check role (only admins allowed)
-  const docRef = doc(db, "users", user.uid);
-  const docSnap = await getDoc(docRef);
-
-  if (!docSnap.exists()) {
-    alert("User not found");
-    return;
+  if (welcome) {
+    welcome.textContent = "Welcome, " + user.email;
   }
+
+  const docSnap = await getDoc(doc(db, "users", user.uid));
+
+  if (!docSnap.exists()) return;
 
   const role = docSnap.data().role;
 
@@ -49,47 +40,18 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-//  logout
-logoutBtn.addEventListener("click", async () => {
-  try {
+/* LOGOUT */
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", async () => {
     await signOut(auth);
     window.location.href = "index.html";
-  } catch (err) {
-    console.error("Sign out error:", err);
-    alert("Failed to sign out");
-  }
-});
-//  make admin
-makeAdminBtn.addEventListener("click", async () => {
-  const uid = userIdInput.value;
+  });
+}
 
-  await setDoc(doc(db, "users", uid), {
-    role: "admin"
-  }, { merge: true });
-
-  alert("User is now admin ✅");
-});
-
-//  make instructor
-makeInstructorBtn.addEventListener("click", async () => {
-  const uid = userIdInput.value;
-
-  await setDoc(doc(db, "users", uid), {
-    role: "instructor"
-  }, { merge: true });
-
-  alert("User is now instructor ✅");
-});
-
-//updates role status
-window.updateRole = async (uid, role) => {
-  await setDoc(doc(db, "users", uid), { role }, { merge: true });
-  loadUsers();
-};
-loadUsers();
-
+/* LOAD USERS */
 async function loadUsers() {
   const userList = document.getElementById("userList");
+  if (!userList) return;
 
   userList.innerHTML = "Loading...";
 
@@ -126,3 +88,8 @@ async function loadUsers() {
     userList.appendChild(row);
   });
 }
+
+/* LOAD ON READY */
+window.addEventListener("DOMContentLoaded", () => {
+  loadUsers();
+});
