@@ -61,21 +61,22 @@ onAuthStateChanged(auth, async (user) => {
 });
 //  Placeholder outlook (until calendar is built)
 function loadTeachingOutlook() {
-  const upcomingDays = [
-    "Monday – Teaching",
-    "Tuesday – Teaching",
-    "Wednesday – No Classes",
-    "Thursday – Teaching",
-    "Friday – Teaching"
-  ];
+  onSnapshot(
+  collection(db, "schedules", user.uid, "events"),
+  (snapshot) => {
+    outlookList.innerHTML = "";
 
-  outlookList.innerHTML = "";
-
-  upcomingDays.forEach(day => {
-    const li = document.createElement("li");
-    li.textContent = day;
-    outlookList.appendChild(li);
-  });
+    snapshot.docs
+      .map(d => d.data())
+      .slice(0, 5)
+      .forEach(event => {
+        const li = document.createElement("li");
+        li.textContent =
+          new Date(event.start).toDateString() + " – Teaching";
+        outlookList.appendChild(li);
+      });
+  }
+);
 }
 
 
