@@ -4,7 +4,7 @@ import { collection, getFirestore, doc, getDoc, setDoc, getDocs }
 from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSy...",
+ apiKey: "AIzaSyD9i5yfE80MAsiri8SwiRCFParRb9jPyzY",
   authDomain: "techub-login-system.firebaseapp.com",
   projectId: "techub-login-system"
 };
