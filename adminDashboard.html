@@ -21,14 +21,19 @@
     </div>
 
     <!-- Instructor Management -->
-    <div class="card" onclick="location.href='instructors.html'" <p>Add / remove instructors</p>
+    <div class="card" onclick="location.href='instructors.html'" <p>Instructor Management</p>
+
+      
     </div>
 
     <!-- Admin Role Management -->
     <div class="card admin-tools">
       <h2>Role Management</h2>
 
-      <input id="userId" placeholder="Enter User UID">
+      <select onchange="updateRole(uid, this.value)">
+  <option value="admin">Admin</option>
+  <option value="instructor">Instructor</option>
+</select>
 
       <button id="makeAdmin">Make Admin</button>
       <button id="makeInstructor">Make Instructor</button>
