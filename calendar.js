@@ -28,3 +28,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
   calendar.render();
 });
+
+const backBtn = document.getElementById("backBtn");
+backBtn.addEventListener("click", () => {
+  windows.location.href("adminDashboard.html");
+}
