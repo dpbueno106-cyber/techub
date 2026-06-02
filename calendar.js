@@ -31,5 +31,5 @@ document.addEventListener("DOMContentLoaded", function () {
 
 const backBtn = document.getElementById("backBtn");
 backBtn.addEventListener("click", () => {
-  windows.location.href("adminDashboard.html");
-}
+  windows.location.href="adminDashboard.html";
+})
