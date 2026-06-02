@@ -16,6 +16,7 @@ const db = getFirestore(app);
 /* ELEMENTS */
 const welcome = document.getElementById("welcome");
 const logoutBtn = document.getElementById("logoutBtn");
+const backBtn = document.getElementById("backBtn");
 
 /* AUTH PROTECTION */
 onAuthStateChanged(auth, async (user) => {
