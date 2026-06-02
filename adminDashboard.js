@@ -89,6 +89,9 @@ async function loadUsers() {
   });
 }
 
+backBtn.addEventListener("click", () => {
+  window.location.href = "adminDashboard.html";
+});
 /* LOAD ON READY */
 window.addEventListener("DOMContentLoaded", () => {
   loadUsers();
