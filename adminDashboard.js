@@ -89,10 +89,11 @@ async function loadUsers() {
     userList.appendChild(row);
   });
 }
-
+/*
 backBtn.addEventListener("click", () => {
   window.location.href = "adminDashboard.html";
 });
+*/
 /* LOAD ON READY */
 window.addEventListener("DOMContentLoaded", () => {
   loadUsers();
