@@ -15,11 +15,14 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const backBtn = document.getElementById("backBtn");
 
 document.addEventListener("DOMContentLoaded", function () {
-  const calendarEl = document.getElementById("calendar");
-
-  const calendar = new FullCalendar.Calendar(calendarEl, {
+const calendarEl = document.getElementById("calendar");
+const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: "timeGridWeek",
     height: "auto",
 
@@ -46,9 +49,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   calendar.render();
 });
-/*
+
 const backBtn = document.getElementById("backBtn");
 backBtn.addEventListener("click", () => {
   windows.location.href="adminDashboard.html";
 })
-*/
+
