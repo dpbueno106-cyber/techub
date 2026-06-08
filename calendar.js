@@ -50,8 +50,21 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
   calendar.render();
 });
 
-const backBtn = document.getElementById("backBtn");
 backBtn.addEventListener("click", () => {
-  windows.location.href="adminDashboard.html";
-})
+  if (!docSnap || !docSnap.exists()) {
+    console.error("User document not found");
+    return;
+  }
+
+  const role = docSnap.data().role;
+  console.log("ROLE:", role);
+
+  if (role === "instructor") {
+    window.location.href = "userDashboard.html";
+  } else if (role === "admin") {
+    window.location.href = "adminDashboard.html";
+  } else {
+    console.warn("Unknown role:", role);
+  }
+});
 
