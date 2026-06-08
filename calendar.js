@@ -1,6 +1,8 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import { getFirestore, collection, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
+const instructorList = document.getElementById("instructorList");
+const backBtn = document.getElementById("backBtn");
 const firebaseConfig = {
   apiKey: "AIzaSyD9i5yfE80MAsiri8SwiRCFParRb9jPyzY",
   authDomain: "techub-login-system.firebaseapp.com",
