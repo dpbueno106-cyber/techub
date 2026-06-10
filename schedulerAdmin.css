@@ -141,7 +141,7 @@ select {
   border: 1px solid #333;
   border-radius: 8px;
   padding: 10px;
-  min-height: 560px;
+  min-height: 680px;
 }
 
 .fc .fc-toolbar-title,
@@ -160,9 +160,20 @@ select {
 }
 
 .fc .fc-event {
-  background: #4caf50;
   border: none;
+  padding: 10px 10px;
+  font-size: 0.95rem;
+  border-radius: 8px;
   color: #121212;
+}
+
+.fc .fc-event-main-frame {
+  min-height: 60px;
+}
+
+.fc-event.preview-event {
+  opacity: 0.9;
+  border: 1px dashed #ffd400;
 }
 /*  Label styling */
 label {
@@ -260,21 +271,156 @@ button {
 #newClassForm input,
 #addEventForm input,
 #newClassForm select,
-#addEventForm select {
+#addEventForm select,
+#eventEditMenu input,
+#eventEditMenu select {
   width: 100%;
   padding: 10px;
   margin-top: 10px;
   border-radius: 6px;
-  border: 1px solid #444;
-  background: #121212;
-  color: #fff;
+  border: 1px solid #333;
+  background: #181818;
+  color: #ffd400;
 }
 
 #newClassForm button,
 #addEventForm button,
 button.saveBtn,
-button:hover {
+button:hover,
+#eventEditMenu button {
   width: auto;
+}
+
+#addEventForm {
+  display: grid;
+  gap: 10px;
+}
+
+#addEventForm label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+#addEventForm label input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+#addEventForm .checkboxRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+#addEventForm button {
+  margin-top: 10px;
+}
+
+#eventEditMenu {
+  background: rgba(18, 18, 18, 0.98);
+  border: 1px solid #333;
+  border-radius: 14px;
+  padding: 24px;
+  max-width: 520px;
+  margin: 0 auto 24px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+}
+
+.event-edit-menu.hidden {
+  display: none;
+}
+
+.menuRow {
+  display: grid;
+  gap: 14px;
+}
+
+.menuRow label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.95rem;
+}
+
+.menuRow input,
+.menuRow select {
+  background: #121212;
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: #ffd400;
+  padding: 10px 12px;
+}
+
+.menuActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.menuActions button {
+  min-width: 120px;
+}
+
+.secondary {
+  background: #333;
+  color: #ffd400;
+}
+
+.danger {
+  background: #c62828;
+  color: #fff;
+}
+
+.tempNotice {
+  color: #b0b0b0;
+  font-size: 13px;
+}
+
+.fc-event {
+  position: relative;
+}
+
+.fc-event.preview-event {
+  background: rgba(255, 212, 0, 0.18) !important;
+  border: 1px dashed #ffd400 !important;
+}
+
+.fc-event.preview-event .fc-event-main-frame {
+  padding-right: 40px;
+}
+
+.preview-add-btn {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  background: #ffd400;
+  color: #121212;
+  border: none;
+  border-radius: 50%;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+}
+
+.preview-add-btn:hover {
+  background: #ffec85;
+}
+
+#editEventTitle,
+#editEventLocation,
+#editEventInstructor {
+  min-width: 220px;
 }
 
 .topControls {

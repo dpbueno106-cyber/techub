@@ -18,6 +18,34 @@
     <button onclick="saveSchedule()" class="saveBtn">Save Schedule</button>
   </div>
 
+  <div id="eventEditMenu" class="event-edit-menu hidden">
+    <h2>Edit Block</h2>
+    <div class="menuRow">
+      <label>
+        Title
+        <input id="editEventTitle" type="text" />
+      </label>
+      <label>
+        Location
+        <select id="editEventLocation">
+          <option value="IN">IN</option>
+          <option value="MI">MI</option>
+        </select>
+      </label>
+      <label>
+        Instructor
+        <select id="editEventInstructor"></select>
+      </label>
+      <div class="menuActions">
+        <button id="saveEventBtn">Save</button>
+        <button id="addToScheduleBtn" class="secondary hidden">Add to official schedule</button>
+        <button id="deleteEventBtn" class="danger">Delete</button>
+        <button id="closeEventMenuBtn" class="secondary">Close</button>
+      </div>
+      <div id="eventTempNotice" class="tempNotice"></div>
+    </div>
+  </div>
+
   <div id="builderPanel">
     <div id="externalEvents">
       <h2>Draggable Classes</h2>
