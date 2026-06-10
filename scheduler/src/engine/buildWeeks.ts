@@ -1,4 +1,4 @@
-import { WeekSlot } from "../types";
+import type { WeekSlot } from "../types.ts";
 
 export function buildWeeks(year: number): WeekSlot[] {
   const weeks: WeekSlot[] = [];

@@ -1,12 +1,15 @@
-import { ScheduleConfig, ClassDefinition, ClassSlot } from "../types";
-import { buildWeeks } from "./buildWeeks";
-import { placeHolidays } from "./placeHolidays";
-import { placeNTO } from "./placeNTO";
-import { classSlotGenerator } from "./classSlotGenerator";
+import type { ScheduleConfig, ClassDefinition, ClassSlot, Instructor } from "../types.ts";
+import { balanceLocations } from "./balanceLocations.ts";
+import { buildWeeks } from "./buildWeeks.ts";
+import { placeHolidays } from "./placeHolidays.ts";
+import { placeNTO } from "./placeNTO.ts";
+import { classSlotGenerator } from "./classSlotGenerator.ts";
+import { assignInstructors } from "./assignInstructors.ts";
 
 export function generateSchedule(
   config: ScheduleConfig,
-  catalog: ClassDefinition[]
+  catalog: ClassDefinition[],
+  instructors: Instructor[]
 ): ClassSlot[] {
 
   let weeks = buildWeeks(config.year);
@@ -22,5 +25,18 @@ export function generateSchedule(
     config.totalClasses - ntoSlots.length
   );
 
-  return [...ntoSlots, ...otherSlots];
+  const allSlots = [...ntoSlots, ...otherSlots];
+
+  // Balance IN vs MI
+  const balanced = balanceLocations(allSlots);
+
+  const assigned = assignInstructors(balanced, instructors);
+
+  return assigned.sort((a, b) =>
+    a.weekNumber === b.weekNumber
+      ? a.location.localeCompare(b.location)
+      : a.weekNumber - b.weekNumber
+  );
 }
+
+

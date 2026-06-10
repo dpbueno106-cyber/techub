@@ -1,4 +1,4 @@
-import { WeekSlot, ClassSlot, Location } from "../types";
+import type { WeekSlot, ClassSlot, Location } from "../types.ts";
 
 export function placeNTO(
   weeks: WeekSlot[],

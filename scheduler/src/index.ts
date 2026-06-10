@@ -1,5 +1,5 @@
-import { generateSchedule } from "./engine/generateSchedule";
-import { ClassDefinition } from "./types";
+import { generateSchedule } from "./engine/generateSchedule.ts";
+import type { ClassDefinition } from "./types.ts";
 
 const config = {
   year: 2026,
@@ -31,7 +31,34 @@ const catalog: ClassDefinition[] = [
     isActive: true
   }
 ];
+const instructors = [
+  { id: "aaron", name: "Aaron", homeLocation: "IN" as const, canTravel: true },
+  { id: "jesse", name: "Jesse", homeLocation: "MI" as const, canTravel: true },
+  { id: "marc", name: "Marc", homeLocation: "MI" as const, canTravel: true },
+  { id: "leon", name: "Leon", homeLocation: "IN" as const, canTravel: true },
+  { id: "mike", name: "Mike", homeLocation: "IN" as const, canTravel: false },
+  { id: "brandon", name: "Brandon", homeLocation: "MI" as const, canTravel: true },
+  { id: "brad", name: "Brad", homeLocation: "MI" as const, canTravel: true },
+  { id: "graham", name: "Graham", homeLocation: "MI" as const, canTravel: true },
+  { id: "kalob", name: "Kalob", homeLocation: "MI" as const, canTravel: true }
+];
 
-const schedule = generateSchedule(config, catalog);
-console.log(schedule);
-``
+const schedule = generateSchedule(config, catalog, instructors);
+
+const instructorById = new Map(instructors.map(i => [i.id, i.name]));
+const formattedSchedule = schedule.map(slot => ({
+  week: slot.weekNumber,
+  classId: slot.classId,
+  className: slot.className,
+  location: slot.location,
+  instructorId: slot.instructorId,
+  instructorName: slot.instructorId
+    ? instructorById.get(slot.instructorId) ?? slot.instructorId
+    : "TBD",
+  durationWeeks: slot.durationWeeks,
+  category: slot.category,
+  level: slot.level
+}));
+
+console.table(formattedSchedule);
+

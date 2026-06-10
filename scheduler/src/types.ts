@@ -43,3 +43,11 @@ export interface ClassSlot {
   durationWeeks: number;
   instructorId: string | null;
 }
+
+export interface Instructor {
+  id: string;
+  name: string;
+  homeLocation: Location;
+  canTravel: boolean;
+}
+
