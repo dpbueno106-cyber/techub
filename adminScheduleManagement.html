@@ -29,19 +29,34 @@
     </div>
 
     <div id="newClassForm">
-      <h2>Add a Class Block</h2>
+      <h2>Add a Draggable Class Template</h2>
       <input id="newClassName" placeholder="Class name" />
-      <input id="newClassLocation" placeholder="Location (IN or MI)" />
+      <select id="newClassLocation">
+        <option value="IN">IN</option>
+        <option value="MI">MI</option>
+      </select>
       <button id="addCustomClassBtn">Add class block</button>
     </div>
 
     <div id="addEventForm">
       <h2>Add Calendar Event</h2>
       <input id="newEventTitle" placeholder="Event title" />
-      <input id="newEventStart" type="date" placeholder="Start date" />
-      <input id="newEventEnd" type="date" placeholder="End date" />
-      <input id="newEventLocation" placeholder="Location (IN or MI)" />
+      <input id="newEventStart" type="date" />
+      <input id="newEventEnd" type="date" />
+      <select id="newEventLocation">
+        <option value="IN">IN</option>
+        <option value="MI">MI</option>
+      </select>
+      <select id="newEventInstructor">
+        <option value="">TBD</option>
+      </select>
+      <label><input type="checkbox" id="saveAsTemplate" /> Save this class as draggable template</label>
       <button id="addNewEventBtn">Add event to calendar</button>
+    </div>
+
+    <div id="legendPanel">
+      <h2>Instructor Legend</h2>
+      <div id="colorLegend"></div>
     </div>
   </div>
 

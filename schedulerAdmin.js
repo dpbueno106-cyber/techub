@@ -1,12 +1,91 @@
 let currentSchedule = [];
 let adminCalendar;
 let externalEventsContainer;
+let externalEventDraggable;
 let newClassNameInput;
 let newClassLocationInput;
 let newEventTitleInput;
 let newEventStartInput;
 let newEventEndInput;
 let newEventLocationInput;
+let newEventInstructorSelect;
+let saveAsTemplateCheckbox;
+
+const templateMap = new Map();
+const instructorColorMap = new Map();
+const paletteColors = [
+  "#4fc3f7",
+  "#f06292",
+  "#ffca28",
+  "#81c784",
+  "#ba68c8",
+  "#ff8a65",
+  "#4db6ac",
+  "#9575cd"
+];
+
+function getInstructorColor(name) {
+  if (!name) {
+    return "#9e9e9e";
+  }
+
+  if (!instructorColorMap.has(name)) {
+    const used = Array.from(instructorColorMap.values());
+    const next = paletteColors.find(color => !used.includes(color)) || "#9e9e9e";
+    instructorColorMap.set(name, next);
+  }
+
+  return instructorColorMap.get(name);
+}
+
+function buildInstructorLegend(schedule) {
+  const legend = document.getElementById("colorLegend");
+  if (!legend) return;
+
+  const names = Array.from(
+    new Set(schedule.map(slot => slot.instructorName).filter(Boolean))
+  );
+
+  legend.innerHTML = names
+    .map(name => `
+      <div class="legend-item">
+        <span class="legend-color" style="background:${getInstructorColor(name)}"></span>
+        ${name}
+      </div>
+    `)
+    .join("");
+}
+
+function addTemplateToPalette(template) {
+  const key = `${template.classId}-${template.location}-${template.className}`;
+  if (templateMap.has(key)) return;
+  templateMap.set(key, template);
+
+  const eventEl = document.createElement("div");
+  eventEl.className = "external-event";
+  eventEl.dataset.id = template.classId;
+  eventEl.dataset.location = template.location;
+  eventEl.innerText = `${template.className} (${template.location})`;
+  externalEventsContainer.appendChild(eventEl);
+  makeExternalEventsDraggable();
+}
+
+function updateInstructorSelect(schedule) {
+  if (!newEventInstructorSelect) return;
+
+  const names = Array.from(
+    new Set(schedule.map(slot => slot.instructorName).filter(Boolean))
+  );
+
+  newEventInstructorSelect.innerHTML = `<option value="">TBD</option>` +
+    names.map(name => `<option value="${name}">${name}</option>`).join("");
+}
+
+function addDays(dateString, days) {
+  const date = new Date(dateString);
+  date.setDate(date.getDate() + days);
+  return date.toISOString().split("T")[0];
+}
 
 function goBack() {
   window.location.href = "adminDashboard.html";
@@ -20,6 +99,7 @@ async function generateSchedule() {
     renderSchedule(schedule);
     renderCalendar(schedule);
     buildExternalEventList(schedule);
+    buildInstructorLegend(schedule);
   } catch (err) {
     console.error("Error fetching schedule:", err);
     alert("Failed to load schedule from the backend.");
@@ -119,17 +199,21 @@ function addDays(dateString, days) {
 function mapScheduleToCalendarEvents(schedule) {
   return schedule
     .filter(slot => slot.weekStartDate && slot.weekEndDate)
-    .map((slot, index) => ({
-      id: `event-${slot.weekNumber || index}-${slot.classId}-${index}`,
-      title: `${slot.className} ${slot.location || ""}`.trim(),
-      start: slot.weekStartDate,
-      end: addDays(slot.weekEndDate, 1),
-      allDay: true,
-      backgroundColor: slot.location === "MI" ? "#f06292" : "#4fc3f7",
-      extendedProps: {
-        ...slot
-      }
-    }));
+    .map((slot, index) => {
+      const instructorName = slot.instructorName || "";
+      return {
+        id: `event-${slot.weekNumber || index}-${slot.classId}-${index}`,
+        title: `${slot.className} ${slot.location || ""}`.trim(),
+        start: slot.weekStartDate,
+        end: addDays(slot.weekEndDate, 1),
+        allDay: true,
+        backgroundColor: instructorName ? getInstructorColor(instructorName) : (slot.location === "MI" ? "#f06292" : "#4fc3f7"),
+        textColor: "#121212",
+        extendedProps: {
+          ...slot
+        }
+      };
+    });
 }
 
 function renderCalendar(schedule) {
@@ -141,29 +225,23 @@ function renderCalendar(schedule) {
 function buildExternalEventList(schedule) {
   if (!externalEventsContainer) return;
 
+  templateMap.clear();
+  externalEventsContainer.innerHTML = `<h2>Draggable Classes</h2>`;
+
   const unique = new Map();
   schedule.forEach(slot => {
     const key = `${slot.classId || slot.className}-${slot.location}`;
     if (!unique.has(key)) {
       unique.set(key, {
-        id: slot.classId || slot.className,
-        name: slot.className,
+        classId: slot.classId || slot.className,
+        className: slot.className || slot.classId,
         location: slot.location || "IN"
       });
     }
   });
 
-  const html = [
-    `<h2>Draggable Classes</h2>`,
-    ...Array.from(unique.values()).map(cls => `
-      <div class="external-event" data-id="${cls.id}" data-location="${cls.location}">
-        ${cls.name} (${cls.location})
-      </div>
-    `)
-  ];
-
-  externalEventsContainer.innerHTML = html.join("");
-  makeExternalEventsDraggable();
+  unique.forEach(template => addTemplateToPalette(template));
+  updateInstructorSelect(schedule);
 }
 
 function makeExternalEventsDraggable() {
@@ -171,18 +249,26 @@ function makeExternalEventsDraggable() {
     return;
   }
 
-  new FullCalendar.Draggable(externalEventsContainer, {
+  if (externalEventDraggable && typeof externalEventDraggable.destroy === "function") {
+    externalEventDraggable.destroy();
+  }
+
+  externalEventDraggable = new FullCalendar.Draggable(externalEventsContainer, {
     itemSelector: ".external-event",
     eventData(eventEl) {
+      const instructorName = eventEl.dataset.instructor || null;
+      const title = eventEl.innerText.trim();
       return {
-        title: eventEl.innerText.trim(),
+        title,
         allDay: true,
+        backgroundColor: instructorName ? getInstructorColor(instructorName) : "#4fc3f7",
+        textColor: "#121212",
         extendedProps: {
-          classId: eventEl.dataset.id || eventEl.innerText.trim(),
-          className: eventEl.innerText.trim(),
+          classId: eventEl.dataset.id || title,
+          className: title,
           location: eventEl.dataset.location || "IN",
-          instructorId: null,
-          instructorName: null,
+          instructorId: instructorName ? instructorName.toLowerCase().replace(/\s+/g, "-") : null,
+          instructorName,
           category: "CUSTOM",
           level: "Foundational",
           durationWeeks: 1
@@ -203,6 +289,8 @@ function setupAddEventForm() {
   const startInput = document.getElementById("newEventStart");
   const endInput = document.getElementById("newEventEnd");
   const locationInput = document.getElementById("newEventLocation");
+  newEventInstructorSelect = document.getElementById("newEventInstructor");
+  saveAsTemplateCheckbox = document.getElementById("saveAsTemplate");
   const addButton = document.getElementById("addNewEventBtn");
 
   if (!titleInput || !startInput || !endInput || !locationInput || !addButton) return;
@@ -211,36 +299,52 @@ function setupAddEventForm() {
     const title = titleInput.value.trim();
     const start = startInput.value;
     const end = endInput.value;
-    const location = locationInput.value.trim().toUpperCase();
+    const location = locationInput.value;
+    const instructorName = newEventInstructorSelect?.value || null;
+    const saveTemplate = saveAsTemplateCheckbox?.checked;
 
     if (!title || !start || !end || !["IN", "MI"].includes(location)) {
       alert("Please enter a title, valid start/end dates, and location IN or MI.");
       return;
     }
 
-    adminCalendar.addEvent({
+    const eventData = {
       title: `${title} (${location})`,
       start,
       end: addDays(end, 1),
       allDay: true,
-      backgroundColor: location === "MI" ? "#f06292" : "#4fc3f7",
+      backgroundColor: instructorName ? getInstructorColor(instructorName) : "#4fc3f7",
+      textColor: "#121212",
       extendedProps: {
         classId: title.toLowerCase().replace(/\s+/g, "-"),
         className: title,
         location,
-        instructorId: null,
-        instructorName: null,
+        instructorId: instructorName ? instructorName.toLowerCase().replace(/\s+/g, "-") : null,
+        instructorName,
         category: "CUSTOM",
         level: "Foundational",
         durationWeeks: 1
       }
-    });
+    };
 
+    adminCalendar.addEvent(eventData);
     syncScheduleFromCalendar();
+
+    if (saveTemplate) {
+      addTemplateToPalette({
+        classId: eventData.extendedProps.classId,
+        className: title,
+        location,
+        instructorName
+      });
+    }
+
     titleInput.value = "";
     startInput.value = "";
     endInput.value = "";
-    locationInput.value = "";
+    locationInput.value = "IN";
+    if (newEventInstructorSelect) newEventInstructorSelect.value = "";
+    if (saveAsTemplateCheckbox) saveAsTemplateCheckbox.checked = false;
   });
 }
 
@@ -275,6 +379,7 @@ function syncScheduleFromCalendar() {
 
   currentSchedule = updatedSchedule;
   renderSchedule(currentSchedule);
+  buildInstructorLegend(currentSchedule);
   return currentSchedule;
 }
 
@@ -292,13 +397,11 @@ function setupNewClassButton() {
       return;
     }
 
-    const eventEl = document.createElement("div");
-    eventEl.className = "external-event";
-    eventEl.dataset.id = className.toLowerCase().replace(/\s+/g, "-");
-    eventEl.dataset.location = classLocation;
-    eventEl.textContent = `${className} (${classLocation})`;
-    externalEventsContainer.appendChild(eventEl);
-    makeExternalEventsDraggable();
+    addTemplateToPalette({
+      classId: className.toLowerCase().replace(/\s+/g, "-"),
+      className,
+      location: classLocation
+    });
     newClassNameInput.value = "";
     newClassLocationInput.value = "";
   });
