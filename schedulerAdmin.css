@@ -44,11 +44,16 @@ button:hover {
 
 /*  Card for each schedule item */
 .scheduleCard {
-  padding: 15px;
-  border-radius: 8px;
-  border: 1px solid #333;
-  background-color: #1e1e1e;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  background-color: #2a2a2a;
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  border-left: 5px solid transparent;
+
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 /*  Hover effect */
@@ -106,4 +111,71 @@ span[id^="assigned-"] {
 
 .saveBtn:hover {
   background-color: #3e8e41;
+}
+/*  Calendar layout container */
+#scheduleContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+}
+
+/*  Each week column */
+.weekColumn {
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  padding: 10px;
+  border: 1px solid #333;
+  .weekColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+}
+
+/*  Week title */
+.weekColumn h3 {
+  text-align: center;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #444;
+  padding-bottom: 5px;
+}
+
+/*  Each class card inside a week */
+.scheduleCard {
+  background-color: #2a2a2a;
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  border-left: 5px solid transparent;
+}
+
+/*  Location color accents */
+.scheduleCard.IN {
+  border-left-color: #4fc3f7;
+}
+
+.scheduleCard.MI {
+  border-left-color: #f06292;
+}
+
+/*  Dropdown */
+select {
+  width: 100%;
+  margin-top: 5px;
+}
+.cardHeader {
+  font-weight: bold;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.className {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.assigned {
+  font-size: 12px;
 }

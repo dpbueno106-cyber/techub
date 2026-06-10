@@ -19,26 +19,58 @@ function renderSchedule(schedule) {
   const container = document.getElementById("scheduleContainer");
   container.innerHTML = "";
 
-  schedule.forEach((slot, index) => {
+  //  Group by week
+  const weeks = {};
 
-    const card = document.createElement("div");
-    card.className = "scheduleCard";
-
-    card.innerHTML = `
-      <h3>Week ${slot.weekNumber} - ${slot.location}</h3>
-      <p><strong>Class:</strong> ${slot.className}</p>
-      <p><strong>Assigned:</strong> <span id="assigned-${index}">
-        ${slot.instructorId || "None"}
-      </span></p>
-
-      <label>Change Instructor:</label>
-      <select onchange="updateInstructor(${index}, this.value)">
-        ${buildOptions(slot)}
-      </select>
-    `;
-    card.classList.add(slot.location);
-    container.appendChild(card);
+  schedule.forEach(slot => {
+    if (!weeks[slot.weekNumber]) {
+      weeks[slot.weekNumber] = [];
+    }
+    weeks[slot.weekNumber].push(slot);
   });
+
+  //  Render each week as a column
+  Object.keys(weeks)
+    .sort((a, b) => Number(a) - Number(b))
+    .forEach(weekNumber => {
+
+      const weekCol = document.createElement("div");
+      weekCol.className = "weekColumn";
+
+      weekCol.innerHTML = `<h3>Week ${weekNumber}</h3>`;
+
+      weeks[weekNumber].forEach((slot, index) => {
+
+        const card = document.createElement("div");
+        card.className = `scheduleCard ${slot.location}`;
+
+        card.innerHTML = `
+  <div class="cardHeader">
+    ${slot.location}
+  </div>
+
+  <div class="className">
+    ${slot.className}
+  </div>
+
+  <div class="assigned">
+    Assigned: 
+    <span id="assigned-${weekNumber}-${index}">
+      ${slot.instructorId || "None"}
+    </span>
+  </div>
+
+  <select onchange="updateInstructorByWeek('${weekNumber}', ${index}, this.value)">
+    ${buildOptions(slot)}
+  </select>
+`;
+
+
+        weekCol.appendChild(card);
+      });
+
+      container.appendChild(weekCol);
+    });
 }
 
 function buildOptions(slot) {
@@ -50,16 +82,29 @@ function buildOptions(slot) {
     </option>
   `).join("");
 }
-function updateInstructor(index, instructorId) {
+function updateInstructorByWeek(weekNumber, index, instructorId) {
 
-  const assignedSpan = document.getElementById(`assigned-${index}`);
-  assignedSpan.textContent = instructorId;
+  const span = document.getElementById(
+    `assigned-${weekNumber}-${index}`
+  );
 
-  // ✅ Update local schedule data
-  currentSchedule[index].instructorId = instructorId;
+  span.textContent = instructorId;
 
-  console.log("Updated slot", index, "→", instructorId);
+  // ✅ Update your stored data too
+  const slot = currentSchedule.find(
+    (s, i) =>
+      s.weekNumber == weekNumber &&
+      currentSchedule
+        .filter(x => x.weekNumber == weekNumber)[index] === s
+  );
+
+  if (slot) {
+    slot.instructorId = instructorId;
+  }
+
+  console.log("Updated", weekNumber, index, instructorId);
 }
+
 async function saveSchedule() {
   try {
     await fetch("http://localhost:3000/saveSchedule", {
