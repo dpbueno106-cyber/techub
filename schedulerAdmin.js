@@ -36,7 +36,7 @@ function renderSchedule(schedule) {
         ${buildOptions(slot)}
       </select>
     `;
-
+    card.classList.add(slot.location);
     container.appendChild(card);
   });
 }
