@@ -2,6 +2,10 @@
 <html>
 <head>
   <title>Scheduler Admin</title>
+  <link
+    href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css"
+    rel="stylesheet"
+  />
   <link rel="stylesheet" href="schedulerAdmin.css">
 </head>
 <body>
@@ -14,9 +18,37 @@
   <br><br>
 
   <button onclick="generateSchedule()">Generate Schedule</button>
-<button onclick="saveSchedule()"> Save Schedule</button>
+  <button onclick="saveSchedule()" class="saveBtn">Save Schedule</button>
+
+  <div id="builderPanel">
+    <div id="externalEvents">
+      <h2>Draggable Classes</h2>
+      <div class="external-event" data-id="basic" data-location="IN">Basic Hydraulics (IN)</div>
+      <div class="external-event" data-id="advanced" data-location="MI">Advanced Hydraulics (MI)</div>
+      <div class="external-event" data-id="NTO" data-location="IN">New Technician Orientation (NTO)</div>
+    </div>
+
+    <div id="newClassForm">
+      <h2>Add a Class Block</h2>
+      <input id="newClassName" placeholder="Class name" />
+      <input id="newClassLocation" placeholder="Location (IN or MI)" />
+      <button id="addCustomClassBtn">Add class block</button>
+    </div>
+
+    <div id="addEventForm">
+      <h2>Add Calendar Event</h2>
+      <input id="newEventTitle" placeholder="Event title" />
+      <input id="newEventStart" type="date" placeholder="Start date" />
+      <input id="newEventEnd" type="date" placeholder="End date" />
+      <input id="newEventLocation" placeholder="Location (IN or MI)" />
+      <button id="addNewEventBtn">Add event to calendar</button>
+    </div>
+  </div>
+
+  <div id="adminCalendar"></div>
   <div id="scheduleContainer"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
   <script src="schedulerAdmin.js"></script>
 
 </body>
