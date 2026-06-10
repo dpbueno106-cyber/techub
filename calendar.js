@@ -1,7 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-analytics.js";
 
-const instructorList = document.getElementById("instructorList");
 const backBtn = document.getElementById("backBtn");
 const firebaseConfig = {
   apiKey: "AIzaSyD9i5yfE80MAsiri8SwiRCFParRb9jPyzY",
@@ -13,28 +14,51 @@ const firebaseConfig = {
   measurementId: "G-PQ5RJ1V0BB"
 };
 
-
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
-const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const backBtn = document.getElementById("backBtn");
+
+let currentRole = null;
+
+async function loadUserRole(user) {
+  if (!user) {
+    currentRole = null;
+    return;
+  }
+
+  try {
+    const docRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) {
+      console.warn("User document not found for uid:", user.uid);
+      currentRole = null;
+      return;
+    }
+
+    currentRole = docSnap.data().role;
+  } catch (error) {
+    console.error("Failed to load role:", error);
+    currentRole = null;
+  }
+}
+
+onAuthStateChanged(auth, (user) => {
+  loadUserRole(user);
+});
 
 document.addEventListener("DOMContentLoaded", function () {
-const calendarEl = document.getElementById("calendar");
-const calendar = new FullCalendar.Calendar(calendarEl, {
+  const calendarEl = document.getElementById("calendar");
+  const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: "timeGridWeek",
     height: "auto",
-
     headerToolbar: {
       left: "prev,next today",
       center: "title",
       right: "dayGridMonth,timeGridWeek,timeGridDay"
     },
-
-    // ✅ Placeholder events (for now)
     events: [
       {
         title: "Teaching",
@@ -50,23 +74,22 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
   });
 
   calendar.render();
-});
 
-backBtn.addEventListener("click", () => {
-  if (!docSnap || !docSnap.exists()) {
-    console.error("User document not found");
-    return;
-  }
+  if (backBtn) {
+    backBtn.addEventListener("click", () => {
+      if (!currentRole) {
+        console.error("Unable to determine role. Please log in again.");
+        return;
+      }
 
-  const role = docSnap.data().role;
-  console.log("ROLE:", role);
-
-  if (role === "instructor") {
-    window.location.href = "userDashboard.html";
-  } else if (role === "admin") {
-    window.location.href = "adminDashboard.html";
-  } else {
-    console.warn("Unknown role:", role);
+      if (currentRole === "instructor") {
+        window.location.href = "userDashboard.html";
+      } else if (currentRole === "admin") {
+        window.location.href = "adminDashboard.html";
+      } else {
+        console.warn("Unknown role:", currentRole);
+      }
+    });
   }
 });
 
