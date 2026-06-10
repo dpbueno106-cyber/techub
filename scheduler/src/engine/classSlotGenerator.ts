@@ -79,7 +79,9 @@ function buildSlot(cls: ClassDefinition, week: WeekSlot): ClassSlot {
     category: cls.category,
     level: cls.level,
     durationWeeks: cls.durationWeeks,
-    instructorId: null
+    instructorId: null,
+    weekStartDate: week.startDate,
+    weekEndDate: week.endDate
   };
 }
 ``

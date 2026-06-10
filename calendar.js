@@ -21,10 +21,14 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 let currentRole = null;
+let currentUserSlug = null;
+let calendar = null;
+let calendarReady = false;
 
 async function loadUserRole(user) {
   if (!user) {
     currentRole = null;
+    currentUserSlug = null;
     return;
   }
 
@@ -35,13 +39,65 @@ async function loadUserRole(user) {
     if (!docSnap.exists()) {
       console.warn("User document not found for uid:", user.uid);
       currentRole = null;
+      currentUserSlug = null;
       return;
     }
 
     currentRole = docSnap.data().role;
+    currentUserSlug = user.email?.split("@")[0]?.toLowerCase() || null;
+    await loadScheduleIntoCalendar();
   } catch (error) {
     console.error("Failed to load role:", error);
     currentRole = null;
+    currentUserSlug = null;
+  }
+}
+
+function addDays(dateString, days) {
+  const date = new Date(dateString);
+  date.setDate(date.getDate() + days);
+  return date.toISOString().split("T")[0];
+}
+
+function mapScheduleToEvents(schedule) {
+  const normalizedInstructor = currentUserSlug;
+  let filtered = schedule;
+
+  if (currentRole === "instructor" && normalizedInstructor) {
+    filtered = schedule.filter(slot => {
+      const slotId = slot.instructorId?.toLowerCase();
+      const slotName = slot.instructorName?.toLowerCase();
+      return slotId === normalizedInstructor || slotName === normalizedInstructor;
+    });
+  }
+
+  return filtered
+    .filter(slot => slot.instructorId)
+    .map(slot => ({
+      title: `${slot.className} — ${slot.location} (${slot.instructorName ?? slot.instructorId})`,
+      start: slot.weekStartDate,
+      end: addDays(slot.weekEndDate, 1),
+      allDay: true,
+      extendedProps: {
+        location: slot.location,
+        instructorId: slot.instructorId,
+        instructorName: slot.instructorName
+      }
+    }));
+}
+
+async function loadScheduleIntoCalendar() {
+  if (!calendarReady || !calendar) return;
+
+  try {
+    const response = await fetch("http://localhost:3000/schedule");
+    const schedule = await response.json();
+    const events = mapScheduleToEvents(schedule);
+
+    calendar.removeAllEvents();
+    calendar.addEventSource(events);
+  } catch (error) {
+    console.error("Unable to load schedule:", error);
   }
 }
 
@@ -51,7 +107,7 @@ onAuthStateChanged(auth, (user) => {
 
 document.addEventListener("DOMContentLoaded", function () {
   const calendarEl = document.getElementById("calendar");
-  const calendar = new FullCalendar.Calendar(calendarEl, {
+  calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: "timeGridWeek",
     height: "auto",
     headerToolbar: {
@@ -59,21 +115,12 @@ document.addEventListener("DOMContentLoaded", function () {
       center: "title",
       right: "dayGridMonth,timeGridWeek,timeGridDay"
     },
-    events: [
-      {
-        title: "Teaching",
-        start: "2026-03-18T09:00:00",
-        end: "2026-03-18T11:00:00"
-      },
-      {
-        title: "Teaching",
-        start: "2026-03-19T13:00:00",
-        end: "2026-03-19T15:00:00"
-      }
-    ]
+    events: []
   });
 
   calendar.render();
+  calendarReady = true;
+  loadScheduleIntoCalendar();
 
   if (backBtn) {
     backBtn.addEventListener("click", () => {

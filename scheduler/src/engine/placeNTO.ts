@@ -40,7 +40,9 @@ export function placeNTO(
             category: "NTO",
             level: "Foundational",
             durationWeeks: 2,
-            instructorId: null
+            instructorId: null,
+            weekStartDate: week1.startDate,
+            weekEndDate: week1.endDate
           });
         });
 

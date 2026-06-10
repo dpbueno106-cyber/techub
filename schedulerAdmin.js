@@ -56,7 +56,7 @@ function renderSchedule(schedule) {
   <div class="assigned">
     Assigned: 
     <span id="assigned-${weekNumber}-${index}">
-      ${slot.instructorId || "None"}
+      ${slot.instructorName ? slot.instructorName.toUpperCase() : "None"}
     </span>
   </div>
 
@@ -78,7 +78,7 @@ function buildOptions(slot) {
 
   return slot.recommendedInstructors.map(r => `
     <option value="${r.id}">
-      ${r.id} (score: ${r.score})
+      ${r.name ? r.name.toUpperCase() : r.id.toUpperCase()} (score: ${r.score})
     </option>
   `).join("");
 }
@@ -88,7 +88,7 @@ function updateInstructorByWeek(weekNumber, index, instructorId) {
     `assigned-${weekNumber}-${index}`
   );
 
-  span.textContent = instructorId;
+  span.textContent = instructorId.toUpperCase();
 
   // ✅ Update your stored data too
   const slot = currentSchedule.find(
@@ -99,7 +99,9 @@ function updateInstructorByWeek(weekNumber, index, instructorId) {
   );
 
   if (slot) {
+    const instructor = slot.recommendedInstructors?.find(r => r.id === instructorId);
     slot.instructorId = instructorId;
+    slot.instructorName = instructor?.name ?? instructorId;
   }
 
   console.log("Updated", weekNumber, index, instructorId);

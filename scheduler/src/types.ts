@@ -33,6 +33,12 @@ export interface ClassDefinition {
   isActive: boolean;
 }
 
+export interface RecommendedInstructor {
+  id: string;
+  name?: string;
+  score: number;
+}
+
 export interface ClassSlot {
   weekNumber: number;
   location: Location;
@@ -42,6 +48,10 @@ export interface ClassSlot {
   level: ClassLevel;
   durationWeeks: number;
   instructorId: string | null;
+  weekStartDate: string;
+  weekEndDate: string;
+  instructorName?: string | null;
+  recommendedInstructors?: RecommendedInstructor[];
 }
 
 export interface Instructor {

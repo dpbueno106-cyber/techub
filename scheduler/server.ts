@@ -47,6 +47,22 @@ const instructors: Instructor[] = [
   { id: "kalob", name: "Kalob", homeLocation: "MI", canTravel: true }
 ];
 
+function addInstructorNames(schedule: any[]) {
+  return schedule.map(slot => {
+    const instructor = instructors.find(i => i.id === slot.instructorId);
+    const namedRecommended = slot.recommendedInstructors?.map((item: any) => ({
+      ...item,
+      name: instructors.find(i => i.id === item.id)?.name || item.id
+    }));
+
+    return {
+      ...slot,
+      instructorName: instructor?.name ?? slot.instructorName ?? null,
+      recommendedInstructors: namedRecommended ?? slot.recommendedInstructors
+    };
+  });
+}
+
 // Route
 app.get("/schedule", async (req, res) => {
   try {
@@ -55,12 +71,12 @@ app.get("/schedule", async (req, res) => {
 
     //  If saved schedule exists → return it
     if (doc.exists) {
-      return res.json(doc.data()?.schedule);
+      return res.json(addInstructorNames(doc.data()?.schedule ?? []));
     }
 
     // Otherwise generate new
     const schedule = generateSchedule(config, catalog, instructors);
-    res.json(schedule);
+    res.json(addInstructorNames(schedule));
 
   } catch (err) {
     console.error(err);
