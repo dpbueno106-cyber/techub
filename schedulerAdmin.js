@@ -16,6 +16,15 @@ let adminInstructorList = [];
 let customTemplates = [];
 let previewSchedule = [];
 let selectedCalendarEvent = null;
+let eventEditMenu = null;
+let editEventTitleInput = null;
+let editEventLocationSelect = null;
+let editEventInstructorSelect = null;
+let saveEventBtn = null;
+let addToScheduleBtn = null;
+let deleteEventBtn = null;
+let closeEventMenuBtn = null;
+let eventTempNotice = null;
 
 const defaultInstructorNames = [
   "Aaron",
