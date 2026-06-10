@@ -81,20 +81,27 @@ select {
   font-size: 14px;
 }
 #builderPanel {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 20px;
   margin: 20px 0;
 }
 
 #externalEvents,
 #newClassForm,
-#addEventForm {
+#addEventForm,
+#legendPanel {
   background: #1e1e1e;
   border: 1px solid #333;
-  border-radius: 8px;
-  padding: 15px;
-  min-width: 240px;
+  border-radius: 10px;
+  padding: 18px;
+  min-width: 260px;
+}
+
+#legendPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 #externalEvents h2,
@@ -191,7 +198,7 @@ span[id^="assigned-"] {
 /*  Calendar layout container */
 #scheduleContainer {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 15px;
   margin-top: 20px;
 }
@@ -202,11 +209,9 @@ span[id^="assigned-"] {
   border-radius: 8px;
   padding: 10px;
   border: 1px solid #333;
-  .weekColumn {
   display: flex;
   flex-direction: column;
   gap: 10px;
-}
 }
 
 /*  Week title */
@@ -215,6 +220,78 @@ span[id^="assigned-"] {
   margin-bottom: 10px;
   border-bottom: 1px solid #444;
   padding-bottom: 5px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #111;
+  border: 1px solid #333;
+}
+
+.legend-color {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  display: inline-block;
+  border: 1px solid #333;
+}
+
+.legend-label {
+  color: #fff;
+  font-size: 14px;
+}
+
+.legend-empty {
+  color: #ccc;
+  font-size: 14px;
+  padding: 8px 10px;
+}
+
+input,
+select,
+button {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#newClassForm input,
+#addEventForm input,
+#newClassForm select,
+#addEventForm select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background: #121212;
+  color: #fff;
+}
+
+#newClassForm button,
+#addEventForm button,
+button.saveBtn,
+button:hover {
+  width: auto;
+}
+
+#adminCalendar {
+  background: #1c1c1c;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 14px;
+  min-height: 620px;
+}
+
+#legendPanel h2,
+#externalEvents h2,
+#newClassForm h2,
+#addEventForm h2 {
+  font-size: 18px;
+  letter-spacing: 0.02em;
 }
 
 /*  Each class card inside a week */
@@ -242,9 +319,20 @@ select {
   margin-top: 5px;
 }
 .cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-weight: bold;
   font-size: 12px;
-  opacity: 0.8;
+  opacity: 0.9;
+}
+
+.scheduleColorChip {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid #222;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.05);
 }
 
 .className {

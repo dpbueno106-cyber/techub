@@ -46,11 +46,16 @@ function buildInstructorLegend(schedule) {
     new Set(schedule.map(slot => slot.instructorName).filter(Boolean))
   );
 
+  if (names.length === 0) {
+    legend.innerHTML = `<div class="legend-empty">No instructor assignments yet</div>`;
+    return;
+  }
+
   legend.innerHTML = names
     .map(name => `
       <div class="legend-item">
         <span class="legend-color" style="background:${getInstructorColor(name)}"></span>
-        ${name}
+        <span class="legend-label">${name}</span>
       </div>
     `)
     .join("");
@@ -131,9 +136,11 @@ function renderSchedule(schedule) {
       weeks[weekNumber].forEach((slot, index) => {
         const card = document.createElement("div");
         card.className = `scheduleCard ${slot.location || ""}`;
+        const color = slot.instructorName ? getInstructorColor(slot.instructorName) : (slot.location === "MI" ? "#f06292" : "#4fc3f7");
 
         card.innerHTML = `
   <div class="cardHeader">
+    <span class="scheduleColorChip" style="background:${color}"></span>
     ${slot.location || "TBD"}
   </div>
 
@@ -201,13 +208,18 @@ function mapScheduleToCalendarEvents(schedule) {
     .filter(slot => slot.weekStartDate && slot.weekEndDate)
     .map((slot, index) => {
       const instructorName = slot.instructorName || "";
+      const titleParts = [`${slot.className} ${slot.location || ""}`.trim()];
+      if (instructorName) {
+        titleParts.push(`(${instructorName})`);
+      }
       return {
         id: `event-${slot.weekNumber || index}-${slot.classId}-${index}`,
-        title: `${slot.className} ${slot.location || ""}`.trim(),
+        title: titleParts.join(" "),
         start: slot.weekStartDate,
         end: addDays(slot.weekEndDate, 1),
         allDay: true,
         backgroundColor: instructorName ? getInstructorColor(instructorName) : (slot.location === "MI" ? "#f06292" : "#4fc3f7"),
+        borderColor: "#222",
         textColor: "#121212",
         extendedProps: {
           ...slot
