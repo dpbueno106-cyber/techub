@@ -11,6 +11,22 @@ let newEventLocationInput;
 let newEventInstructorSelect;
 let saveAsTemplateCheckbox;
 
+let adminCourseCatalog = [];
+let adminInstructorList = [];
+let customTemplates = [];
+
+const defaultInstructorNames = [
+  "Aaron",
+  "Jesse",
+  "Marc",
+  "Leon",
+  "Mike",
+  "Brandon",
+  "Brad",
+  "Graham",
+  "Kalob"
+];
+
 const templateMap = new Map();
 const instructorColorMap = new Map();
 const paletteColors = [
@@ -70,20 +86,53 @@ function addTemplateToPalette(template) {
   eventEl.className = "external-event";
   eventEl.dataset.id = template.classId;
   eventEl.dataset.location = template.location;
+  eventEl.dataset.category = template.category || "CUSTOM";
+  eventEl.dataset.level = template.level || "Foundational";
+  eventEl.dataset.durationWeeks = String(template.durationWeeks ?? 1);
+  eventEl.dataset.instructor = template.instructorName || "";
   eventEl.innerText = `${template.className} (${template.location})`;
   externalEventsContainer.appendChild(eventEl);
   makeExternalEventsDraggable();
 }
 
+async function loadCatalogAndInstructors() {
+  try {
+    const [catalogRes, instructorRes] = await Promise.all([
+      fetch("http://localhost:3000/catalog"),
+      fetch("http://localhost:3000/instructors")
+    ]);
+
+    if (!catalogRes.ok || !instructorRes.ok) {
+      throw new Error("Failed to load catalog or instructors");
+    }
+
+    adminCourseCatalog = await catalogRes.json();
+    adminInstructorList = await instructorRes.json();
+    updateInstructorSelect(currentSchedule);
+    buildExternalEventList(currentSchedule);
+  } catch (err) {
+    console.warn("Could not load catalog or instructors:", err);
+    updateInstructorSelect(currentSchedule);
+  }
+}
+
 function updateInstructorSelect(schedule) {
   if (!newEventInstructorSelect) return;
 
-  const names = Array.from(
+  const scheduleNames = Array.from(
     new Set(schedule.map(slot => slot.instructorName).filter(Boolean))
   );
 
+  const instructorNames = Array.from(
+    new Set((adminInstructorList || []).map(i => i.name).filter(Boolean))
+  );
+
+  const allNames = Array.from(
+    new Set([...defaultInstructorNames, ...instructorNames, ...scheduleNames])
+  );
+
   newEventInstructorSelect.innerHTML = `<option value="">TBD</option>` +
-    names.map(name => `<option value="${name}">${name}</option>`).join("");
+    allNames.map(name => `<option value="${name}">${name}</option>`).join("");
 }
 
 function addDays(dateString, days) {
@@ -240,19 +289,34 @@ function buildExternalEventList(schedule) {
   templateMap.clear();
   externalEventsContainer.innerHTML = `<h2>Draggable Classes</h2>`;
 
-  const unique = new Map();
-  schedule.forEach(slot => {
-    const key = `${slot.classId || slot.className}-${slot.location}`;
-    if (!unique.has(key)) {
-      unique.set(key, {
-        classId: slot.classId || slot.className,
-        className: slot.className || slot.classId,
-        location: slot.location || "IN"
+  if (adminCourseCatalog.length) {
+    adminCourseCatalog.forEach(course => {
+      addTemplateToPalette({
+        classId: course.id,
+        className: course.name,
+        location: course.defaultLocations?.[0] || "IN",
+        category: course.category,
+        level: course.level,
+        durationWeeks: course.durationWeeks
       });
-    }
-  });
+    });
+  } else {
+    const unique = new Map();
+    schedule.forEach(slot => {
+      const key = `${slot.classId || slot.className}-${slot.location}`;
+      if (!unique.has(key)) {
+        unique.set(key, {
+          classId: slot.classId || slot.className,
+          className: slot.className || slot.classId,
+          location: slot.location || "IN"
+        });
+      }
+    });
 
-  unique.forEach(template => addTemplateToPalette(template));
+    unique.forEach(template => addTemplateToPalette(template));
+  }
+
+  customTemplates.forEach(template => addTemplateToPalette(template));
   updateInstructorSelect(schedule);
 }
 
@@ -281,9 +345,9 @@ function makeExternalEventsDraggable() {
           location: eventEl.dataset.location || "IN",
           instructorId: instructorName ? instructorName.toLowerCase().replace(/\s+/g, "-") : null,
           instructorName,
-          category: "CUSTOM",
-          level: "Foundational",
-          durationWeeks: 1
+          category: eventEl.dataset.category || "CUSTOM",
+          level: eventEl.dataset.level || "Foundational",
+          durationWeeks: Number(eventEl.dataset.durationWeeks) || 1
         }
       };
     }
@@ -343,12 +407,17 @@ function setupAddEventForm() {
     syncScheduleFromCalendar();
 
     if (saveTemplate) {
-      addTemplateToPalette({
+      const customTemplate = {
         classId: eventData.extendedProps.classId,
         className: title,
         location,
-        instructorName
-      });
+        instructorName,
+        category: eventData.extendedProps.category,
+        level: eventData.extendedProps.level,
+        durationWeeks: eventData.extendedProps.durationWeeks
+      };
+      customTemplates.push(customTemplate);
+      addTemplateToPalette(customTemplate);
     }
 
     titleInput.value = "";
@@ -476,9 +545,10 @@ window.addEventListener("DOMContentLoaded", () => {
   newEventStartInput = document.getElementById("newEventStart");
   newEventEndInput = document.getElementById("newEventEnd");
   newEventLocationInput = document.getElementById("newEventLocation");
+  newEventInstructorSelect = document.getElementById("newEventInstructor");
 
   initializeAdminCalendar();
   setupNewClassButton();
   setupAddEventForm();
-  buildExternalEventList(currentSchedule);
+  loadCatalogAndInstructors();
 });

@@ -12,20 +12,15 @@
 
   <h1>Scheduler System</h1>
 
-  <!-- Back button -->
-  <button onclick="goBack()">Back to Admin</button>
-
-  <br><br>
-
-  <button onclick="generateSchedule()">Generate Schedule</button>
-  <button onclick="saveSchedule()" class="saveBtn">Save Schedule</button>
+  <div class="topControls">
+    <button onclick="goBack()">Back to Admin</button>
+    <button onclick="generateSchedule()">Generate Schedule</button>
+    <button onclick="saveSchedule()" class="saveBtn">Save Schedule</button>
+  </div>
 
   <div id="builderPanel">
     <div id="externalEvents">
       <h2>Draggable Classes</h2>
-      <div class="external-event" data-id="basic" data-location="IN">Basic Hydraulics (IN)</div>
-      <div class="external-event" data-id="advanced" data-location="MI">Advanced Hydraulics (MI)</div>
-      <div class="external-event" data-id="NTO" data-location="IN">New Technician Orientation (NTO)</div>
     </div>
 
     <div id="newClassForm">

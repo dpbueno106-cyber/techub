@@ -254,7 +254,6 @@ span[id^="assigned-"] {
 input,
 select,
 button {
-  width: 100%;
   box-sizing: border-box;
 }
 
@@ -276,6 +275,17 @@ button {
 button.saveBtn,
 button:hover {
   width: auto;
+}
+
+.topControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.topControls button {
+  min-width: 170px;
 }
 
 #adminCalendar {
