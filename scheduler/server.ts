@@ -21,7 +21,8 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 function addInstructorNames(schedule: any[]) {
   return schedule.map(slot => {
-    const instructor = instructors.find(i => i.id === slot.instructorId);
+    const instructorMap = new Map(instructors.map(i => [i.id, i.name]));
+    const instructor = instructorMap.get(slot.instructorId);
     const namedRecommended = slot.recommendedInstructors?.map((item: any) => ({
       ...item,
       name: instructors.find(i => i.id === item.id)?.name || item.id
@@ -55,7 +56,7 @@ app.get("/schedule", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch schedule" });
   }
 });
-let savedSchedule: any[] = [];
+//let savedSchedule: any[] = [];
 
 app.get("/catalog", (req, res) => {
   res.json(catalog);
@@ -68,19 +69,22 @@ app.get("/instructors", (req, res) => {
 app.post("/saveSchedule", async (req, res) => {
   try {
 
-    await db.collection("schedules").doc("current").set({
-      schedule: req.body,
-      updatedAt: new Date()
-    });
+  if (!Array.isArray(req.body)) {
+    return res.status(400).json({ error: "Invalid schedule format" });
+  }
 
-    res.json({ message: "Saved successfully" });
+  await db.collection("schedules").doc("current").set({
+     schedule: req.body,
+     updatedAt: new Date() 
+    });
+    res.json({ message: "Schedule saved successfully" });
 
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to save schedule" });
   }
 });
-
+    
 // Start server safely
 const server = app.listen(PORT, () => {
   console.log(` Server running at http://localhost:${PORT}`);

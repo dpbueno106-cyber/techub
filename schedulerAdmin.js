@@ -147,6 +147,7 @@ function goBack() {
 
 async function generateSchedule() {
   try {
+    
     const response = await fetch("http://localhost:3000/schedule");
     const schedule = await response.json();
     currentSchedule = schedule;
@@ -219,13 +220,11 @@ function renderSchedule(schedule) {
 function buildOptions(slot) {
   if (!slot.recommendedInstructors) return "<option>No options</option>";
 
-  return slot.recommendedInstructors
-    .map(r => `
-    <option value="${r.id}">
-      ${r.name ? r.name.toUpperCase() : r.id.toUpperCase()} (score: ${r.score})
+  return slot.recommendedInstructors.map(r => `
+     <option value="${r.id}">
+    ${r.name} (score: ${r.score} )
     </option>
-  `)
-    .join("");
+    `).join("");
 }
 
 function updateInstructorByWeek(weekNumber, index, instructorId) {
