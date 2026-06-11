@@ -21,12 +21,21 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 function addInstructorNames(schedule: any[]) {
   return schedule.map(slot => {
-    const instructorMap = new Map(instructors.map(i => [i.id, i.name]));
-    const instructor = instructorMap.get(slot.instructorId);
-    const namedRecommended = slot.recommendedInstructors?.map((item: any) => ({
-      ...item,
-      name: instructors.find(i => i.id === item.id)?.name || item.id
-    }));
+
+    const instructor = instructors.find(i => i.id === slot.instructorId);
+
+    const namedRecommended = slot.recommendedInstructors?.map((item: any) => {
+
+      // Handle BOTH cases safely
+      const id = typeof item === "string" ? item : item.id;
+
+      const found = instructors.find(i => i.id === id);
+
+      return {
+        ...(typeof item === "string" ? { id } : item),
+        name: found?.name || id
+      };
+    });
 
     return {
       ...slot,
