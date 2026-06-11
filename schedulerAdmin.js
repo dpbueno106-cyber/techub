@@ -348,16 +348,6 @@ function makeExternalEventsDraggable() {
   });
 }
 
-function getInstructorOptions(selected = "") {
-  const instructorNames = Array.from(
-    new Set((adminInstructorList || []).map(i => i.name).filter(Boolean))
-  );
-  const allNames = Array.from(new Set([...defaultInstructorNames, ...instructorNames]));
-  return allNames
-    .map(name => `<option value="${name}" ${name === selected ? "selected" : ""}>${name}</option>`)
-    .join("");
-}
-
 function deleteCalendarEvent(event) {
   if (!confirm(`Delete event "${event.title}"?`)) return;
   event.remove();
@@ -437,32 +427,30 @@ function syncScheduleFromCalendar() {
   if (!adminCalendar) return currentSchedule;
 
   const events = adminCalendar.getEvents();
-  const updatedSchedule = events
-    .filter(event => !event.extendedProps?.preview)
-    .map(event => {
-      const props = event.extendedProps || {};
-      const start = event.start;
-      const end = event.end || event.start;
-      const endDate = event.allDay && end ? new Date(end) : end;
-      if (event.allDay && endDate) {
-        endDate.setDate(endDate.getDate() - 1);
-      }
+  const updatedSchedule = events.map(event => {
+    const props = event.extendedProps || {};
+    const start = event.start;
+    const end = event.end || event.start;
+    const endDate = event.allDay && end ? new Date(end) : end;
+    if (event.allDay && endDate) {
+      endDate.setDate(endDate.getDate() - 1);
+    }
 
-      return {
-        classId: props.classId ?? event.title,
-        className: props.className ?? event.title,
-        category: props.category ?? "CUSTOM",
-        level: props.level ?? "Foundational",
-        durationWeeks: props.durationWeeks ?? 1,
-        location: props.location ?? "IN",
-        instructorId: props.instructorId ?? null,
-        instructorName: props.instructorName ?? null,
-        weekStartDate: start ? start.toISOString().split("T")[0] : null,
-        weekEndDate: endDate ? endDate.toISOString().split("T")[0] : null,
-        weekNumber: props.weekNumber ?? null,
-        recommendedInstructors: props.recommendedInstructors ?? []
-      };
-    });
+    return {
+      classId: props.classId ?? event.title,
+      className: props.className ?? event.title,
+      category: props.category ?? "CUSTOM",
+      level: props.level ?? "Foundational",
+      durationWeeks: props.durationWeeks ?? 1,
+      location: props.location ?? "IN",
+      instructorId: props.instructorId ?? null,
+      instructorName: props.instructorName ?? null,
+      weekStartDate: start ? start.toISOString().split("T")[0] : null,
+      weekEndDate: endDate ? endDate.toISOString().split("T")[0] : null,
+      weekNumber: props.weekNumber ?? null,
+      recommendedInstructors: props.recommendedInstructors ?? []
+    };
+  });
 
   currentSchedule = updatedSchedule;
   renderSchedule(currentSchedule);
