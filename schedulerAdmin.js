@@ -324,7 +324,7 @@ function renderCalendar(schedule) {
   updateInstructorSelect(schedule);
 }
 */
-/*
+
 function makeExternalEventsDraggable() {
   if (!externalEventsContainer || typeof FullCalendar === "undefined" || !FullCalendar.Draggable) {
     return;
@@ -358,7 +358,7 @@ function makeExternalEventsDraggable() {
     }
   });
 }
-*/
+
 function deleteCalendarEvent(event) {
   if (!confirm(`Delete event "${event.title}"?`)) return;
   event.remove();
