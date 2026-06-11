@@ -1,4 +1,4 @@
-/*  Global layout */
+/* ✅ GLOBAL */
 body {
   font-family: Arial, sans-serif;
   background-color: #121212;
@@ -7,15 +7,20 @@ body {
   padding: 20px;
 }
 
-/*  Header */
 h1 {
   margin-bottom: 20px;
 }
 
-/*  Buttons */
+/* ✅ TOP BUTTONS */
+.topControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
 button {
   padding: 10px 20px;
-  margin-bottom: 10px;
   background-color: #ffd400;
   border: none;
   color: black;
@@ -23,63 +28,111 @@ button {
   border-radius: 5px;
   cursor: pointer;
   transition: background 0.2s ease;
+  min-width: 150px;
 }
 
 button:hover {
   background-color: #e6bf00;
 }
 
-/*  Back button spacing */
-#backBtn {
-  margin-bottom: 15px;
+.saveBtn {
+  background-color: #4caf50;
+  color: white;
 }
 
-/*  Schedule container */
+.saveBtn:hover {
+  background-color: #3e8e41;
+}
+
+/* ✅ SCHEDULE GRID */
 #scheduleContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 15px;
   margin-top: 20px;
+}
+
+/* ✅ WEEK COLUMN */
+.weekColumn {
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid #333;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 10px;
 }
 
-/*  Card for each schedule item */
+.weekColumn h3 {
+  text-align: center;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #444;
+  padding-bottom: 5px;
+}
+
+/* ✅ CLASS CARD */
 .scheduleCard {
   background-color: #2a2a2a;
   border-radius: 6px;
   padding: 10px;
-  margin-bottom: 10px;
   font-size: 13px;
   border-left: 5px solid transparent;
 
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
-/*  Hover effect */
-.scheduleCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+/* ✅ LOCATION COLORS */
+.scheduleCard.IN {
+  border-left-color: #4fc3f7;
 }
 
-/*  Headings inside cards */
-.scheduleCard h3 {
-  margin: 0 0 10px 0;
+.scheduleCard.MI {
+  border-left-color: #f06292;
 }
 
-/*  Text spacing */
-.scheduleCard p {
-  margin: 5px 0;
+/* ✅ CARD CONTENT */
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: bold;
+  font-size: 12px;
 }
 
-/* Dropdown */
-select {
-  margin-top: 8px;
-  padding: 6px;
-  border-radius: 4px;
-  border: none;
+.scheduleColorChip {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.className {
+  font-weight: bold;
   font-size: 14px;
 }
+
+.assigned {
+  font-size: 12px;
+}
+
+span[id^="assigned-"] {
+  font-weight: bold;
+  color: #ffffff;
+}
+
+/* ✅ DROPDOWN (IMPORTANT FIX) */
+.scheduleCard select {
+  width: 100%;
+  padding: 6px;
+  margin-top: 5px;
+  border-radius: 4px;
+  border: none;
+  background: #181818;
+  color: #ffd400;
+}
+
+/* ✅ BUILDER PANEL */
 #builderPanel {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -95,22 +148,22 @@ select {
   border: 1px solid #333;
   border-radius: 10px;
   padding: 18px;
-  min-width: 260px;
 }
 
-#legendPanel {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+/* ✅ INPUTS */
+input,
+select {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 8px;
+  margin-top: 8px;
+  border-radius: 4px;
+  border: 1px solid #444;
+  background: #121212;
+  color: #fff;
 }
 
-#externalEvents h2,
-#newClassForm h2,
-#addEventForm h2 {
-  margin-top: 0;
-  font-size: 16px;
-}
-
+/* ✅ DRAGGABLE EVENTS */
 .external-event {
   background: #333;
   border: 1px solid #444;
@@ -121,32 +174,13 @@ select {
   cursor: grab;
 }
 
-.external-event:active {
-  cursor: grabbing;
-}
-
-#newClassForm input,
-#addEventForm input {
-  width: 100%;
-  padding: 8px;
-  margin-top: 8px;
-  border-radius: 4px;
-  border: 1px solid #444;
-  background: #121212;
-  color: #fff;
-}
-
+/* ✅ CALENDAR */
 #adminCalendar {
   background: #1c1c1c;
   border: 1px solid #333;
   border-radius: 8px;
-  padding: 10px;
-  min-height: 680px;
-}
-
-.fc .fc-toolbar-title,
-.fc .fc-button {
-  color: #ffd400;
+  padding: 12px;
+  min-height: 620px;
 }
 
 .fc {
@@ -154,382 +188,21 @@ select {
   color: #ffd400;
 }
 
-.fc .fc-daygrid-day-number,
-.fc .fc-col-header-cell-cushion {
-  color: #ffd400;
-}
-
 .fc .fc-event {
   border: none;
-  padding: 10px 10px;
-  font-size: 0.95rem;
   border-radius: 8px;
   color: #121212;
 }
 
-.fc .fc-event-main-frame {
-  min-height: 60px;
-}
-
-.fc-event.preview-event {
-  opacity: 0.9;
-  border: 1px dashed #ffd400;
-}
-/*  Label styling */
-label {
-  display: block;
-  margin-top: 10px;
-}
-
-/*  Location color accents */
-
-.IN {
-  border-left: 5px solid #4fc3f7; /* blue */
-}
-
-.MI {
-  border-left: 5px solid #f06292; /* pink */
-}
-
-/*  Assigned text highlight */
-span[id^="assigned-"] {
-  font-weight: bold;
-  color: #ffffff;
-}
-
-/*  Save button special style */
-.saveBtn {
-  background-color: #4caf50;
-  color: white;
-}
-
-.saveBtn:hover {
-  background-color: #3e8e41;
-}
-/*  Calendar layout container */
-#scheduleContainer {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 15px;
-  margin-top: 20px;
-}
-
-/*  Each week column */
-.weekColumn {
-  background-color: #1e1e1e;
-  border-radius: 8px;
-  padding: 10px;
-  border: 1px solid #333;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-/*  Week title */
-.weekColumn h3 {
-  text-align: center;
-  margin-bottom: 10px;
-  border-bottom: 1px solid #444;
-  padding-bottom: 5px;
-}
-
+/* ✅ LEGEND */
 .legend-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 10px;
-  border-radius: 6px;
-  background: #111;
-  border: 1px solid #333;
 }
 
 .legend-color {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   border-radius: 4px;
-  display: inline-block;
-  border: 1px solid #333;
-}
-
-.legend-label {
-  color: #fff;
-  font-size: 14px;
-}
-
-.legend-empty {
-  color: #ccc;
-  font-size: 14px;
-  padding: 8px 10px;
-}
-
-input,
-select,
-button {
-  box-sizing: border-box;
-}
-
-#newClassForm input,
-#addEventForm input,
-#newClassForm select,
-#addEventForm select,
-#eventEditMenu input,
-#eventEditMenu select {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-  border-radius: 6px;
-  border: 1px solid #333;
-  background: #181818;
-  color: #ffd400;
-}
-
-#newClassForm button,
-#addEventForm button,
-button.saveBtn,
-button:hover,
-#eventEditMenu button {
-  width: auto;
-}
-
-#addEventForm {
-  display: grid;
-  gap: 10px;
-}
-
-#addEventForm label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-#addEventForm label input[type="checkbox"] {
-  margin-right: 8px;
-}
-
-#addEventForm .checkboxRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-#addEventForm button {
-  margin-top: 10px;
-}
-
-#eventEditMenu {
-  background: rgba(18, 18, 18, 0.98);
-  border: 1px solid #333;
-  border-radius: 12px;
-  padding: 20px;
-  max-width: 460px;
-  margin-bottom: 20px;
-}
-
-.event-edit-menu.hidden {
-  display: none;
-}
-
-.menuRow {
-  display: grid;
-  gap: 12px;
-}
-
-.menuActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.menuActions button {
-  min-width: 140px;
-}
-
-.secondary {
-  background: #333;
-  color: #ffd400;
-}
-
-.danger {
-  background: #c62828;
-  color: #fff;
-}
-
-.tempNotice {
-  color: #b0b0b0;
-  font-size: 13px;
-}
-
-.fc-event {
-  position: relative;
-}
-
-.fc-event.preview-event {
-  background: rgba(255, 212, 0, 0.18) !important;
-  border: 1px dashed #ffd400 !important;
-}
-
-.fc-event.preview-event .fc-event-main-frame {
-  padding-right: 40px;
-}
-
-.preview-add-btn {
-  position: absolute;
-  right: 8px;
-  top: 8px;
-  z-index: 20;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  padding: 0;
-  background: #ffd400;
-  color: #121212;
-  border: none;
-  border-radius: 50%;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
-}
-
-.preview-add-btn:hover {
-  background: #ffec85;
-}
-
-.secondary {
-  background: #333;
-  color: #ffd400;
-}
-
-.danger {
-  background: #c62828;
-  color: #fff;
-}
-
-.tempNotice {
-  color: #b0b0b0;
-  font-size: 13px;
-}
-
-.fc-event {
-  position: relative;
-}
-
-.fc-event.preview-event {
-  background: rgba(255, 212, 0, 0.18) !important;
-  border: 1px dashed #ffd400 !important;
-}
-
-.fc-event.preview-event .fc-event-main-frame {
-  padding-right: 40px;
-}
-
-.preview-add-btn {
-  position: absolute;
-  right: 8px;
-  top: 8px;
-  z-index: 20;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  padding: 0;
-  background: #ffd400;
-  color: #121212;
-  border: none;
-  border-radius: 50%;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
-}
-
-.preview-add-btn:hover {
-  background: #ffec85;
-}
-
-#editEventTitle,
-#editEventLocation,
-#editEventInstructor {
-  min-width: 220px;
-}
-
-.topControls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.topControls button {
-  min-width: 170px;
-}
-
-#adminCalendar {
-  background: #1c1c1c;
-  border: 1px solid #333;
-  border-radius: 8px;
-  padding: 14px;
-  min-height: 620px;
-}
-
-#legendPanel h2,
-#externalEvents h2,
-#newClassForm h2,
-#addEventForm h2 {
-  font-size: 18px;
-  letter-spacing: 0.02em;
-}
-
-/*  Each class card inside a week */
-.scheduleCard {
-  background-color: #2a2a2a;
-  border-radius: 6px;
-  padding: 10px;
-  margin-bottom: 10px;
-  font-size: 13px;
-  border-left: 5px solid transparent;
-}
-
-/*  Location color accents */
-.scheduleCard.IN {
-  border-left-color: #4fc3f7;
-}
-
-.scheduleCard.MI {
-  border-left-color: #f06292;
-}
-
-/*  Dropdown */
-select {
-  width: 100%;
-  margin-top: 5px;
-}
-.cardHeader {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: bold;
-  font-size: 12px;
-  opacity: 0.9;
-}
-
-.scheduleColorChip {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 1px solid #222;
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.05);
-}
-
-.className {
-  font-weight: bold;
-  font-size: 14px;
-}
-
-.assigned {
-  font-size: 12px;
 }

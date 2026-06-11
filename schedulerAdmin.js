@@ -190,7 +190,6 @@ function renderSchedule(schedule) {
 
         card.innerHTML = `
   <div class="cardHeader">
-    <span class="scheduleColorChip" style="background:${color}"></span>
     ${slot.location || "TBD"}
   </div>
 
@@ -199,16 +198,22 @@ function renderSchedule(schedule) {
   </div>
 
   <div class="assigned">
-    Assigned: 
+    Assigned:
     <span id="assigned-${weekNumber}-${index}">
-      ${slot.instructorName ? slot.instructorName.toUpperCase() : "None"}
+      ${slot.instructorName || "None"}
     </span>
   </div>
-
-  <select onchange="updateInstructorByWeek('${weekNumber}', ${index}, this.value)">
-    ${buildOptions(slot)}
-  </select>
 `;
+
+// create dropdown separately
+const select = document.createElement("select");
+select.innerHTML = buildOptions(slot);
+
+select.addEventListener("change", (e) => {
+  updateInstructorByWeek(weekNumber, index, e.target.value);
+});
+
+card.appendChild(select);
 
         weekCol.appendChild(card);
       });
@@ -218,7 +223,10 @@ function renderSchedule(schedule) {
 }
 
 function buildOptions(slot) {
-  if (!slot.recommendedInstructors) return "<option>No options</option>";
+  if (!slot.recommendedInstructors || slot.recommendedInstructors.length === 0  ){
+    return "<option>No options</option>";
+  }
+     
 
   return slot.recommendedInstructors.map(r => `
      <option value="${r.id}">
