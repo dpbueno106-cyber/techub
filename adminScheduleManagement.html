@@ -2,12 +2,15 @@
 <html>
 <head>
   <title>Scheduler Admin</title>
+
   <link
     href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css"
     rel="stylesheet"
   />
+
   <link rel="stylesheet" href="schedulerAdmin.css">
 </head>
+
 <body>
 
   <h1>Scheduler System</h1>
@@ -18,73 +21,37 @@
     <button onclick="saveSchedule()" class="saveBtn">Save Schedule</button>
   </div>
 
+  <!--  EDIT MODAL -->
   <div id="eventEditMenu" class="event-edit-menu hidden">
-    <h2>Edit Block</h2>
-    <div class="menuRow">
-      <label>
-        Title
-        <input id="editEventTitle" type="text" />
-      </label>
-      <label>
-        Location
-        <select id="editEventLocation">
-          <option value="IN">IN</option>
-          <option value="MI">MI</option>
-        </select>
-      </label>
-      <label>
-        Instructor
-        <select id="editEventInstructor"></select>
-      </label>
-      <div class="menuActions">
-        <button id="saveEventBtn">Save</button>
-        <button id="addToScheduleBtn" class="secondary hidden">Add to official schedule</button>
-        <button id="deleteEventBtn" class="danger">Delete</button>
-        <button id="closeEventMenuBtn" class="secondary">Close</button>
-      </div>
-      <div id="eventTempNotice" class="tempNotice"></div>
-    </div>
-  </div>
+    <h2>Edit Class Block</h2>
 
-  <div id="builderPanel">
-    <div id="externalEvents">
-      <h2>Draggable Classes</h2>
-    </div>
+    <label>
+      Title
+      <input id="editEventTitle" type="text" />
+    </label>
 
-    <div id="newClassForm">
-      <h2>Add a Draggable Class Template</h2>
-      <input id="newClassName" placeholder="Class name" />
-      <select id="newClassLocation">
+    <label>
+      Location
+      <select id="editEventLocation">
         <option value="IN">IN</option>
         <option value="MI">MI</option>
       </select>
-      <button id="addCustomClassBtn">Add class block</button>
-    </div>
+    </label>
 
-    <div id="addEventForm">
-      <h2>Add Calendar Event</h2>
-      <input id="newEventTitle" placeholder="Event title" />
-      <input id="newEventStart" type="date" />
-      <input id="newEventEnd" type="date" />
-      <select id="newEventLocation">
-        <option value="IN">IN</option>
-        <option value="MI">MI</option>
-      </select>
-      <select id="newEventInstructor">
-        <option value="">TBD</option>
-      </select>
-      <label><input type="checkbox" id="saveAsTemplate" /> Save this class as draggable template</label>
-      <button id="addNewEventBtn">Add event to calendar</button>
-    </div>
+    <label>
+      Instructor
+      <select id="editEventInstructor"></select>
+    </label>
 
-    <div id="legendPanel">
-      <h2>Instructor Legend</h2>
-      <div id="colorLegend"></div>
+    <div class="menuActions">
+      <button id="saveEventBtn"> Save</button>
+      <button id="deleteEventBtn" class="danger"> Delete</button>
+      <button id="closeEventMenuBtn" class="secondary">Cancel</button>
     </div>
   </div>
 
+  <!--  MAIN CALENDAR -->
   <div id="adminCalendar"></div>
-  <div id="scheduleContainer"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
   <script src="schedulerAdmin.js"></script>

@@ -14,6 +14,9 @@ let saveAsTemplateCheckbox;
 let adminCourseCatalog = [];
 let adminInstructorList = [];
 let customTemplates = [];
+eventClick: (arg) => {
+  openEventEditMenu(arg.event);
+};
 
 const defaultInstructorNames = [
   "Aaron",
@@ -109,7 +112,7 @@ async function loadCatalogAndInstructors() {
     adminCourseCatalog = await catalogRes.json();
     adminInstructorList = await instructorRes.json();
     updateInstructorSelect(currentSchedule);
-    buildExternalEventList(currentSchedule);
+    
   } catch (err) {
     console.warn("Could not load catalog or instructors:", err);
     updateInstructorSelect(currentSchedule);
@@ -153,7 +156,7 @@ async function generateSchedule() {
     currentSchedule = schedule;
     renderSchedule(schedule);
     renderCalendar(schedule);
-    buildExternalEventList(schedule);
+    //buildExternalEventList(schedule);
     buildInstructorLegend(schedule);
   } catch (err) {
     console.error("Error fetching schedule:", err);
@@ -284,7 +287,7 @@ function renderCalendar(schedule) {
   adminCalendar.addEventSource(mapScheduleToCalendarEvents(schedule));
 }
 
-function buildExternalEventList(schedule) {
+/*function buildExternalEventList(schedule) {
   if (!externalEventsContainer) return;
 
   templateMap.clear();
@@ -320,7 +323,8 @@ function buildExternalEventList(schedule) {
   customTemplates.forEach(template => addTemplateToPalette(template));
   updateInstructorSelect(schedule);
 }
-
+*/
+/*
 function makeExternalEventsDraggable() {
   if (!externalEventsContainer || typeof FullCalendar === "undefined" || !FullCalendar.Draggable) {
     return;
@@ -354,7 +358,7 @@ function makeExternalEventsDraggable() {
     }
   });
 }
-
+*/
 function deleteCalendarEvent(event) {
   if (!confirm(`Delete event "${event.title}"?`)) return;
   event.remove();
@@ -553,3 +557,49 @@ window.addEventListener("DOMContentLoaded", () => {
   setupAddEventForm();
   loadCatalogAndInstructors();
 });
+
+function openEventEditMenu(event) {
+  selectedCalendarEvent = event;
+   const props = event.extendedProps || {};
+  newEventTitleInput.value = props.className || event.title || "";
+  editEventLocationSelect.value = props.location || "IN";
+  editEventInstructorSelect.innerHTML = getInstructorOptions(props.instructorName || " ");
+  eventEditMenu.classList.remove("hidden");
+}
+
+saveEventBtn.onclick = () => {
+  if (!selectedCalendarEvent) return;
+
+  const title = editEventTitleInput.value.trim();
+  const location = editEventLocationSelect.value;
+  const instructor = editEventInstructorSelect.value;
+
+  selectedCalendarEvent.setProp("title", `${title} (${location})`);
+
+  selectedCalendarEvent.setExtendedProp("className", title);
+  selectedCalendarEvent.setExtendedProp("location", location);
+  selectedCalendarEvent.setExtendedProp("instructorName", instructor);
+
+  selectedCalendarEvent.setProp(
+    "backgroundColor",
+    instructor ? getInstructorColor(instructor) : "#4fc3f7"
+  );
+
+  syncScheduleFromCalendar();
+
+  closeEventEditMenu();
+};
+
+deleteEventBtn.onclick = () => {
+  if (!selectedCalendarEvent) return;
+  selectedCalendarEvent.remove();
+  syncScheduleFromCalendar();
+  closeEventEditMenu();
+};
+
+function closeEventEditMenu(){
+
+  selectedCalendarEvent = null;
+  eventEditMenu.classList.add("hidden");
+}
+
