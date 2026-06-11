@@ -14,17 +14,6 @@ let saveAsTemplateCheckbox;
 let adminCourseCatalog = [];
 let adminInstructorList = [];
 let customTemplates = [];
-let previewSchedule = [];
-let selectedCalendarEvent = null;
-let eventEditMenu = null;
-let editEventTitleInput = null;
-let editEventLocationSelect = null;
-let editEventInstructorSelect = null;
-let saveEventBtn = null;
-let addToScheduleBtn = null;
-let deleteEventBtn = null;
-let closeEventMenuBtn = null;
-let eventTempNotice = null;
 
 const defaultInstructorNames = [
   "Aaron",
@@ -160,11 +149,11 @@ async function generateSchedule() {
   try {
     const response = await fetch("http://localhost:3000/schedule");
     const schedule = await response.json();
-    previewSchedule = schedule;
-    renderSchedule(currentSchedule);
-    renderCalendar(currentSchedule, previewSchedule);
-    buildExternalEventList(currentSchedule);
-    buildInstructorLegend([...currentSchedule, ...previewSchedule]);
+    currentSchedule = schedule;
+    renderSchedule(schedule);
+    renderCalendar(schedule);
+    buildExternalEventList(schedule);
+    buildInstructorLegend(schedule);
   } catch (err) {
     console.error("Error fetching schedule:", err);
     alert("Failed to load schedule from the backend.");
@@ -175,15 +164,11 @@ function renderSchedule(schedule) {
   const container = document.getElementById("scheduleContainer");
   container.innerHTML = "";
 
-  const officialSlots = schedule.filter(slot => slot.weekNumber != null);
-  if (officialSlots.length === 0) {
-    container.innerHTML = `<div class="scheduleEmpty">No official schedule items yet.</div>`;
-    return;
-  }
-
+  //  Group by week
   const weeks = {};
-  officialSlots.forEach(slot => {
-    const weekKey = String(slot.weekNumber);
+
+  schedule.forEach(slot => {
+    const weekKey = slot.weekNumber ?? "Unscheduled";
     if (!weeks[weekKey]) {
       weeks[weekKey] = [];
     }
@@ -261,7 +246,7 @@ function updateInstructorByWeek(weekNumber, index, instructorId) {
   console.log("Updated", weekNumber, index, instructorId);
 }
 
-function mapScheduleToCalendarEvents(schedule, preview = false) {
+function mapScheduleToCalendarEvents(schedule) {
   return schedule
     .filter(slot => slot.weekStartDate && slot.weekEndDate)
     .map((slot, index) => {
@@ -271,32 +256,25 @@ function mapScheduleToCalendarEvents(schedule, preview = false) {
         titleParts.push(`(${instructorName})`);
       }
       return {
-        id: `event-${preview ? "preview" : "official"}-${slot.weekNumber || index}-${slot.classId}-${index}`,
+        id: `event-${slot.weekNumber || index}-${slot.classId}-${index}`,
         title: titleParts.join(" "),
         start: slot.weekStartDate,
         end: addDays(slot.weekEndDate, 1),
         allDay: true,
-        classNames: [preview ? "preview-event" : "official-event"],
         backgroundColor: instructorName ? getInstructorColor(instructorName) : (slot.location === "MI" ? "#f06292" : "#4fc3f7"),
-        borderColor: preview ? "#ffd400" : "#222",
+        borderColor: "#222",
         textColor: "#121212",
         extendedProps: {
-          ...slot,
-          preview
+          ...slot
         }
       };
     });
 }
 
-function renderCalendar(officialSchedule, preview) {
+function renderCalendar(schedule) {
   if (!adminCalendar) return;
   adminCalendar.removeAllEvents();
-  if (officialSchedule && officialSchedule.length) {
-    adminCalendar.addEventSource(mapScheduleToCalendarEvents(officialSchedule, false));
-  }
-  if (preview && preview.length) {
-    adminCalendar.addEventSource(mapScheduleToCalendarEvents(preview, true));
-  }
+  adminCalendar.addEventSource(mapScheduleToCalendarEvents(schedule));
 }
 
 function buildExternalEventList(schedule) {
@@ -378,103 +356,6 @@ function getInstructorOptions(selected = "") {
   return allNames
     .map(name => `<option value="${name}" ${name === selected ? "selected" : ""}>${name}</option>`)
     .join("");
-}
-
-function openEventEditMenu(event) {
-  if (!eventEditMenu) {
-    eventEditMenu = document.getElementById("eventEditMenu");
-    editEventTitleInput = document.getElementById("editEventTitle");
-    editEventLocationSelect = document.getElementById("editEventLocation");
-    editEventInstructorSelect = document.getElementById("editEventInstructor");
-    saveEventBtn = document.getElementById("saveEventBtn");
-    addToScheduleBtn = document.getElementById("addToScheduleBtn");
-    deleteEventBtn = document.getElementById("deleteEventBtn");
-    closeEventMenuBtn = document.getElementById("closeEventMenuBtn");
-    eventTempNotice = document.getElementById("eventTempNotice");
-
-    if (closeEventMenuBtn) {
-      closeEventMenuBtn.addEventListener("click", closeEventEditMenu);
-    }
-  }
-
-  selectedCalendarEvent = event;
-  const props = event.extendedProps || {};
-  if (editEventTitleInput) editEventTitleInput.value = props.className || event.title;
-  if (editEventLocationSelect) editEventLocationSelect.value = props.location || "IN";
-  if (editEventInstructorSelect) {
-    editEventInstructorSelect.innerHTML = `
-      <option value="">TBD</option>
-      ${getInstructorOptions(props.instructorName || "")}
-    `;
-  }
-
-  if (addToScheduleBtn) {
-    addToScheduleBtn.classList.toggle("hidden", !props.preview);
-    addToScheduleBtn.onclick = () => addPreviewEventToOfficial(event);
-  }
-
-  if (saveEventBtn) {
-    saveEventBtn.onclick = () => {
-      if (!selectedCalendarEvent) return;
-      const titleValue = editEventTitleInput?.value.trim() || "Untitled";
-      const locationValue = editEventLocationSelect?.value || "IN";
-      const instructorValue = editEventInstructorSelect?.value || "";
-
-      selectedCalendarEvent.setProp("title", `${titleValue} (${locationValue})`);
-      selectedCalendarEvent.setProp("backgroundColor", instructorValue ? getInstructorColor(instructorValue) : "#4fc3f7");
-      selectedCalendarEvent.setExtendedProp("classId", selectedCalendarEvent.extendedProps?.classId || titleValue.toLowerCase().replace(/\s+/g, "-"));
-      selectedCalendarEvent.setExtendedProp("className", titleValue);
-      selectedCalendarEvent.setExtendedProp("location", locationValue);
-      selectedCalendarEvent.setExtendedProp("instructorName", instructorValue || null);
-      selectedCalendarEvent.setExtendedProp("instructorId", instructorValue ? instructorValue.toLowerCase().replace(/\s+/g, "-") : null);
-      if (!selectedCalendarEvent.extendedProps?.preview) {
-        syncScheduleFromCalendar();
-      }
-      closeEventEditMenu();
-    };
-  }
-
-  if (deleteEventBtn) {
-    deleteEventBtn.onclick = () => {
-      if (!selectedCalendarEvent) return;
-      selectedCalendarEvent.remove();
-      if (!selectedCalendarEvent.extendedProps?.preview) {
-        syncScheduleFromCalendar();
-      }
-      closeEventEditMenu();
-    };
-  }
-
-  if (eventTempNotice) {
-    eventTempNotice.textContent = event.extendedProps?.preview ? "Preview block — press + Add to move it into the official schedule." : "";
-  }
-
-  eventEditMenu?.classList.remove("hidden");
-}
-
-function closeEventEditMenu() {
-  selectedCalendarEvent = null;
-  if (eventEditMenu) {
-    eventEditMenu.classList.add("hidden");
-  }
-}
-
-function addPreviewEventToOfficial(event) {
-  if (!event || !adminCalendar) return;
-  const props = event.extendedProps || {};
-  adminCalendar.addEvent({
-    title: event.title,
-    start: event.start,
-    end: event.end,
-    allDay: event.allDay,
-    backgroundColor: props.instructorName ? getInstructorColor(props.instructorName) : "#4fc3f7",
-    textColor: "#121212",
-    extendedProps: {
-      ...props,
-      preview: false
-    }
-  });
-  syncScheduleFromCalendar();
 }
 
 function deleteCalendarEvent(event) {
@@ -655,20 +536,7 @@ function initializeAdminCalendar() {
       syncScheduleFromCalendar();
     },
     eventClick(arg) {
-      openEventEditMenu(arg.event);
-    },
-    eventDidMount(info) {
-      if (info.event.extendedProps.preview) {
-        const addButton = document.createElement("button");
-        addButton.type = "button";
-        addButton.className = "preview-add-btn";
-        addButton.textContent = "+ Add";
-        addButton.addEventListener("click", ev => {
-          ev.stopPropagation();
-          addPreviewEventToOfficial(info.event);
-        });
-        info.el.appendChild(addButton);
-      }
+      deleteCalendarEvent(arg.event);
     }
   });
 
