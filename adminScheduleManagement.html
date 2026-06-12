@@ -1,60 +1,67 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Scheduler Admin</title>
-
-  <link
-    href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css"
-    rel="stylesheet"
-  />
-
+  <!--<meta charset="UTF-8">-->
+  <title>adminScheduleManagement</title>
   <link rel="stylesheet" href="schedulerAdmin.css">
 </head>
-
 <body>
 
-  <h1>Scheduler System</h1>
-
-  <div class="topControls">
-    <button onclick="goBack()">Back to Admin</button>
-    <button onclick="generateSchedule()">Generate Schedule</button>
-    <button onclick="saveSchedule()" class="saveBtn">Save Schedule</button>
+  <!--  TOP BAR -->
+  <div class="topBar">
+    <button class="backBtn" onclick="goBack()">← Back</button>
+    <h1>Scheduler System</h1>
+    <div></div>
   </div>
 
-  <!--  EDIT MODAL -->
-  <div id="eventEditMenu" class="event-edit-menu hidden">
-    <h2>Edit Class Block</h2>
+  <!--  ACTION BUTTONS -->
+  <div class="actionBar">
+    <button onclick="generateSchedule()">Generate Schedule</button>
+    <button onclick="saveSchedule()" class="saveBtn">Save Schedule</button>
+    <button onclick="openAddCourseModal()" class="secondary">+ Add Course</button>
+  </div>
 
-    <label>
-      Title
-      <input id="editEventTitle" type="text" />
-    </label>
+  <!--  MAIN LAYOUT -->
+  <div class="mainLayout">
 
-    <label>
-      Location
-      <select id="editEventLocation">
+    <!--  CALENDAR (75%) -->
+    <div class="calendarContainer">
+      <div id="adminCalendar"></div>
+    </div>
+
+    <!--  DRAGGABLE CLASSES (25%) -->
+    <div class="sidePanel">
+      <h2>Classes</h2>
+      <div id="externalEvents"></div>
+    </div>
+
+  </div>
+
+  <!--  ADD COURSE MODAL -->
+  <div id="addCourseModal" class="modal hidden">
+    <div class="modalContent">
+
+      <h2>Add Course</h2>
+
+      <input id="courseName" placeholder="Course Name" />
+
+      <select id="courseLocation">
         <option value="IN">IN</option>
         <option value="MI">MI</option>
       </select>
-    </label>
 
-    <label>
-      Instructor
-      <select id="editEventInstructor"></select>
-    </label>
+      <input id="courseDuration" type="number" placeholder="Duration (weeks)" />
 
-    <div class="menuActions">
-      <button id="saveEventBtn"> Save</button>
-      <button id="deleteEventBtn" class="danger"> Delete</button>
-      <button id="closeEventMenuBtn" class="secondary">Cancel</button>
+      <select id="courseInstructor"></select>
+
+      <div class="modalActions">
+        <button onclick="addCourse()">Add</button>
+        <button onclick="closeAddCourseModal()" class="secondary">Cancel</button>
+      </div>
+
     </div>
   </div>
 
-  <!--  MAIN CALENDAR -->
-  <div id="adminCalendar"></div>
-
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
   <script src="schedulerAdmin.js"></script>
-
 </body>
-</html>
