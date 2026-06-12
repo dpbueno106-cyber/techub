@@ -119,11 +119,16 @@ function getInstructorColor(name) {
 //  ADD COURSE MODAL
  
 function openAddCourseModal() {
-  document.getElementById("addCourseModal").classList.remove("hidden");
+
+  const modal = document.getElementById("addCourseModal");
+  modal.classList.remove("hidden");
+  document.body.style.overflow ="hidden";
 }
 
 function closeAddCourseModal() {
-  document.getElementById("addCourseModal").classList.add("hidden");
+  const modal = document.getElementById("addCourseModal");
+  modal.classList.add("hidden");
+  document.body.style.overflow = "auto";
 }
 
  
@@ -175,7 +180,11 @@ function makeExternalEventsDraggable() {
   );
 }
 
- 
+ document.getElementById("addCourseModal").addEventListener("click", (e) => {
+  if (e.target.id === "addCourseModal") {
+    closeAddCourseModal();
+  }
+});
 //  EDIT MODAL
  
 let selectedEvent;

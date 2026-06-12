@@ -82,14 +82,14 @@ button {
   color: white;
 }
 
-/* MODAL */
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0, 0, 0, 0.75); /*  DARK OVERLAY */
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 999;
 }
 
 .modal.hidden {
@@ -98,12 +98,22 @@ button {
 
 .modalContent {
   background: #1e1e1e;
+  border: 1px solid #444;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.8);
   padding: 25px;
-  border-radius: 10px;
-  width: 300px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  border-radius: 12px;
+  width: 320px;
+  animation: popIn .2s ease;
+}
+@keyframes popIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0; 
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .modalContent input,
