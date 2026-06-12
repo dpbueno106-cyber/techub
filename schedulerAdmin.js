@@ -4,7 +4,7 @@
 let adminCalendar;
 let currentSchedule = [];
 let draggableInstance;
-const deleteEventBtn = document.getElementById("deleteEventBtn");
+
 
 
 const defaultInstructorNames = [
@@ -55,7 +55,7 @@ async function saveSchedule() {
   location: event.extendedProps?.location || "IN",
   instructorName: event.extendedProps?.instructorName || null,
   weekStartDate: event.startStr,
-  weekEndDate: event.endStr
+  weekEndDate: event.endStr || event.startStr
 }));
 
     const res = await fetch(`${API_URL}/saveSchedule`, {
@@ -80,21 +80,23 @@ async function saveSchedule() {
 //  RENDER SCHEDULE → CALENDAR
  
 function renderCalendarFromSchedule(schedule) {
-  adminCalendar.addEvent({
-  title: `${slot.className} (${slot.location})`,
-  start: slot.weekStartDate,
-  end: slot.weekEndDate,
-  allDay: true,
+  schedule.forEach(slot => {
+    adminCalendar.addEvent({
+      title: `${slot.className} (${slot.location})`,
+      start: slot.weekStartDate,
+      end: slot.weekEndDate,
+      allDay: true,
+      backgroundColor: getInstructorColor(slot.instructorName),
 
-  backgroundColor: getInstructorColor(slot.instructorName),
-
-  extendedProps: {
-    className: slot.className || "Unknown",
-    location: slot.location || "IN",
-    instructorName: slot.instructorName || null
-  }
-});
+      extendedProps: {
+        className: slot.className || "Unknown",
+        location: slot.location || "IN",
+        instructorName: slot.instructorName || null
+      }
+    });
+  });
 }
+
 
  
 //  COLOR SYSTEM
@@ -116,14 +118,14 @@ const predefinedColors = {
   Kalob: "#e57373"
 };
 
-function getInstructorColor(name) {
-  return predefinedColors[name] || "#888";
-}
+
 
 
 function getInstructorColor(name) {
   if (!name) return "#888";
 
+  if (predefindedColors[name]) return 
+  predefindedColors[name];
   if (!colorMap.has(name)) {
     colorMap.set(name, colors[colorMap.size % colors.length]);
   }
@@ -189,7 +191,7 @@ function makeExternalEventsDraggable() {
 
   return {
     title: eventEl.innerText,
-    duration: { weeks: Number(eventEl.dataset.duration || 1) },
+    duration: { days: Number(eventEl.dataset.duration || 1) * 7 },
     backgroundColor: getInstructorColor(instructor),
 
     extendedProps: {
@@ -234,16 +236,6 @@ function openEditModal(event) {
 function closeEditModal() {
   document.getElementById("eventEditMenu").classList.add("hidden");
 }
-
- deleteEventBtn.onclick = () => {
-  if (!selectedEvent) {
-    console.log("No selected event");
-    return;
-  }
-
-  selectedEvent.remove();
-  closeEditModal();
-};
 //  SAVE EDIT
  
 document.getElementById("saveEventBtn")?.addEventListener("click", () => {
