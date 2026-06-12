@@ -7,12 +7,10 @@ import { db } from "./firebase";
 
 const app = express();
 
-app.use(cors({
-  origin: [
-    "http://localhost:5500",
-    "https://your-frontend.netlify.app"
-  ]
-}));
+const API_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:3000"
+    : "https://techub-9gis.onrender.com";
 
 app.use(express.json());
 
