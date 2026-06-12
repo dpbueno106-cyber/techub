@@ -3,6 +3,7 @@
  
 let adminCalendar;
 let currentSchedule = [];
+let draggableInstance;
 
 const defaultInstructorNames = [
   "Aaron", "Jesse", "Marc", "Leon",
@@ -26,6 +27,7 @@ function goBack() {
  
 async function generateSchedule() {
   try {
+    adminCalendar.getEvents().forEach(e => e.remove());
     const res = await fetch(`${API_URL}/schedule`);
     const schedule = await res.json();
 
@@ -47,12 +49,12 @@ async function saveSchedule() {
     const events = adminCalendar.getEvents();
 
     const schedule = events.map(event => ({
-      className: event.extendedProps.className,
-      location: event.extendedProps.location,
-      instructorName: event.extendedProps.instructorName,
-      weekStartDate: event.startStr,
-      weekEndDate: event.endStr
-    }));
+  className: event.extendedProps?.className || event.title,
+  location: event.extendedProps?.location || "IN",
+  instructorName: event.extendedProps?.instructorName || null,
+  weekStartDate: event.startStr,
+  weekEndDate: event.endStr
+}));
 
     const res = await fetch(`${API_URL}/saveSchedule`, {
       method: "POST",
@@ -76,23 +78,20 @@ async function saveSchedule() {
 //  RENDER SCHEDULE → CALENDAR
  
 function renderCalendarFromSchedule(schedule) {
-  adminCalendar.removeAllEvents();
+  adminCalendar.addEvent({
+  title: `${slot.className} (${slot.location})`,
+  start: slot.weekStartDate,
+  end: slot.weekEndDate,
+  allDay: true,
 
-  schedule.forEach(slot => {
-    adminCalendar.addEvent({
-      title: `${slot.className} (${slot.location})`,
-      start: slot.weekStartDate,
-      end: slot.weekEndDate,
-      allDay: true,
-      backgroundColor: getInstructorColor(slot.instructorName),
+  backgroundColor: getInstructorColor(slot.instructorName),
 
-      extendedProps: {
-        className: slot.className,
-        location: slot.location,
-        instructorName: slot.instructorName
-      }
-    });
-  });
+  extendedProps: {
+    className: slot.className || "Unknown",
+    location: slot.location || "IN",
+    instructorName: slot.instructorName || null
+  }
+});
 }
 
  
@@ -103,7 +102,22 @@ const colors = [
   "#81c784", "#ba68c8", "#ff8a65"
 ];
 
-const colorMap = new Map();
+const predefinedColors = {
+  Aaron: "#4fc3f7",
+  Jesse: "#f06292",
+  Marc: "#ffca28",
+  Leon: "#81c784",
+  Mike: "#ba68c8",
+  Brandon: "#ff8a65",
+  Brad: "#4db6ac",
+  Graham: "#9575cd",
+  Kalob: "#e57373"
+};
+
+function getInstructorColor(name) {
+  return predefinedColors[name] || "#888";
+}
+
 
 function getInstructorColor(name) {
   if (!name) return "#888";
@@ -147,7 +161,7 @@ function addCourse() {
   el.dataset.className = name;
   el.dataset.location = location;
   el.dataset.duration = duration;
-  el.dataset.instructor = instructor;
+  el.dataset.instructor = instructor || null;
 
   document.getElementById("externalEvents").appendChild(el);
 
@@ -160,24 +174,30 @@ function addCourse() {
 //  DRAGGABLE EVENTS
  
 function makeExternalEventsDraggable() {
-  new FullCalendar.Draggable(
-    document.getElementById("externalEvents"),
+  const container = document.getElementById("externalEvents");
+
+  if (draggableInstance) {
+    draggableInstance.destroy();
+  }
+    draggableInstance = new FullCalendar.Draggable(container,
     {
       itemSelector: ".external-event",
       eventData: function (eventEl) {
-        return {
-          title: eventEl.innerText,
-          duration: { weeks: Number(eventEl.dataset.duration || 1) },
+  const instructor = eventEl.dataset.instructor || null;
 
-          extendedProps: {
-            className: eventEl.dataset.className,
-            location: eventEl.dataset.location,
-            instructorName: eventEl.dataset.instructor
-          }
-        };
-      }
+  return {
+    title: eventEl.innerText,
+    duration: { weeks: Number(eventEl.dataset.duration || 1) },
+    backgroundColor: getInstructorColor(instructor),
+
+    extendedProps: {
+      className: eventEl.dataset.className,
+      location: eventEl.dataset.location,
+      instructorName: instructor
     }
-  );
+  };
+}
+    });
 }
 
  document.getElementById("addCourseModal").addEventListener("click", (e) => {
@@ -213,7 +233,15 @@ function closeEditModal() {
   document.getElementById("eventEditMenu").classList.add("hidden");
 }
 
- 
+ deleteEventBtn.onclick = () => {
+  if (!selectedEvent) {
+    console.log("No selected event");
+    return;
+  }
+
+  selectedEvent.remove();
+  closeEditModal();
+};
 //  SAVE EDIT
  
 document.getElementById("saveEventBtn")?.addEventListener("click", () => {
@@ -268,6 +296,11 @@ function initCalendar() {
   );
 
   adminCalendar.render();
+  
+adminCalendar.on("eventReceive", () => {
+  console.log("Event dropped ");
+});
+
 }
 
  
