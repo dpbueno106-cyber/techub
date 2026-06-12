@@ -7,13 +7,13 @@ import { db } from "./firebase";
 
 const app = express();
 
-const API_URL =
+/*const API_URL =
   window.location.hostname === "localhost"
     ? "http://localhost:3000"
     : "https://techub-9gis.onrender.com";
 
 app.use(express.json());
-
+*/
 // 🔹 Helper
 function addInstructorNames(schedule: any[]) {
   return schedule.map(slot => {
