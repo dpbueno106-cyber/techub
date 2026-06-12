@@ -15,7 +15,7 @@ const defaultInstructorNames = [
 //  Dynamic backend URL (local vs deployed)
 const API_URL = window.location.hostname.includes("localhost")
   ? "http://localhost:3000"
-  : "https://your-backend-url.com"; // replace later
+  : "https://techub-9gis.onrender.com"; // replaced!
 
  
 //  NAVIGATION
