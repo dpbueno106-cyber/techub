@@ -4,6 +4,8 @@
 let adminCalendar;
 let currentSchedule = [];
 let draggableInstance;
+const deleteEventBtn = document.getElementById("deleteEventBtn");
+
 
 const defaultInstructorNames = [
   "Aaron", "Jesse", "Marc", "Leon",
