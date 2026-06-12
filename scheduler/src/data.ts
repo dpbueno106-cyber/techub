@@ -1,4 +1,4 @@
-import type { ClassDefinition, Instructor, ScheduleConfig } from "./types.ts";
+import type { ClassDefinition, Instructor, ScheduleConfig } from "./types";
 
 export const config: ScheduleConfig = {
   year: 2026,

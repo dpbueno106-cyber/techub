@@ -1,4 +1,4 @@
-import type { WeekSlot } from "../types.ts";
+import type { WeekSlot } from "../types";
 
 export function placeHolidays(
   weeks: WeekSlot[],

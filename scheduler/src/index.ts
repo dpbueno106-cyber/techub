@@ -1,5 +1,5 @@
-import { generateSchedule } from "./engine/generateSchedule.ts";
-import { config, catalog, instructors } from "./data.ts";
+import { generateSchedule } from "./engine/generateSchedule";
+import { config, catalog, instructors } from "./data";
 
 const schedule = generateSchedule(config, catalog, instructors);
 

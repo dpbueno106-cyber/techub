@@ -1,4 +1,4 @@
-import type { ClassSlot, Location } from "../types.ts";
+import type { ClassSlot, Location } from "../types";
 
 export function balanceLocations(slots: ClassSlot[]): ClassSlot[] {
 

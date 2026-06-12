@@ -1,4 +1,4 @@
-﻿import type { ClassSlot, Instructor } from "../types.ts";
+﻿import type { ClassSlot, Instructor } from "../types";
 
 export function assignInstructors(
   slots: ClassSlot[],

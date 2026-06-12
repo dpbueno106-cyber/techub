@@ -2,7 +2,7 @@ import type {
   ClassDefinition,
   ClassSlot,
   WeekSlot
-} from "../types.ts";
+} from "../types";
 
 export function classSlotGenerator(
   weeks: WeekSlot[],

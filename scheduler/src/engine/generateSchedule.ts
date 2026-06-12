@@ -1,10 +1,10 @@
-import type { ScheduleConfig, ClassDefinition, ClassSlot, Instructor } from "../types.ts";
-import { balanceLocations } from "./balanceLocations.ts";
-import { buildWeeks } from "./buildWeeks.ts";
-import { placeHolidays } from "./placeHolidays.ts";
-import { placeNTO } from "./placeNTO.ts";
-import { classSlotGenerator } from "./classSlotGenerator.ts";
-import { assignInstructors } from "./assignInstructors.ts";
+import type { ScheduleConfig, ClassDefinition, ClassSlot, Instructor } from "../types";
+import { balanceLocations } from "./balanceLocations";
+import { buildWeeks } from "./buildWeeks";
+import { placeHolidays } from "./placeHolidays";
+import { placeNTO } from "./placeNTO";
+import { classSlotGenerator } from "./classSlotGenerator";
+import { assignInstructors } from "./assignInstructors";
 
 export function generateSchedule(
   config: ScheduleConfig,
@@ -15,20 +15,20 @@ export function generateSchedule(
   let weeks = buildWeeks(config.year);
   weeks = placeHolidays(weeks, config.holidays);
 
-  const { slots: ntoSlots, usedWeeks } =
+  const { slots: ntoSl  , usedWeeks } =
     placeNTO(weeks, ["IN", "MI"]);
 
-  const otherSlots = classSlotGenerator(
+  const otherSl   = classSlotGenerator(
     weeks,
     catalog,
     usedWeeks,
-    config.totalClasses - ntoSlots.length
+    config.totalClasses - ntoSl  .length
   );
 
-  const allSlots = [...ntoSlots, ...otherSlots];
+  const allSl   = [...ntoSl  , ...otherSl  ];
 
   // Balance IN vs MI
-  const balanced = balanceLocations(allSlots);
+  const balanced = balanceLocations(allSl  );
 
   const assigned = assignInstructors(balanced, instructors);
 

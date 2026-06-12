@@ -1,34 +1,28 @@
-import express, { type Request, type Response, type NextFunction } from "express";
-import { config, catalog, instructors } from "./src/data.ts";
-import { generateSchedule } from "./src/engine/generateSchedule.ts";
-import { db } from "./firebase.ts";
+import express from "express";
+import cors from "cors";
+
+import { config, catalog, instructors } from "./src/data";
+import { generateSchedule } from "./src/engine/generateSchedule";
+import { db } from "./firebase";
 
 const app = express();
-const PORT = 3000;
 
-//  Middleware
+app.use(cors({
+  origin: [
+    "http://localhost:5500",
+    "https://your-frontend.netlify.app"
+  ]
+}));
+
 app.use(express.json());
 
-app.use((req: Request, res: Response, next: NextFunction) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(204);
-  }
-  next();
-});
-
+// 🔹 Helper
 function addInstructorNames(schedule: any[]) {
   return schedule.map(slot => {
-
     const instructor = instructors.find(i => i.id === slot.instructorId);
 
     const namedRecommended = slot.recommendedInstructors?.map((item: any) => {
-
-      // Handle BOTH cases safely
       const id = typeof item === "string" ? item : item.id;
-
       const found = instructors.find(i => i.id === id);
 
       return {
@@ -45,18 +39,15 @@ function addInstructorNames(schedule: any[]) {
   });
 }
 
-// Route
+// 🔹 Routes
 app.get("/schedule", async (req, res) => {
   try {
-
     const doc = await db.collection("schedules").doc("current").get();
 
-    //  If saved schedule exists → return it
     if (doc.exists) {
       return res.json(addInstructorNames(doc.data()?.schedule ?? []));
     }
 
-    // Otherwise generate new
     const schedule = generateSchedule(config, catalog, instructors);
     res.json(addInstructorNames(schedule));
 
@@ -65,27 +56,21 @@ app.get("/schedule", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch schedule" });
   }
 });
-//let savedSchedule: any[] = [];
 
-app.get("/catalog", (req, res) => {
-  res.json(catalog);
-});
-
-app.get("/instructors", (req, res) => {
-  res.json(instructors);
-});
+app.get("/catalog", (req, res) => res.json(catalog));
+app.get("/instructors", (req, res) => res.json(instructors));
 
 app.post("/saveSchedule", async (req, res) => {
   try {
+    if (!Array.isArray(req.body)) {
+      return res.status(400).json({ error: "Invalid schedule format" });
+    }
 
-  if (!Array.isArray(req.body)) {
-    return res.status(400).json({ error: "Invalid schedule format" });
-  }
-
-  await db.collection("schedules").doc("current").set({
-     schedule: req.body,
-     updatedAt: new Date() 
+    await db.collection("schedules").doc("current").set({
+      schedule: req.body,
+      updatedAt: new Date()
     });
+
     res.json({ message: "Schedule saved successfully" });
 
   } catch (err) {
@@ -93,18 +78,19 @@ app.post("/saveSchedule", async (req, res) => {
     res.status(500).json({ error: "Failed to save schedule" });
   }
 });
-    
-// Start server safely
+
+//  Start server (ONLY ONE)
+const PORT = process.env.PORT || 3000;
+
 const server = app.listen(PORT, () => {
-  console.log(` Server running at http://localhost:${PORT}`);
+  console.log(`Server running on ${PORT}`);
 });
 
-// Handle port-in-use cleanly
 server.on("error", (err: any) => {
   if (err.code === "EADDRINUSE") {
-    console.error(" Port 3000 already running.");
-    console.error(" You already have a server open — do NOT run again.");
+    console.error("Port already in use");
   } else {
     console.error(err);
   }
 });
+``
