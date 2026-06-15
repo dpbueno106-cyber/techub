@@ -3,7 +3,12 @@ import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-analytics.js";
 
-const backBtn = document.getElementById("backBtn");
+/* =========================
+   CONFIG
+========================= */
+
+const API_URL = "https://techub-9gis.onrender.com";
+
 const firebaseConfig = {
   apiKey: "AIzaSyD9i5yfE80MAsiri8SwiRCFParRb9jPyzY",
   authDomain: "techub-login-system.firebaseapp.com",
@@ -14,16 +19,104 @@ const firebaseConfig = {
   measurementId: "G-PQ5RJ1V0BB"
 };
 
-// Initialize Firebase
+const predefinedColors = {
+  Aaron: "#4fc3f7",
+  Jesse: "#f06292",
+  Marc: "#ffca28",
+  Leon: "#81c784",
+  Mike: "#ba68c8",
+  Brandon: "#ff8a65",
+  Brad: "#4db6ac",
+  Graham: "#9575cd",
+  Kalob: "#e57373"
+};
+
+function getInstructorColor(name) {
+  return predefinedColors[name] || "#888";
+}
+
+/* =========================
+   FIREBASE INIT
+========================= */
+
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+getAnalytics(app);
+
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-let currentRole = null;
-let currentUserSlug = null;
+/* =========================
+   STATE
+========================= */
+
 let calendar = null;
 let calendarReady = false;
+let currentRole = null;
+let currentUserSlug = null;
+
+/* =========================
+   HELPERS
+========================= */
+
+function addDays(dateString, days) {
+  const date = new Date(dateString);
+  date.setDate(date.getDate() + days);
+  return date.toISOString().split("T")[0];
+}
+
+/* =========================
+   MAP SCHEDULE → CALENDAR
+========================= */
+
+function mapScheduleToEvents(schedule) {
+  let filtered = schedule;
+
+  //  Instructors only see their classes
+  if (currentRole === "instructor" && currentUserSlug) {
+    filtered = schedule.filter(
+      slot => slot.instructorName?.toLowerCase() === currentUserSlug
+    );
+  }
+
+  return filtered.map(slot => ({
+    title: `${slot.className} (${slot.location})`,
+    start: slot.weekStartDate,
+    end: addDays(slot.weekEndDate, 1),
+    allDay: true,
+    backgroundColor: getInstructorColor(slot.instructorName),
+    borderColor: getInstructorColor(slot.instructorName),
+    extendedProps: {
+      instructorName: slot.instructorName,
+      location: slot.location
+    }
+  }));
+}
+
+/* =========================
+   LOAD SCHEDULE
+========================= */
+
+async function loadScheduleIntoCalendar() {
+  if (!calendarReady || !calendar) return;
+
+  try {
+    const res = await fetch(`${API_URL}/schedule`);
+    const schedule = await res.json();
+
+    const events = mapScheduleToEvents(schedule);
+
+    calendar.removeAllEvents();
+    calendar.addEventSource(events);
+
+  } catch (err) {
+    console.error("Failed to load schedule:", err);
+    alert("Unable to load schedule");
+  }
+}
+
+/* =========================
+   AUTH & ROLE
+========================= */
 
 async function loadUserRole(user) {
   if (!user) {
@@ -37,106 +130,53 @@ async function loadUserRole(user) {
     const docSnap = await getDoc(docRef);
 
     if (!docSnap.exists()) {
-      console.warn("User document not found for uid:", user.uid);
-      currentRole = null;
-      currentUserSlug = null;
+      console.warn("User record missing");
       return;
     }
 
     currentRole = docSnap.data().role;
     currentUserSlug = user.email?.split("@")[0]?.toLowerCase() || null;
+
     await loadScheduleIntoCalendar();
-  } catch (error) {
-    console.error("Failed to load role:", error);
-    currentRole = null;
-    currentUserSlug = null;
+
+  } catch (err) {
+    console.error("Failed to load user role:", err);
   }
 }
 
-function addDays(dateString, days) {
-  const date = new Date(dateString);
-  date.setDate(date.getDate() + days);
-  return date.toISOString().split("T")[0];
-}
+/* =========================
+   INIT
+========================= */
 
-function mapScheduleToEvents(schedule) {
-  const normalizedInstructor = currentUserSlug;
-  let filtered = schedule;
-
-  if (currentRole === "instructor" && normalizedInstructor) {
-    filtered = schedule.filter(slot => {
-      const slotId = slot.instructorId?.toLowerCase();
-      const slotName = slot.instructorName?.toLowerCase();
-      return slotId === normalizedInstructor || slotName === normalizedInstructor;
-    });
-  }
-
-  return filtered
-    .filter(slot => slot.instructorId)
-    .map(slot => ({
-      title: `${slot.className} — ${slot.location} (${slot.instructorName ?? slot.instructorId})`,
-      start: slot.weekStartDate,
-      end: addDays(slot.weekEndDate, 1),
-      allDay: true,
-      extendedProps: {
-        location: slot.location,
-        instructorId: slot.instructorId,
-        instructorName: slot.instructorName
-      }
-    }));
-}
-
-async function loadScheduleIntoCalendar() {
-  if (!calendarReady || !calendar) return;
-
-  try {
-    const response = await fetch("http://localhost:3000/schedule");
-    const schedule = await response.json();
-    const events = mapScheduleToEvents(schedule);
-
-    calendar.removeAllEvents();
-    calendar.addEventSource(events);
-  } catch (error) {
-    console.error("Unable to load schedule:", error);
-  }
-}
-
-onAuthStateChanged(auth, (user) => {
-  loadUserRole(user);
-});
-
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", () => {
   const calendarEl = document.getElementById("calendar");
+  const backBtn = document.getElementById("backBtn");
+
   calendar = new FullCalendar.Calendar(calendarEl, {
-    initialView: "timeGridWeek",
-    height: "auto",
-    headerToolbar: {
-      left: "prev,next today",
-      center: "title",
-      right: "dayGridMonth,timeGridWeek,timeGridDay"
-    },
-    events: []
+    initialView: "dayGridMonth",
+    height: 650,
+
+    //  READ‑ONLY
+    editable: false,
+    droppable: false,
+    selectable: false,
+    eventClick: null
   });
 
   calendar.render();
   calendarReady = true;
-  loadScheduleIntoCalendar();
 
+  //  Auth triggers schedule load
+  onAuthStateChanged(auth, loadUserRole);
+
+  //  Back button
   if (backBtn) {
     backBtn.addEventListener("click", () => {
-      if (!currentRole) {
-        console.error("Unable to determine role. Please log in again.");
-        return;
-      }
-
       if (currentRole === "instructor") {
         window.location.href = "userDashboard.html";
-      } else if (currentRole === "admin") {
-        window.location.href = "adminDashboard.html";
       } else {
-        console.warn("Unknown role:", currentRole);
+        window.location.href = "adminDashboard.html";
       }
     });
   }
 });
-
