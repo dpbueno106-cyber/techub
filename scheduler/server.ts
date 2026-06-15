@@ -5,6 +5,7 @@ import { config, catalog, instructors } from "./src/data";
 import { generateSchedule } from "./src/engine/generateSchedule";
 import { db } from "./firebase";
 
+
 const app = express();
 app.use(express.json());
 /*const API_URL =
@@ -18,6 +19,60 @@ app.use(cors({
     "https://dpbueno106-cyber.github.io"
   ]
 }));
+
+async function seedFirestore() {
+  console.log("Checking Firestore seed state...");
+
+  // -------- CONFIG --------
+  const configRef = db.collection("config").doc("current");
+  const configSnap = await configRef.get();
+
+  if (!configSnap.exists) {
+    await configRef.set({
+      ...config,
+      seededAt: new Date()
+    });
+    console.log("Config seeded");
+  } else {
+    console.log("Config already exists");
+  }
+
+  // -------- CATALOG --------
+  const catalogCol = db.collection("catalog");
+
+  for (const course of catalog) {
+    const docId = course.id;
+    const ref = catalogCol.doc(docId);
+    const snap = await ref.get();
+
+    if (!snap.exists) {
+      await ref.set({
+        ...course,
+        seededAt: new Date()
+      });
+      console.log(`Catalog seeded: ${course.name}`);
+    }
+  }
+
+  // -------- INSTRUCTORS --------
+  const instructorCol = db.collection("instructors");
+
+  for (const instructor of instructors) {
+    const ref = instructorCol.doc(instructor.id);
+    const snap = await ref.get();
+
+    if (!snap.exists) {
+      await ref.set({
+        ...instructor,
+        seededAt: new Date()
+      });
+      console.log(`Instructor seeded: ${instructor.name}`);
+    }
+  }
+
+  console.log("Firestore seeding complete");
+}
+
 // 🔹 Helper
 function addInstructorNames(schedule: any[]) {
   return schedule.map(slot => {
@@ -46,6 +101,11 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+seedFirestore().catch(err => {
+  console.error("Error during Firestore seeding:", err);
+});
+
 // 🔹 Routes
 app.get("/schedule", async (req, res) => {
   try {
