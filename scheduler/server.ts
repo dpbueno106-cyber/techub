@@ -42,7 +42,12 @@ function addInstructorNames(schedule: any[]) {
     };
   });
 }
-
+app.use((req, res, next) => {
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+  next();
+});
 // 🔹 Routes
 app.get("/schedule", async (req, res) => {
   try {
