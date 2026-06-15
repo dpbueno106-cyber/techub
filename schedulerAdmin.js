@@ -50,13 +50,20 @@ async function saveSchedule() {
   try {
     const events = adminCalendar.getEvents();
 
+    if (!events || events.length === 0) {
+      alert("No events to save");
+      return;
+    }
+
     const schedule = events.map(event => ({
-      className: event.extendedProps.className || event.title,
-      location: event.extendedProps.location || "IN",
-      instructorName: event.extendedProps.instructorName || null,
+      className: event.extendedProps?.className || event.title,
+      location: event.extendedProps?.location || "IN",
+      instructorName: event.extendedProps?.instructorName || null,
       weekStartDate: event.startStr,
       weekEndDate: event.endStr || event.startStr
     }));
+
+    console.log("Saving schedule:", schedule); //  debug
 
     const res = await fetch(`${API_URL}/saveSchedule`, {
       method: "POST",
@@ -64,12 +71,14 @@ async function saveSchedule() {
       body: JSON.stringify(schedule)
     });
 
-    if (!res.ok) throw new Error("Save failed");
+    if (!res.ok) {
+      throw new Error(`Server rejected save (${res.status})`);
+    }
 
     alert("Schedule saved");
 
   } catch (err) {
-    console.error(err);
+    console.error("Save failed:", err);
     alert("Save failed");
   }
 }
@@ -189,7 +198,7 @@ function makeExternalEventsDraggable() {
 
   return {
     title: eventEl.innerText,
-    duration: { days: Number(eventEl.dataset.duration || 1) * 7 },
+    duration: { days: Number(eventEl.dataset.duration || 1) * 5 },
     backgroundColor: getInstructorColor(instructor),
 
     extendedProps: {
