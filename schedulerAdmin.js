@@ -262,12 +262,10 @@ document.getElementById("saveEventBtn")?.addEventListener("click", () => {
   selectedEvent.setExtendedProp("className", title);
   selectedEvent.setExtendedProp("location", location);
   selectedEvent.setExtendedProp("instructorName", instructor);
-
   selectedEvent.setProp(
-    "backgroundColor",
-    getInstructorColor(instructor)
-  );
-
+  "backgroundColor",
+  getInstructorColor(instructor)
+);
   closeEditModal();
 });
 
@@ -281,7 +279,33 @@ document.getElementById("deleteEventBtn")?.addEventListener("click", () => {
   closeEditModal();
 });
 
- 
+ function renderInstructorLegend() {
+  const legend = document.getElementById("instructorLegend");
+  if (!legend) return;
+
+  legend.innerHTML = "";
+
+  Object.entries(predefinedColors).forEach(([name, color]) => {
+    const row = document.createElement("div");
+    row.style.display = "flex";
+    row.style.alignItems = "center";
+    row.style.marginBottom = "6px";
+
+    const swatch = document.createElement("span");
+    swatch.style.background = color;
+    swatch.style.width = "14px";
+    swatch.style.height = "14px";
+    swatch.style.marginRight = "8px";
+    swatch.style.display = "inline-block";
+
+    const label = document.createElement("span");
+    label.textContent = name;
+
+    row.appendChild(swatch);
+    row.appendChild(label);
+    legend.appendChild(row);
+  });
+}
 //  INIT CALENDAR
  
 function initCalendar() {
@@ -315,6 +339,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   initCalendar();
   makeExternalEventsDraggable();
+  renderInstructorLegend();
 
   // populate instructor dropdown in modal
   const select = document.getElementById("courseInstructor");
