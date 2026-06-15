@@ -124,8 +124,8 @@ const predefinedColors = {
 function getInstructorColor(name) {
   if (!name) return "#888";
 
-  if (predefindedColors[name]) return 
-  predefindedColors[name];
+  if (predefinedColors[name]) return 
+  predefinedColors[name];
   if (!colorMap.has(name)) {
     colorMap.set(name, colors[colorMap.size % colors.length]);
   }

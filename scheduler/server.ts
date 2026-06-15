@@ -14,6 +14,12 @@ const app = express();
 
 app.use(express.json());
 */
+app.use(cors({
+  origin: [
+    "http://localhost:5500",
+    "https://dpbueno106-cyber.github.io"
+  ]
+}));
 // 🔹 Helper
 function addInstructorNames(schedule: any[]) {
   return schedule.map(slot => {
