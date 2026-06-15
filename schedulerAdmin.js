@@ -51,19 +51,34 @@ async function saveSchedule() {
     const events = adminCalendar.getEvents();
 
     if (!events || events.length === 0) {
-      alert("No events to save");
+      alert("Nothing to save");
       return;
     }
 
-    const schedule = events.map(event => ({
-      className: event.extendedProps?.className || event.title,
-      location: event.extendedProps?.location || "IN",
-      instructorName: event.extendedProps?.instructorName || null,
-      weekStartDate: event.startStr,
-      weekEndDate: event.endStr || event.startStr
-    }));
+    const schedule = events
+      .filter(e => e.start) //  ensure valid events
+      .map(e => ({
+        className:
+          e.extendedProps?.className ||
+          e.title?.split(" (")[0] ||
+          "Unknown",
 
-    console.log("Saving schedule:", schedule); //  debug
+        location:
+          e.extendedProps?.location ||
+          e.title?.match(/\((.*?)\)/)?.[1] ||
+          "IN",
+
+        instructorName: e.extendedProps?.instructorName || null,
+
+        weekStartDate: e.startStr,
+        weekEndDate: e.endStr || e.startStr
+      }));
+
+    console.log("Saving schedule payload:", schedule);
+
+    if (!Array.isArray(schedule)) {
+      throw new Error("Schedule payload is not an array");
+    }
 
     const res = await fetch(`${API_URL}/saveSchedule`, {
       method: "POST",
@@ -72,14 +87,15 @@ async function saveSchedule() {
     });
 
     if (!res.ok) {
-      throw new Error(`Server rejected save (${res.status})`);
+      const text = await res.text();
+      throw new Error(text || "Save failed");
     }
 
     alert("Schedule saved");
 
   } catch (err) {
-    console.error("Save failed:", err);
-    alert("Save failed");
+    console.error("SaveSchedule failed:", err);
+    alert("Save failed (check console)");
   }
 }
 
@@ -87,21 +103,28 @@ async function saveSchedule() {
 //  RENDER SCHEDULE → CALENDAR
  
 function renderCalendarFromSchedule(schedule) {
+  adminCalendar.getEvents().forEach(e => e.remove());
+
   schedule.forEach(slot => {
     adminCalendar.addEvent({
       title: `${slot.className} (${slot.location})`,
       start: slot.weekStartDate,
       end: slot.weekEndDate,
       allDay: true,
+
+      //  APPLY COLOR ON GENERATE
       backgroundColor: getInstructorColor(slot.instructorName),
 
       extendedProps: {
-        className: slot.className || "Unknown",
-        location: slot.location || "IN",
+        className: slot.className,
+        location: slot.location,
         instructorName: slot.instructorName || null
       }
     });
   });
+
+  //  refresh legend too
+  renderInstructorLegend();
 }
 
 
