@@ -216,13 +216,17 @@ let selectedEvent;
 function openEditModal(event) {
   selectedEvent = event;
 
-  document.getElementById("editEventTitle").value =
-    event.extendedProps.className;
-
-  document.getElementById("editEventLocation").value =
-    event.extendedProps.location;
-
+  const titleInput = document.getElementById("editEventTitle");
+  const locationInput = document.getElementById("editEventLocation");
   const instructorSelect = document.getElementById("editEventInstructor");
+
+  if (!titleInput || !locationInput || !instructorSelect) {
+    console.error("Edit modal elements not found");
+    return;
+  }
+
+  titleInput.value = event.extendedProps.className || "";
+  locationInput.value = event.extendedProps.location || "";
 
   instructorSelect.innerHTML = defaultInstructorNames.map(name => `
     <option ${name === event.extendedProps.instructorName ? "selected" : ""}>
@@ -230,7 +234,7 @@ function openEditModal(event) {
     </option>
   `).join("");
 
-  document.getElementById("eventEditMenu").classList.remove("hidden");
+  document.getElementById("eventEditMenu")?.classList.remove("hidden");
 }
 
 function closeEditModal() {
