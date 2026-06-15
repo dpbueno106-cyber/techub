@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Manage Instructors</title>
+</head>
+<link rel="stylesheet" href="manageInstructors.css" />
+<body>
+  <h1>Manage Instructors</h1>
+<button class="back-btn" onclick="window.location.href='schedule.html'">
+  Back to Schedule
+</button>
+  <form id="addInstructorForm">
+    <input id="name" placeholder="Name" required />
+    <select id="homeLocation">
+      <option value="IN">IN</option>
+      <option value="MI">MI</option>
+    </select>
+    <label>
+      <input type="checkbox" id="canTravel" />
+      Can Travel
+    </label>
+    <button type="submit">Add Instructor</button>
+  </form>
+
+  <h2>Existing Instructors</h2>
+  <ul id="instructorList"></ul>
+
+  <script type="module" src="manageInstructors.js"></script>
+</body>
+</html>

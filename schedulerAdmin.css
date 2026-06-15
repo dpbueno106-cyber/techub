@@ -81,7 +81,18 @@ button {
   cursor: grab;
   color: white;
 }
+button.secondary {
+  background-color: #e5e7eb;
+  color: #111827;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
 
+button.secondary:hover {
+  background-color: #d1d5db;
+}
 .modal {
   position: fixed;
   inset: 0;
