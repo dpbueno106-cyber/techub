@@ -36,7 +36,7 @@ onAuthStateChanged(auth, async (user) => {
   const role = docSnap.data().role;
 
   if (role !== "admin") {
-    alert("Access denied 🚫");
+    alert("Access denied");
     window.location.href = "index.html";
   }
 });
