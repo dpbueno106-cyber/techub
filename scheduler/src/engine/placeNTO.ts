@@ -41,7 +41,7 @@ export function placeNTO(
             level: "Foundational",
             durationWeeks: 2,
             instructorId: null,
-            weekStartDate: week1.startDate + 1, // Start on Tuesday
+            weekStartDate: week1.startDate, // Start on Tuesday
             weekEndDate: week1.endDate
           });
         });

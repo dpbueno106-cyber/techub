@@ -112,19 +112,19 @@ function renderCalendarFromSchedule(schedule) {
       end: slot.weekEndDate,
       allDay: true,
 
-      //  APPLY COLOR ON GENERATE
+      // APPLY COLOR ON GENERATE
       backgroundColor: getInstructorColor(slot.instructorName),
 
       extendedProps: {
         className: slot.className,
         location: slot.location,
-        instructorName: slot.instructorName || null
+        instructorName: slot.instructorName
       }
     });
   });
 
-  //  refresh legend too
-  renderInstructorLegend();
+  //  IMPORTANT: refresh legend
+  renderInstructorLegendFromSchedule(schedule);
 }
 
 
@@ -153,14 +153,7 @@ const predefinedColors = {
 
 function getInstructorColor(name) {
   if (!name) return "#888";
-
-  if (predefinedColors[name]) return 
-  predefinedColors[name];
-  if (!colorMap.has(name)) {
-    colorMap.set(name, colors[colorMap.size % colors.length]);
-  }
-
-  return colorMap.get(name);
+  return predefinedColors[name] || "#888";
 }
 
  
@@ -302,20 +295,26 @@ document.getElementById("deleteEventBtn")?.addEventListener("click", () => {
   closeEditModal();
 });
 
- function renderInstructorLegend() {
+ function renderInstructorLegendFromSchedule(schedule) {
   const legend = document.getElementById("instructorLegend");
   if (!legend) return;
 
   legend.innerHTML = "";
 
-  Object.entries(predefinedColors).forEach(([name, color]) => {
+  const usedInstructors = [...new Set(
+    schedule
+      .map(s => s.instructorName)
+      .filter(Boolean)
+  )];
+
+  usedInstructors.forEach(name => {
     const row = document.createElement("div");
     row.style.display = "flex";
     row.style.alignItems = "center";
     row.style.marginBottom = "6px";
 
     const swatch = document.createElement("span");
-    swatch.style.background = color;
+    swatch.style.background = getInstructorColor(name);
     swatch.style.width = "14px";
     swatch.style.height = "14px";
     swatch.style.marginRight = "8px";
@@ -349,8 +348,18 @@ function initCalendar() {
 
   adminCalendar.render();
   
-adminCalendar.on("eventReceive", () => {
-  console.log("Event dropped ");
+adminCalendar.on("eventReceive", info => {
+  const instructor = info.event.extendedProps.instructorName;
+
+  info.event.setProp(
+    "backgroundColor",
+    getInstructorColor(instructor)
+  );
+
+  info.event.setProp(
+    "borderColor",
+    getInstructorColor(instructor)
+  );
 });
 
 }
@@ -362,7 +371,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   initCalendar();
   makeExternalEventsDraggable();
-  renderInstructorLegend();
+  renderInstructorLegendFromSchedule(currentSchedule);
 
   // populate instructor dropdown in modal
   const select = document.getElementById("courseInstructor");

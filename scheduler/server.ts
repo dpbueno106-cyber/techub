@@ -6,13 +6,11 @@ import { generateSchedule } from "./src/engine/generateSchedule";
 import { db } from "./firebase";
 
 const app = express();
-
+app.use(express.json());
 /*const API_URL =
   window.location.hostname === "localhost"
     ? "http://localhost:3000"
     : "https://techub-9gis.onrender.com";
-
-app.use(express.json());
 */
 app.use(cors({
   origin: [
@@ -71,9 +69,12 @@ app.get("/instructors", (req, res) => res.json(instructors));
 
 app.post("/saveSchedule", async (req, res) => {
   try {
-    if (!Array.isArray(req.body)) {
-      return res.status(400).json({ error: "Invalid schedule format" });
-    }
+    const schedule = req.body;
+
+if (!schedule || !Array.isArray(schedule)) {
+  console.error("Invalid schedule payload:", req.body);
+  return res.status(400).json({ error: "Invalid schedule format" });
+}
 
     await db.collection("schedules").doc("current").set({
       schedule: req.body,
