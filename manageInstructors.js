@@ -48,6 +48,7 @@ form.addEventListener("submit", async e => {
   e.preventDefault();
 
   const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
   const homeLocation = document.getElementById("homeLocation").value;
   const canTravel = document.getElementById("canTravel").checked;
 
@@ -56,6 +57,8 @@ form.addEventListener("submit", async e => {
   await addDoc(collection(db, "instructors"), {
     id,
     name,
+    email,
+    role,
     homeLocation,
     canTravel,
     active: true,

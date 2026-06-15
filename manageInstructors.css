@@ -1,33 +1,90 @@
 /* =========================
+   CAT THEME VARIABLES
+========================= */
+
+:root {
+  --cat-yellow: #ffcd11;
+  --cat-black: #111111;
+  --cat-dark: #1c1c1c;
+  --cat-gray: #2a2a2a;
+  --cat-light-gray: #e5e7eb;
+  --cat-danger: #c62828;
+}
+
+/* =========================
    GLOBAL
 ========================= */
 
 * {
   box-sizing: border-box;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 body {
   margin: 0;
   padding: 24px;
-  background-color: #f4f6f8;
-  color: #1f2933;
+  background-color: var(--cat-black);
+  color: #f9fafb;
 }
 
 /* =========================
-   PAGE HEADER
+   HEADINGS
 ========================= */
 
 h1 {
   margin-bottom: 16px;
-  font-size: 24px;
+  font-size: 26px;
+  color: var(--cat-yellow);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 h2 {
   margin-top: 32px;
   font-size: 18px;
-  border-bottom: 2px solid #e5e7eb;
+  border-bottom: 2px solid var(--cat-yellow);
   padding-bottom: 6px;
+  color: #f9fafb;
+}
+
+/* =========================
+   TABLE
+========================= */
+
+table {
+  width: 100%;
+  max-width: 700px;
+  border-collapse: collapse;
+  background: var(--cat-dark);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
+  border-left: 4px solid var(--cat-yellow);
+}
+
+th, td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #333;
+  text-align: left;
+  font-size: 14px;
+}
+
+th {
+  background: var(--cat-gray);
+  font-weight: 600;
+  color: var(--cat-yellow);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+td {
+  color: #f3f4f6;
+}
+
+select {
+  padding: 6px 8px;
+  background: var(--cat-black);
+  color: #ffffff;
+  border: 1px solid #444;
+  border-radius: 4px;
 }
 
 /* =========================
@@ -35,11 +92,12 @@ h2 {
 ========================= */
 
 form {
-  background: #ffffff;
+  background: var(--cat-dark);
   padding: 20px;
-  border-radius: 8px;
+  border-radius: 6px;
   max-width: 420px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  border-left: 4px solid var(--cat-yellow);
 }
 
 form input,
@@ -48,7 +106,9 @@ form select {
   padding: 8px 10px;
   margin-bottom: 12px;
   border-radius: 4px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #444;
+  background: var(--cat-black);
+  color: #ffffff;
   font-size: 14px;
 }
 
@@ -58,20 +118,23 @@ form label {
   gap: 8px;
   font-size: 14px;
   margin-bottom: 12px;
+  color: #f3f4f6;
 }
 
 form button {
-  background-color: #2563eb;
-  color: #ffffff;
+  background-color: var(--cat-yellow);
+  color: var(--cat-black);
   border: none;
   padding: 10px 14px;
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
 }
 
 form button:hover {
-  background-color: #1d4ed8;
+  background-color: #e6b800;
 }
 
 /* =========================
@@ -85,18 +148,20 @@ form button:hover {
 }
 
 #instructorList li {
-  background: #ffffff;
+  background: var(--cat-dark);
   margin-bottom: 8px;
   padding: 10px 12px;
-  border-radius: 6px;
+  border-radius: 4px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  border-left: 4px solid var(--cat-yellow);
 }
 
 #instructorList li span {
   font-size: 14px;
+  color: #f3f4f6;
 }
 
 /* =========================
@@ -104,17 +169,18 @@ form button:hover {
 ========================= */
 
 #instructorList button {
-  background-color: #dc2626;
+  background-color: var(--cat-danger);
   color: #ffffff;
   border: none;
   border-radius: 4px;
   padding: 6px 10px;
   cursor: pointer;
   font-size: 12px;
+  text-transform: uppercase;
 }
 
 #instructorList button:hover {
-  background-color: #b91c1c;
+  background-color: #a61e1e;
 }
 
 /* =========================
@@ -126,9 +192,11 @@ form button:hover {
   margin-bottom: 16px;
   background: none;
   border: none;
-  color: #2563eb;
+  color: var(--cat-yellow);
   cursor: pointer;
   font-size: 14px;
+  text-transform: uppercase;
+  font-weight: 600;
 }
 
 .back-btn:hover {
