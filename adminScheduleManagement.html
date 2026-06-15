@@ -61,7 +61,34 @@
 
     </div>
   </div>
+<!-- EDIT EVENT MODAL -->
+<div id="eventEditMenu" class="modal hidden">
+  <div class="modalContent">
 
+    <h2>Edit Course</h2>
+
+    <input
+      id="editEventTitle"
+      type="text"
+      placeholder="Course Name"
+    />
+
+    <input
+      id="editEventLocation"
+      type="text"
+      placeholder="Location"
+    />
+
+    <select id="editEventInstructor"></select>
+
+    <div class="modalActions">
+      <button id="saveEventBtn">Save</button>
+      <button id="deleteEventBtn" class="secondary">Delete</button>
+      <button onclick="closeEditModal()" class="secondary">Cancel</button>
+    </div>
+
+  </div>
+</div>
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
   <script src="schedulerAdmin.js"></script>
 </body>

@@ -51,28 +51,26 @@ async function saveSchedule() {
     const events = adminCalendar.getEvents();
 
     const schedule = events.map(event => ({
-  className: event.extendedProps?.className || event.title,
-  location: event.extendedProps?.location || "IN",
-  instructorName: event.extendedProps?.instructorName || null,
-  weekStartDate: event.startStr,
-  weekEndDate: event.endStr || event.startStr
-}));
+      className: event.extendedProps.className || event.title,
+      location: event.extendedProps.location || "IN",
+      instructorName: event.extendedProps.instructorName || null,
+      weekStartDate: event.startStr,
+      weekEndDate: event.endStr || event.startStr
+    }));
 
     const res = await fetch(`${API_URL}/saveSchedule`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(schedule)
     });
 
-    if (!res.ok) throw new Error();
+    if (!res.ok) throw new Error("Save failed");
 
-    alert(" Schedule saved");
+    alert("Schedule saved");
 
   } catch (err) {
     console.error(err);
-    alert(" Save failed");
+    alert("Save failed");
   }
 }
 
