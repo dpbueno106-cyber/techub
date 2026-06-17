@@ -67,7 +67,14 @@ app.get("/schedule", async (req, res) => {
         error: "Missing config, catalog, or instructors in Firestore"
       });
     }
-
+    //  Log loaded data for debugging
+console.log("Firestore data snapshot:", {
+  config,
+  catalogCount: catalog.length,
+  instructorCount: instructors.length,
+  sampleCatalog: catalog[0],
+  sampleInstructor: instructors[0]
+});
     const schedule = generateSchedule(config, catalog, instructors);
 
     //  Save it immediately
