@@ -43,7 +43,20 @@ async function generateSchedule() {
   }
 }
 
- 
+ async function clearSchedule() {
+  if (!confirm("Reset schedule to recommended version?")) return;
+
+  try {
+    await fetch(`${API_URL}/clearSchedule`, { method: "POST" });
+
+    alert("Schedule reset successful");
+
+    generateSchedule(); // reload immediately
+  } catch (err) {
+    console.error(err);
+    alert("Failed to reset schedule");
+  }
+}
 //  SAVE SCHEDULE
  
 async function saveSchedule() {

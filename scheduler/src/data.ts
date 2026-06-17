@@ -1,3 +1,4 @@
+
 import type { ClassDefinition, Instructor, ScheduleConfig } from "./types";
 
 export const config: ScheduleConfig = {

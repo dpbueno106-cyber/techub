@@ -79,7 +79,7 @@ async function loadInstructors() {
         capabilities: selected
       }, { merge: true });
 
-      alert("Capabilities updated ✅");
+      alert("Capabilities updated successfully!");
     });
 
     instructorList.appendChild(div);

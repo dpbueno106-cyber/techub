@@ -39,6 +39,10 @@ button {
   background-color: #4caf50;
   color: white;
 }
+.clearBtn {
+  background-color: #f44336;
+  color: white;
+}
 
 .secondary {
   background-color: #333;
@@ -82,12 +86,18 @@ button {
   color: white;
 }
 button.secondary {
-  background-color: #e5e7eb;
+  background-color: #ffd400;
   color: #111827;
   border: none;
   padding: 8px 12px;
   border-radius: 4px;
   cursor: pointer;
+}
+button.saveBtn:hover {
+  background-color: #45a049;
+}
+button.clearBtn:hover {
+  background-color: #e53935;
 }
 
 button.secondary:hover {

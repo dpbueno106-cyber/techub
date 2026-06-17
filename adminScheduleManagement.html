@@ -16,9 +16,10 @@
 
   <!--  ACTION BUTTONS -->
   <div class="actionBar">
-    <button onclick="generateSchedule()">Generate Schedule</button>
+    <button class = "secondary" onclick="generateSchedule()">Generate Schedule</button>
     <button onclick="saveSchedule()" class="saveBtn">Save Schedule</button>
-    <button onclick="openAddCourseModal()" class="secondary">+ Add Course</button>
+    <button onclick="clearSchedule()" class="clearBtn">Reset Schedule</button>
+    <button class = "secondary" onclick="openAddCourseModal()">+ Add Course</button>
   </div>
 
   <!--  MAIN LAYOUT -->
@@ -31,15 +32,11 @@
 
     <!--  DRAGGABLE CLASSES (25%) -->
     <div class="sidePanel">
-      
+      <button class = "secondary" onclick="window.location.href='manageInstructors.html'">Manage Instructors</button>
+      <button class="secondary" onclick="window.location.href='linkUsersToInstructors.html'">Link Users to Instructors</button>
       <h3>Instructor Colors</h3>
       <div id="instructorLegend"></div>
-      <button class="backBtn" onclick="window.location.href='manageInstructors.html'">
-                  Manage Instructors
-        </button>
-<button class="backBtn" onclick="window.location.href='linkUsersToInstructors.html'">
-                  Link Users to Instructors
-        </button>
+      
       <h2>Classes</h2>
       <div id="externalEvents"></div>
     </div>

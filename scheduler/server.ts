@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 
-import { config, catalog, instructors } from "./src/data";
+
 import { generateSchedule } from "./src/engine/generateSchedule";
 import { db } from "./firebase";
 
@@ -20,81 +20,9 @@ app.use(cors({
   ]
 }));
 
-async function seedFirestore() {
-  console.log("Checking Firestore seed state...");
 
-  // -------- CONFIG --------
-  const configRef = db.collection("config").doc("current");
-  const configSnap = await configRef.get();
+//  Helper
 
-  if (!configSnap.exists) {
-    await configRef.set({
-      ...config,
-      seededAt: new Date()
-    });
-    console.log("Config seeded");
-  } else {
-    console.log("Config already exists");
-  }
-
-  // -------- CATALOG --------
-  const catalogCol = db.collection("catalog");
-
-  for (const course of catalog) {
-    const docId = course.id;
-    const ref = catalogCol.doc(docId);
-    const snap = await ref.get();
-
-    if (!snap.exists) {
-      await ref.set({
-        ...course,
-        seededAt: new Date()
-      });
-      console.log(`Catalog seeded: ${course.name}`);
-    }
-  }
-
-  // -------- INSTRUCTORS --------
-  const instructorCol = db.collection("instructors");
-
-  for (const instructor of instructors) {
-    const ref = instructorCol.doc(instructor.id);
-    const snap = await ref.get();
-
-    if (!snap.exists) {
-      await ref.set({
-        ...instructor,
-        seededAt: new Date()
-      });
-      console.log(`Instructor seeded: ${instructor.name}`);
-    }
-  }
-
-  console.log("Firestore seeding complete");
-}
-
-// 🔹 Helper
-function addInstructorNames(schedule: any[]) {
-  return schedule.map(slot => {
-    const instructor = instructors.find(i => i.id === slot.instructorId);
-
-    const namedRecommended = slot.recommendedInstructors?.map((item: any) => {
-      const id = typeof item === "string" ? item : item.id;
-      const found = instructors.find(i => i.id === id);
-
-      return {
-        ...(typeof item === "string" ? { id } : item),
-        name: found?.name || id
-      };
-    });
-
-    return {
-      ...slot,
-      instructorName: instructor?.name ?? slot.instructorName ?? null,
-      recommendedInstructors: namedRecommended ?? slot.recommendedInstructors
-    };
-  });
-}
 app.use((req, res, next) => {
   if (req.method === "OPTIONS") {
     return res.sendStatus(204);
@@ -102,21 +30,53 @@ app.use((req, res, next) => {
   next();
 });
 
-seedFirestore().catch(err => {
-  console.error("Error during Firestore seeding:", err);
-});
+async function loadConfigFromFirestore() {
+  const docSnap = await db.collection("config").doc("current").get();
 
-// 🔹 Routes
+  if (!docSnap.exists) return null;
+
+  return docSnap.data();
+}
+
+async function loadCatalogFromFirestore() {
+  const snapshot = await db.collection("catalog").get();
+  return snapshot.docs.map(doc => doc.data());
+}
+
+async function loadInstructorsFromFirestore() {
+  const snapshot = await db.collection("instructors").get();
+  return snapshot.docs.map(doc => doc.data());
+}
+//  Routes
 app.get("/schedule", async (req, res) => {
   try {
     const doc = await db.collection("schedules").doc("current").get();
 
+    //  If saved schedule exists → return it
     if (doc.exists) {
-      return res.json(addInstructorNames(doc.data()?.schedule ?? []));
+      return res.json(doc.data()?.schedule ?? []);
+    }
+
+    //  Otherwise generate from Firestore data
+    const config = await loadConfigFromFirestore();
+    const catalog = await loadCatalogFromFirestore();
+    const instructors = await loadInstructorsFromFirestore();
+
+    if (!config || !catalog.length || !instructors.length) {
+      return res.status(400).json({
+        error: "Missing config, catalog, or instructors in Firestore"
+      });
     }
 
     const schedule = generateSchedule(config, catalog, instructors);
-    res.json(addInstructorNames(schedule));
+
+    //  Save it immediately
+    await db.collection("schedules").doc("current").set({
+      schedule,
+      updatedAt: new Date()
+    });
+
+    res.json(schedule);
 
   } catch (err) {
     console.error(err);
@@ -124,31 +84,16 @@ app.get("/schedule", async (req, res) => {
   }
 });
 
-app.get("/catalog", (req, res) => res.json(catalog));
-app.get("/instructors", (req, res) => res.json(instructors));
-
-app.post("/saveSchedule", async (req, res) => {
+app.post("/clearSchedule", async (req, res) => {
   try {
-    const schedule = req.body;
+    await db.collection("schedules").doc("current").delete();
 
-if (!schedule || !Array.isArray(schedule)) {
-  console.error("Invalid schedule payload:", req.body);
-  return res.status(400).json({ error: "Invalid schedule format" });
-}
-
-    await db.collection("schedules").doc("current").set({
-      schedule: req.body,
-      updatedAt: new Date()
-    });
-
-    res.json({ message: "Schedule saved successfully" });
-
+    res.json({ message: "Schedule cleared" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to save schedule" });
+    res.status(500).json({ error: "Failed to clear schedule" });
   }
 });
-
 //  Start server (ONLY ONE)
 const PORT = process.env.PORT || 3000;
 
@@ -163,4 +108,3 @@ server.on("error", (err: any) => {
     console.error(err);
   }
 });
-``
