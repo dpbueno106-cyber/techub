@@ -92,6 +92,7 @@ button.secondary {
   padding: 8px 12px;
   border-radius: 4px;
   cursor: pointer;
+  gap: 6px;
 }
 button.saveBtn:hover {
   background-color: #45a049;
