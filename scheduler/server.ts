@@ -40,12 +40,12 @@ async function loadConfigFromFirestore() {
 
 async function loadCatalogFromFirestore() {
   const snapshot = await db.collection("catalog").get();
-  return snapshot.docs.map(doc => doc.data());
+  return snapshot.docs.map((doc: any) => doc.data());
 }
 
 async function loadInstructorsFromFirestore() {
   const snapshot = await db.collection("instructors").get();
-  return snapshot.docs.map(doc => doc.data());
+  return snapshot.docs.map((doc: any) => doc.data());
 }
 //  Routes
 app.get("/schedule", async (req, res) => {
