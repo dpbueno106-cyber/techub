@@ -1,12 +1,12 @@
+import { initializeApp, applicationDefault } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
 
-
-
-import * as admin from "firebase-admin";
-
-admin.initializeApp({
-  credential: admin.credential.applicationDefault()
+//  Initialize Firebase Admin
+initializeApp({
+  credential: applicationDefault()
 });
 
-const db = admin.firestore();
+//  Firestore instance
+const db = getFirestore();
 
 export { db };

@@ -1,16 +1,12 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "CommonJS",
-    "moduleResolution": "ES2020",
-    //"ignoreDeprecations": "6.0",
-    "outDir": "dist",
-    "rootDir": ".",
+    "module": "Node16",
+    "moduleResolution": "node16",
     "esModuleInterop": true,
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "outDir": "dist"
   },
   "include": ["**/*.ts"]
 }
-
-
