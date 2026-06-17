@@ -30,11 +30,18 @@ function goBack() {
 async function generateSchedule() {
   try {
     adminCalendar.getEvents().forEach(e => e.remove());
+
     const res = await fetch(`${API_URL}/schedule`);
     const schedule = await res.json();
 
-    currentSchedule = schedule;
+    //  IMPORTANT: validate response
+    if (!Array.isArray(schedule)) {
+      console.error("Schedule API error:", schedule);
+      alert(schedule.error || "Failed to load schedule");
+      return;
+    }
 
+    currentSchedule = schedule;
     renderCalendarFromSchedule(schedule);
 
   } catch (err) {
@@ -116,6 +123,11 @@ async function saveSchedule() {
 //  RENDER SCHEDULE → CALENDAR
  
 function renderCalendarFromSchedule(schedule) {
+  if (!Array.isArray(schedule)) {
+    console.error("Invalid schedule passed to renderer:", schedule);
+    return;
+  }
+
   adminCalendar.getEvents().forEach(e => e.remove());
 
   schedule.forEach(slot => {
@@ -124,10 +136,7 @@ function renderCalendarFromSchedule(schedule) {
       start: slot.weekStartDate,
       end: slot.weekEndDate,
       allDay: true,
-
-      // APPLY COLOR ON GENERATE
       backgroundColor: getInstructorColor(slot.instructorName),
-
       extendedProps: {
         className: slot.className,
         location: slot.location,
@@ -136,7 +145,6 @@ function renderCalendarFromSchedule(schedule) {
     });
   });
 
-  //  IMPORTANT: refresh legend
   renderInstructorLegendFromSchedule(schedule);
 }
 
