@@ -3,7 +3,8 @@ import { getFirestore } from "firebase-admin/firestore";
 
 //  Initialize Firebase Admin
 initializeApp({
-  credential: applicationDefault()
+  credential: applicationDefault(),
+  projectId: "techub-login-system"
 });
 
 //  Firestore instance

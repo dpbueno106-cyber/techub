@@ -5,7 +5,8 @@ const app_1 = require("firebase-admin/app");
 const firestore_1 = require("firebase-admin/firestore");
 //  Initialize Firebase Admin
 (0, app_1.initializeApp)({
-    credential: (0, app_1.applicationDefault)()
+    credential: (0, app_1.applicationDefault)(),
+    projectId: "techub-login-system"
 });
 //  Firestore instance
 const db = (0, firestore_1.getFirestore)();
