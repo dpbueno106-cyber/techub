@@ -58,10 +58,30 @@ let currentUserSlug = null;
    HELPERS
 ========================= */
 
-function addDays(dateString, days) {
-  const date = new Date(dateString);
-  date.setDate(date.getDate() + days);
-  return date.toISOString().split("T")[0];
+function mapScheduleToEvents(schedule) {
+  if (!Array.isArray(schedule)) {
+    console.error("Invalid schedule passed to mapper:", schedule);
+    return [];
+  }
+
+  return schedule
+    .filter(slot => slot.weekStartDate)
+    .map(slot => {
+      const end = addDays(
+        slot.weekEndDate || slot.weekStartDate,
+        1
+      );
+
+      if (!end) return null;
+
+      return {
+        title: `${slot.className} — ${slot.location}`,
+        start: slot.weekStartDate,
+        end,
+        allDay: true
+      };
+    })
+    .filter(Boolean);
 }
 
 /* =========================
@@ -69,28 +89,36 @@ function addDays(dateString, days) {
 ========================= */
 
 function mapScheduleToEvents(schedule) {
-  let filtered = schedule;
-
-  //  Instructors only see their classes
-  if (currentRole === "instructor" && currentUserSlug) {
-    filtered = schedule.filter(
-      slot => slot.instructorName?.toLowerCase() === currentUserSlug
-    );
+  if (!Array.isArray(schedule)) {
+    console.error("mapScheduleToEvents received invalid schedule:", schedule);
+    return [];
   }
 
-  return filtered.map(slot => ({
-    title: `${slot.className} (${slot.location})`,
-    start: slot.weekStartDate,
-    end: addDays(slot.weekEndDate, 1),
-    allDay: true,
-    backgroundColor: getInstructorColor(slot.instructorName),
-    borderColor: getInstructorColor(slot.instructorName),
-    extendedProps: {
-      instructorName: slot.instructorName,
-      location: slot.location
-    }
-  }));
+  return schedule
+    .filter(slot => slot.weekStartDate)
+    .map(slot => {
+      const end = addDays(
+        slot.weekEndDate || slot.weekStartDate,
+        1
+      );
+
+      if (!end) return null;
+
+      return {
+        title: `${slot.className} — ${slot.location}`,
+        start: slot.weekStartDate,
+        end,
+        allDay: true,
+        backgroundColor: getInstructorColor(slot.instructorName),
+        extendedProps: {
+          instructorName: slot.instructorName,
+          location: slot.location
+        }
+      };
+    })
+    .filter(Boolean);
 }
+
 
 /* =========================
    LOAD SCHEDULE
