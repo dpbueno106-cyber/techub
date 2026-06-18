@@ -45,13 +45,18 @@ function addDays(dateString, days) {
 //  GENERATE SCHEDULE
  
 async function generateSchedule() {
+  if (!adminCalendar) {
+    console.error("Calendar not initialized");
+    alert("Calendar is not ready yet. Please refresh the page.");
+    return;
+  }
+
   try {
     adminCalendar.getEvents().forEach(e => e.remove());
 
     const res = await fetch(`${API_URL}/schedule`);
     const schedule = await res.json();
 
-    //  IMPORTANT: validate response
     if (!Array.isArray(schedule)) {
       console.error("Schedule API error:", schedule);
       alert(schedule.error || "Failed to load schedule");
@@ -62,10 +67,11 @@ async function generateSchedule() {
     renderCalendarFromSchedule(schedule);
 
   } catch (err) {
-    console.error(err);
+    console.error("Generate schedule failed:", err);
     alert("Failed to generate schedule");
   }
 }
+
 
  async function clearSchedule() {
   if (!confirm("Reset schedule to recommended version?")) return;

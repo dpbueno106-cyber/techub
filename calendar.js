@@ -58,31 +58,7 @@ let currentUserSlug = null;
    HELPERS
 ========================= */
 
-function mapScheduleToEvents(schedule) {
-  if (!Array.isArray(schedule)) {
-    console.error("Invalid schedule passed to mapper:", schedule);
-    return [];
-  }
 
-  return schedule
-    .filter(slot => slot.weekStartDate)
-    .map(slot => {
-      const end = addDays(
-        slot.weekEndDate || slot.weekStartDate,
-        1
-      );
-
-      if (!end) return null;
-
-      return {
-        title: `${slot.className} — ${slot.location}`,
-        start: slot.weekStartDate,
-        end,
-        allDay: true
-      };
-    })
-    .filter(Boolean);
-}
 
 /* =========================
    MAP SCHEDULE → CALENDAR
