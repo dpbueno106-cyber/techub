@@ -37,10 +37,35 @@ function addDays(dateString, days) {
   return date.toISOString().split("T")[0];
 }
 
+let selectedEvent = null;
 
 function openEditModal(event) {
-  console.log("Edit clicked for event:", event);
-  // TODO: open modal UI here
+  console.log("Editing event:", event);
+  // Store the selected event globally if needed
+  selectedEvent = event;
+
+  // Example: populate modal fields
+  const titleInput = document.getElementById("editEventTitle");
+  const locationInput = document.getElementById("editEventLocation");
+  const instructorSelect = document.getElementById("editEventInstructor");
+
+  if (!titleInput || !locationInput || !instructorSelect) {
+    console.error("Edit modal elements not found");
+    return;
+  }
+
+  titleInput.value = event.extendedProps.className || "";
+  locationInput.value = event.extendedProps.location || "";
+
+  instructorSelect.innerHTML = defaultInstructorNames
+    .map(name => `
+      <option ${name === event.extendedProps.instructorName ? "selected" : ""}>
+        ${name}
+      </option>
+    `)
+    .join("");
+
+  document.getElementById("eventEditMenu")?.classList.remove("hidden");
 }
 // =========================
 // CALENDAR INIT (CRITICAL)
@@ -63,8 +88,12 @@ function initCalendar() {
       left: "prev,next today",
       center: "title",
       right: "dayGridMonth,timeGridWeek"
-    }
-    //  eventClick removed
+    },
+    
+    eventClick(info) {
+    openEditModal(info.event);
+  }
+
   });
 
   adminCalendar.render();
