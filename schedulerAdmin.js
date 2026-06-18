@@ -369,37 +369,30 @@ document.getElementById("deleteEventBtn")?.addEventListener("click", () => {
 //  INIT CALENDAR
  
 function initCalendar() {
+  const calendarEl = document.getElementById("calendar");
 
-  adminCalendar = new FullCalendar.Calendar(
-    document.getElementById("adminCalendar"),
-    {
-      initialView: "dayGridMonth",
-      editable: true,
-      droppable: true,
-      height: 600,
+  if (!calendarEl) {
+    console.error("calendar element not found");
+    return;
+  }
 
-      eventClick: function (info) {
-        openEditModal(info.event);
-      }
+  adminCalendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: "dayGridMonth",
+    editable: true,
+    droppable: true,
+    height: 600,
+    headerToolbar: {
+      left: "prev,next today",
+      center: "title",
+      right: "dayGridMonth,timeGridWeek"
+    },
+    eventClick(info) {
+      openEditModal(info.event);
     }
-  );
+  });
 
   adminCalendar.render();
-  
-adminCalendar.on("eventReceive", info => {
-  const instructor = info.event.extendedProps.instructorName;
-
-  info.event.setProp(
-    "backgroundColor",
-    getInstructorColor(instructor)
-  );
-
-  info.event.setProp(
-    "borderColor",
-    getInstructorColor(instructor)
-  );
-});
-
+  console.log(" Calendar rendered");
 }
 
  
