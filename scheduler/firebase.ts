@@ -1,13 +1,14 @@
-import { initializeApp, applicationDefault } from "firebase-admin/app";
+import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 
-//  Initialize Firebase Admin
+const serviceAccount = JSON.parse(
+  process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON as string
+);
+
 initializeApp({
-  credential: applicationDefault(),
+  credential: cert(serviceAccount),
   projectId: "techub-login-system"
 });
 
-//  Firestore instance
 const db = getFirestore();
-
 export { db };
