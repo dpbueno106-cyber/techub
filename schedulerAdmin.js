@@ -68,6 +68,36 @@ function openEditModal(event) {
 
   document.getElementById("eventEditMenu")?.classList.remove("hidden");
 }
+function openAddCourseModal() {
+  const modal = document.getElementById("addCourseModal");
+
+  if (!modal) {
+    console.error("Add Course modal not found");
+    return;
+  }
+
+  modal.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+}
+
+function closeAddCourseModal() {
+  const modal = document.getElementById("addCourseModal");
+
+  if (!modal) {
+    console.error("Add Course modal not found");
+    return;
+  }
+
+  modal.classList.add("hidden");
+  document.body.style.overflow = "auto";
+}
+
+document.getElementById("addCourseModal")?.addEventListener("click", (e) => {
+  if (e.target.id === "addCourseModal") {
+    closeAddCourseModal();
+  }
+});
+
 
 function closeEditModal() {
   const modal = document.getElementById("eventEditMenu");
@@ -141,12 +171,40 @@ function initCalendar() {
     
     eventClick(info) {
     openEditModal(info.event);
+  },
+  eventReceive(info) {
+  const event = info.event;
+
+  const instructor = event.extendedProps.instructorName;
+
+  // Apply color
+  event.setProp(
+    "backgroundColor",
+    getInstructorColor(instructor)
+  );
+  event.setProp(
+    "borderColor",
+    getInstructorColor(instructor)
+  );
+
+  // ENSURE ALL-DAY END DATE
+  if (!event.end && event.start) {
+    const end = addDays(event.startStr, 1);
+    event.setEnd(end);
   }
+
+  console.log("Event dropped:", event);
+
+  // OPEN EDIT MODAL IMMEDIATELY
+  openEditModal(event);
+}
 
   });
 
   adminCalendar.render();
   console.log("Calendar rendered");
+
+  
 }
 
 // =========================
@@ -180,6 +238,34 @@ async function generateSchedule() {
     alert("Failed to generate schedule");
   }
 }
+
+function makeExternalEventsDraggable() {
+  const container = document.getElementById("externalEvents");
+  if (!container) return;
+
+  if (draggableInstance) {
+    draggableInstance.destroy();
+  }
+
+  draggableInstance = new FullCalendar.Draggable(container, {
+    itemSelector: ".external-event",
+    eventData: function (eventEl) {
+      const instructor = eventEl.dataset.instructor || null;
+
+      return {
+        title: eventEl.innerText,
+        duration: { days: Number(eventEl.dataset.duration || 1) * 5 },
+        backgroundColor: getInstructorColor(instructor),
+        extendedProps: {
+          className: eventEl.dataset.className,
+          location: eventEl.dataset.location || "IN",
+          instructorName: instructor
+        }
+      };
+    }
+  });
+}
+
 function renderDraggableCourses(schedule) {
   const container = document.getElementById("externalEvents");
   if (!container) return;
