@@ -55,7 +55,8 @@ function openEditModal(event) {
   }
 
   titleInput.value = event.extendedProps.className || "";
-  locationInput.value = event.extendedProps.location || "";
+  locationInput.value = event.extendedProps.location || "IN";
+
 
   instructorSelect.innerHTML = defaultInstructorNames
     .map(name => `
@@ -67,6 +68,54 @@ function openEditModal(event) {
 
   document.getElementById("eventEditMenu")?.classList.remove("hidden");
 }
+
+function closeEditModal() {
+  const modal = document.getElementById("eventEditMenu");
+  if (!modal) {
+    console.error("Edit modal not found");
+    return;
+  }
+
+  modal.classList.add("hidden");
+  selectedEvent = null;
+}
+
+document.getElementById("saveEventBtn")?.addEventListener("click", () => {
+  if (!selectedEvent) return;
+
+  const title = document.getElementById("editEventTitle")?.value;
+  const location = document.getElementById("editEventLocation")?.value;
+  const instructor = document.getElementById("editEventInstructor")?.value;
+
+  // Update title
+  selectedEvent.setProp("title", `${title} (${location})`);
+
+  // Update extended data
+  selectedEvent.setExtendedProp("className", title);
+  selectedEvent.setExtendedProp("location", location);
+  selectedEvent.setExtendedProp("instructorName", instructor);
+
+  // Update color
+  selectedEvent.setProp(
+    "backgroundColor",
+    getInstructorColor(instructor)
+  );
+
+  closeEditModal();
+
+  console.log("Event updated");
+});
+ 
+document.getElementById("deleteEventBtn")?.addEventListener("click", () => {
+  if (!selectedEvent) return;
+
+  selectedEvent.remove();
+  closeEditModal();
+
+  console.log("Event deleted");
+});
+
+
 // =========================
 // CALENDAR INIT (CRITICAL)
 // =========================
@@ -124,13 +173,43 @@ async function generateSchedule() {
 
     currentSchedule = schedule;
     renderCalendarFromSchedule(schedule);
+    renderDraggableCourses(schedule);
 
   } catch (err) {
     console.error("Generate schedule failed:", err);
     alert("Failed to generate schedule");
   }
 }
+function renderDraggableCourses(schedule) {
+  const container = document.getElementById("externalEvents");
+  if (!container) return;
 
+  container.innerHTML = "";
+
+  const uniqueCourses = new Map();
+
+  schedule.forEach(s => {
+    if (!uniqueCourses.has(s.className)) {
+      uniqueCourses.set(s.className, s);
+    }
+  });
+
+  uniqueCourses.forEach(course => {
+    const el = document.createElement("div");
+
+    el.className = "external-event";
+    el.innerText = `${course.className} (${course.location})`;
+
+    el.dataset.className = course.className;
+    el.dataset.location = course.location;
+    el.dataset.duration = course.durationWeeks || 1;
+    el.dataset.instructor = course.instructorName || course.instructorId || null;
+
+    container.appendChild(el);
+  });
+
+  makeExternalEventsDraggable();
+}
 // =========================
 // RENDER SCHEDULE
 // =========================
@@ -149,11 +228,11 @@ function renderCalendarFromSchedule(schedule) {
       start: slot.weekStartDate,
       end,
       allDay: true,
-      backgroundColor: getInstructorColor(slot.instructorName),
+      backgroundColor: getInstructorColor(slot.instructorName || slot.instructorId),
       extendedProps: {
         className: slot.className,
         location: slot.location,
-        instructorName: slot.instructorName
+        instructorName: slot.instructorName || slot.instructorId
       }
     });
   });
@@ -192,7 +271,7 @@ function renderInstructorLegendFromSchedule(schedule) {
   legend.innerHTML = "";
 
   const used = [...new Set(
-    schedule.map(s => s.instructorName).filter(Boolean)
+    schedule.map(s => s.instructorName || s.instructorId).filter(Boolean)
   )];
 
   used.forEach(name => {
