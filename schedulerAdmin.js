@@ -23,7 +23,23 @@ const API_URL = window.location.hostname.includes("localhost")
 function goBack() {
   window.location.href = "adminDashboard.html";
 }
+// DATE HELPERS
+function addDays(dateString, days) {
+  if (!dateString) {
+    console.error("Invalid dateString passed to addDays:", dateString);
+    return null;
+  }
 
+  const date = new Date(dateString);
+
+  if (isNaN(date.getTime())) {
+    console.error("Invalid date value:", dateString);
+    return null;
+  }
+
+  date.setDate(date.getDate() + days);
+  return date.toISOString().split("T")[0];
+}
  
 //  GENERATE SCHEDULE
  
