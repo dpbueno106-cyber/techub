@@ -134,7 +134,7 @@ function renderCalendarFromSchedule(schedule) {
     adminCalendar.addEvent({
       title: `${slot.className} (${slot.location})`,
       start: slot.weekStartDate,
-      end: slot.weekEndDate,
+      end: addDays(slot.weekEndDate, 1),
       allDay: true,
       backgroundColor: getInstructorColor(slot.instructorName),
       extendedProps: {
