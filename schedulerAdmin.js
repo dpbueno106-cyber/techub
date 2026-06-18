@@ -26,7 +26,34 @@ function goBack() {
 // =========================
 // DATE HELPER (REQUIRED)
 // =========================
+function isWeekend(date) {
+  const day = date.getDay();
+  return day === 0 || day === 6; // Sunday = 0, Saturday = 6
+}
 
+function nextMonday(date) {
+  const d = new Date(date);
+  while (d.getDay() !== 1) { // Monday
+    d.setDate(d.getDate() + 1);
+  }
+  return d;
+}
+
+function nextTuesday(date) {
+  const d = new Date(date);
+  while (d.getDay() !== 2) { // Tuesday
+    d.setDate(d.getDate() + 1);
+  }
+  return d;
+}
+
+function nextFriday(date) {
+  const d = new Date(date);
+  while (d.getDay() !== 5) { // Friday
+    d.setDate(d.getDate() + 1);
+  }
+  return d;
+}
 function addDays(dateString, days) {
   if (!dateString) return null;
 
@@ -344,35 +371,41 @@ function renderCalendarFromSchedule(schedule) {
   adminCalendar.removeAllEvents();
 
   schedule.forEach(slot => {
-  let start = nextWeekday(new Date(slot.weekStartDate));
-  let end;
+    let start;
+    let end;
 
-  const isNTO = slot.className === "NTO";
+    const baseDate = new Date(slot.weekStartDate);
 
-  if (isNTO) {
-    //  Tuesday → next Friday
-    start.setDate(start.getDate() + 1); // Tuesday
-    end = new Date(start);
-    end.setDate(end.getDate() + 10);    // Friday next week
-  } else {
-    //  Regular: Monday → Friday
-    end = new Date(start);
-    end.setDate(end.getDate() + 4);     // Mon–Fri
-  }
+    const isNTO =
+      slot.className === "New Technician Orientation" ||
+      slot.className === "NTO";
 
-  adminCalendar.addEvent({
-    title: `${slot.className} (${slot.location})`,
-    start: start.toISOString().split("T")[0],
-    end: addDays(end.toISOString().split("T")[0], 1), // FullCalendar exclusive end
-    allDay: true,
-    backgroundColor: getInstructorColor(slot.instructorName || slot.instructorId),
-    extendedProps: {
-      className: slot.className,
-      location: slot.location,
-      instructorName: slot.instructorName || slot.instructorId
+    if (isNTO) {
+      //  NTO: Tuesday → Friday NEXT week
+      start = nextTuesday(baseDate);
+
+      end = new Date(start);
+      end.setDate(end.getDate() + 7); // move to next week
+      end = nextFriday(end);
+    } else {
+      //  Regular: Monday → Friday SAME week
+      start = nextMonday(baseDate);
+      end = nextFriday(start);
     }
+
+    adminCalendar.addEvent({
+      title: `${slot.className} (${slot.location})`,
+      start: start.toISOString().split("T")[0],
+      end: addDays(end.toISOString().split("T")[0], 1), // FullCalendar exclusive end
+      allDay: true,
+      backgroundColor: getInstructorColor(slot.instructorName || slot.instructorId),
+      extendedProps: {
+        className: slot.className,
+        location: slot.location,
+        instructorName: slot.instructorName || slot.instructorId
+      }
+    });
   });
-});
 
   renderInstructorLegendFromSchedule(schedule);
 }
