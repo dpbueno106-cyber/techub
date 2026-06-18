@@ -271,7 +271,42 @@ function initCalendar() {
 
   
 }
+async function saveSchedule() {
+  if (!adminCalendar) {
+    alert("Calendar not ready.");
+    return;
+  }
 
+  const events = adminCalendar.getEvents();
+
+  if (!events.length) {
+    alert("Nothing to save.");
+    return;
+  }
+
+  const schedule = events.map(e => ({
+    className: e.extendedProps.className,
+    location: e.extendedProps.location,
+    instructorName: e.extendedProps.instructorName,
+    weekStartDate: e.startStr,
+    weekEndDate: e.endStr || e.startStr
+  }));
+
+  try {
+    const res = await fetch(`${API_URL}/saveSchedule`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(schedule)
+    });
+
+    if (!res.ok) throw new Error("Save failed");
+
+    alert("Schedule saved successfully");
+  } catch (err) {
+    console.error("SaveSchedule failed:", err);
+    alert("Failed to save schedule");
+  }
+}
 // =========================
 // GENERATE SCHEDULE
 // =========================
