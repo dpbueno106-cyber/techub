@@ -37,6 +37,11 @@ function addDays(dateString, days) {
   return date.toISOString().split("T")[0];
 }
 
+
+function openEditModal(event) {
+  console.log("Edit clicked for event:", event);
+  // TODO: open modal UI here
+}
 // =========================
 // CALENDAR INIT (CRITICAL)
 // =========================
@@ -45,12 +50,7 @@ function initCalendar() {
   const calendarEl = document.getElementById("calendar");
 
   if (!calendarEl) {
-    console.error("❌ calendar element not found");
-    return;
-  }
-
-  if (typeof FullCalendar === "undefined") {
-    console.error("❌ FullCalendar not loaded");
+    console.error("calendar element not found");
     return;
   }
 
@@ -63,14 +63,12 @@ function initCalendar() {
       left: "prev,next today",
       center: "title",
       right: "dayGridMonth,timeGridWeek"
-    },
-    eventClick(info) {
-      openEditModal(info.event);
     }
+    //  eventClick removed
   });
 
   adminCalendar.render();
-  console.log("✅ Calendar rendered");
+  console.log("Calendar rendered");
 }
 
 // =========================
