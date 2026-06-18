@@ -36,7 +36,18 @@ function addDays(dateString, days) {
   date.setDate(date.getDate() + days);
   return date.toISOString().split("T")[0];
 }
+function isWeekend(date) {
+  const d = date.getDay();
+  return d === 0 || d === 6;
+}
 
+function nextWeekday(date) {
+  const d = new Date(date);
+  while (isWeekend(d)) {
+    d.setDate(d.getDate() + 1);
+  }
+  return d;
+}
 let selectedEvent = null;
 
 function openEditModal(event) {
@@ -68,6 +79,33 @@ function openEditModal(event) {
 
   document.getElementById("eventEditMenu")?.classList.remove("hidden");
 }
+
+function addCourse() {
+  const name = document.getElementById("courseName")?.value.trim();
+  const location = document.getElementById("courseLocation")?.value || "IN";
+  const duration = Number(document.getElementById("courseDuration")?.value) || 1;
+  const instructor = document.getElementById("courseInstructor")?.value || null;
+
+  if (!name) {
+    alert("Course name is required");
+    return;
+  }
+
+  const el = document.createElement("div");
+  el.className = "external-event";
+  el.innerText = `${name} (${location})`;
+
+  el.dataset.className = name;
+  el.dataset.location = location;       // IN / MI from dropdown
+  el.dataset.duration = duration;
+  el.dataset.instructor = instructor;
+
+  document.getElementById("externalEvents")?.appendChild(el);
+
+  makeExternalEventsDraggable();
+  closeAddCourseModal();
+}
+
 function openAddCourseModal() {
   const modal = document.getElementById("addCourseModal");
 
@@ -306,22 +344,35 @@ function renderCalendarFromSchedule(schedule) {
   adminCalendar.removeAllEvents();
 
   schedule.forEach(slot => {
-    const end = addDays(slot.weekEndDate, 1);
-    if (!end) return;
+  let start = nextWeekday(new Date(slot.weekStartDate));
+  let end;
 
-    adminCalendar.addEvent({
-      title: `${slot.className} (${slot.location})`,
-      start: slot.weekStartDate,
-      end,
-      allDay: true,
-      backgroundColor: getInstructorColor(slot.instructorName || slot.instructorId),
-      extendedProps: {
-        className: slot.className,
-        location: slot.location,
-        instructorName: slot.instructorName || slot.instructorId
-      }
-    });
+  const isNTO = slot.className === "NTO";
+
+  if (isNTO) {
+    //  Tuesday → next Friday
+    start.setDate(start.getDate() + 1); // Tuesday
+    end = new Date(start);
+    end.setDate(end.getDate() + 10);    // Friday next week
+  } else {
+    //  Regular: Monday → Friday
+    end = new Date(start);
+    end.setDate(end.getDate() + 4);     // Mon–Fri
+  }
+
+  adminCalendar.addEvent({
+    title: `${slot.className} (${slot.location})`,
+    start: start.toISOString().split("T")[0],
+    end: addDays(end.toISOString().split("T")[0], 1), // FullCalendar exclusive end
+    allDay: true,
+    backgroundColor: getInstructorColor(slot.instructorName || slot.instructorId),
+    extendedProps: {
+      className: slot.className,
+      location: slot.location,
+      instructorName: slot.instructorName || slot.instructorId
+    }
   });
+});
 
   renderInstructorLegendFromSchedule(schedule);
 }
