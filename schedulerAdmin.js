@@ -23,7 +23,8 @@ const API_URL = window.location.hostname.includes("localhost")
 function goBack() {
   window.location.href = "adminDashboard.html";
 }
-// DATE HELPERS
+
+// DATE HELPER
 function addDays(dateString, days) {
   if (!dateString) {
     console.error("Invalid dateString passed to addDays:", dateString);
