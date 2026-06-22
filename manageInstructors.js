@@ -8,7 +8,10 @@ import {
   doc,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
-
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 const firebaseConfig = {
   apiKey: "AIzaSyD9i5yfE80MAsiri8SwiRCFParRb9jPyzY",
   authDomain: "techub-login-system.firebaseapp.com",
@@ -68,4 +71,15 @@ form.addEventListener("submit", async e => {
   loadInstructors();
 });
 
-loadInstructors();
+onAuthStateChanged(auth, async user => {
+  if (!user) return;
+
+  const userDoc = await getDoc(doc(db, "users", user.uid));
+  if (userDoc.data()?.role !== "admin") {
+    alert("Admins only.");
+    window.location.href = "adminScheduleManagement.html";
+    return;
+  }
+
+  loadInstructors();
+});
