@@ -4,9 +4,13 @@ import {
   collection,
   getDocs,
   doc,
-  updateDoc
+  updateDoc,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
-
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 const firebaseConfig = {
   apiKey: "AIzaSyD9i5yfE80MAsiri8SwiRCFParRb9jPyzY",
   authDomain: "techub-login-system.firebaseapp.com",
@@ -15,6 +19,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 const tableBody = document.querySelector("#linkTable tbody");
 
@@ -96,4 +101,29 @@ async function loadData() {
   });
 }
 
-loadData();
+
+onAuthStateChanged(auth, async user => {
+  if (!user) {
+    alert("You must be logged in to manage instructors.");
+    window.location.href = "login.html";
+    return;
+  }
+
+  const userRef = doc(db, "users", user.uid);
+  const userSnap = await getDoc(userRef);
+
+  if (!userSnap.exists()) {
+    alert("User record not found.");
+    window.location.href = "adminScheduleManagement.html";
+    return;
+  }
+
+  if (userSnap.data().role !== "admin") {
+    alert("Admins only.");
+    window.location.href = "adminScheduleManagement.html";
+    return;
+  }
+
+  // NOW it is safe to call Firestore
+  loadData();
+});
