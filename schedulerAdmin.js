@@ -125,7 +125,29 @@ function addCourse() {
   makeExternalEventsDraggable();
   closeAddCourseModal();
 }
+document.getElementById("saveEventBtn")?.addEventListener("click", () => {
+  if (!selectedEvent) return;
 
+  const title = document.getElementById("editEventTitle").value;
+  const location = document.getElementById("editEventLocation").value;
+  const instructor = document.getElementById("editEventInstructor").value;
+
+  selectedEvent.setProp(
+    "title",
+    `${title} (${location})`
+  );
+
+  selectedEvent.setExtendedProp("className", title);
+  selectedEvent.setExtendedProp("location", location);
+  selectedEvent.setExtendedProp("instructorName", instructor);
+
+  selectedEvent.setProp(
+    "backgroundColor",
+    getInstructorColor(instructor)
+  );
+
+  closeEditModal();
+});
 // =========================
 // CALENDAR INIT
 // =========================
@@ -356,4 +378,15 @@ Object.assign(window, {
   closeAddCourseModal,
   addCourse,
   closeEditModal
+});
+
+Object.assign(window, {
+  goBack,
+  generateSchedule,
+  clearSchedule,
+  openAddCourseModal,
+  closeAddCourseModal,
+  addCourse,
+  closeEditModal,
+  getAdminCalendar: () => adminCalendar
 });
