@@ -190,12 +190,32 @@ async function saveSchedule() {
 }
 
 async function generateSchedule() {
-  adminCalendar.removeAllEvents();
-  const res = await fetch(`${API_URL}/schedule`);
-  const schedule = await res.json();
+  if (!adminCalendar) return;
 
-  renderCalendarFromSchedule(schedule);
-  renderDraggableCourses(schedule);
+  const btn = document.getElementById("generateScheduleBtn");
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "Generating...";
+  }
+
+  try {
+    adminCalendar.removeAllEvents();
+
+    const res = await fetch(`${API_URL}/schedule`);
+    const schedule = await res.json();
+
+    renderCalendarFromSchedule(schedule);
+    renderDraggableCourses(schedule);
+
+  } catch (err) {
+    console.error("Generate schedule failed:", err);
+    alert("Failed to generate schedule");
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "Generate Schedule";
+    }
+  }
 }
 
 // =========================
