@@ -3,8 +3,7 @@ import {
   getAuth,
   onAuthStateChanged,
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut
+  createUserWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 import {
   getFirestore,
@@ -22,12 +21,12 @@ const firebaseConfig = {
   measurementId: "G-PQ5RJ1V0BB"
 };
 
-//  Initialize Firebase
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-//  UI Elements
+// UI Elements
 const loginBtn = document.getElementById("loginBtn");
 const signupBtn = document.getElementById("signupBtn");
 const helpBtn = document.getElementById("helpBtn");
@@ -46,7 +45,7 @@ document.getElementById("showLogin").addEventListener("click", () => {
   loginBox.style.display = "block";
 });
 
-//  AUTH-BASED ROUTING (FINAL)
+// AUTH-BASED ROUTING (FINAL)
 onAuthStateChanged(auth, async user => {
   if (!user) return;
 
@@ -59,7 +58,7 @@ onAuthStateChanged(auth, async user => {
   }
 });
 
-//  LOGIN
+// LOGIN
 const loginEmail = document.getElementById("loginEmail");
 const loginPassword = document.getElementById("loginPassword");
 
@@ -67,35 +66,50 @@ loginBtn.addEventListener("click", async () => {
   try {
     await signInWithEmailAndPassword(
       auth,
-      loginEmail.value,
+      loginEmail.value.trim(),
       loginPassword.value
     );
-    //  Routing handled by onAuthStateChanged
+    // Routing handled by onAuthStateChanged
   } catch (error) {
     message.textContent = error.message;
   }
 });
 
-//  SIGNUP
+// SIGNUP
 const signupEmail = document.getElementById("signupEmail");
 const signupPassword = document.getElementById("signupPassword");
 const signupMessage = document.getElementById("signupMessage");
 
 signupBtn.addEventListener("click", async () => {
+  const email = signupEmail.value.trim();
+  const password = signupPassword.value;
+
+  if (!email || !email.includes("@")) {
+    signupMessage.textContent = "Please enter a valid email address";
+    signupMessage.style.color = "red";
+    return;
+  }
+
+  if (password.length < 6) {
+    signupMessage.textContent = "Password must be at least 6 characters";
+    signupMessage.style.color = "red";
+    return;
+  }
+
   try {
     const userCredential = await createUserWithEmailAndPassword(
       auth,
-      signupEmail.value,
-      signupPassword.value
+      email,
+      password
     );
 
-    //  Store metadata ONLY (not authorization)
+    // Store metadata only (not authorization)
     await setDoc(doc(db, "users", userCredential.user.uid), {
-      email: signupEmail.value,
+      email,
       role: "instructor"
     });
 
-    signupMessage.textContent = "Account created ";
+    signupMessage.textContent = "Account created";
     signupMessage.style.color = "green";
 
     setTimeout(() => {
@@ -110,7 +124,7 @@ signupBtn.addEventListener("click", async () => {
   }
 });
 
-//  HELP
+// HELP
 helpBtn.addEventListener("click", () => {
-  alert("Enter your email and password.\nClick Create Account first if you're new.");
+  alert("Enter your email and password. Click Create Account first if you're new.");
 });

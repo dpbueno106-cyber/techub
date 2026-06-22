@@ -25,7 +25,7 @@ const db = getFirestore(app);
 const welcome = document.getElementById("welcome");
 const logoutBtn = document.getElementById("logoutBtn");
 
-/* ✅ AUTH + ADMIN GATE */
+/*  AUTH + ADMIN GATE */
 onAuthStateChanged(auth, async user => {
   if (!user) {
     window.location.href = "index.html";
