@@ -3,7 +3,6 @@
 // =========================
 
 let adminCalendar = null;
-let currentSchedule = [];
 let draggableInstance = null;
 let selectedEvent = null;
 
@@ -17,7 +16,7 @@ const API_URL = window.location.hostname.includes("localhost")
   : "https://techub-9gis.onrender.com";
 
 // =========================
-// AUTH + ADMIN GATE
+// FIREBASE AUTH (ADMIN ONLY)
 // =========================
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
@@ -33,6 +32,24 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 // =========================
+// DATE HELPERS (FINAL)
+// =========================
+
+function normalizeMonday(date) {
+  const d = new Date(date);
+  if (d.getDay() === 1) return d;
+  while (d.getDay() !== 1) d.setDate(d.getDate() + 1);
+  return d;
+}
+
+function exclusiveFridayFromMonday(monday) {
+  const d = new Date(monday);
+  while (d.getDay() !== 5) d.setDate(d.getDate() + 1);
+  d.setDate(d.getDate() + 1); // exclusive end
+  return d.toISOString().split("T")[0];
+}
+
+// =========================
 // NAVIGATION
 // =========================
 
@@ -41,49 +58,9 @@ function goBack() {
 }
 
 // =========================
-// DATE HELPERS
-// =========================
-
-function isWeekend(date) {
-  const day = date.getDay();
-  return day === 0 || day === 6;
-}
-
-function nextMonday(date) {
-  const d = new Date(date);
-  while (d.getDay() !== 1) d.setDate(d.getDate() + 1);
-  return d;
-}
-
-function nextTuesday(date) {
-  const d = new Date(date);
-  while (d.getDay() !== 2) d.setDate(d.getDate() + 1);
-  return d;
-}
-
-function nextFriday(date) {
-  const d = new Date(date);
-  while (d.getDay() !== 5) d.setDate(d.getDate() + 1);
-  return d;
-}
-
-function addDays(dateString, days) {
-  if (!dateString) return null;
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return null;
-  date.setDate(date.getDate() + days);
-  return date.toISOString().split("T")[0];
-}
-
-// =========================
 // MODALS
 // =========================
-async function clearSchedule() {
-  if (!confirm("Reset schedule to recommended version?")) return;
 
-  await fetch(`${API_URL}/clearSchedule`, { method: "POST" });
-  generateSchedule();
-}
 function openEditModal(event) {
   selectedEvent = event;
 
@@ -125,6 +102,30 @@ function closeAddCourseModal() {
   document.body.style.overflow = "auto";
 }
 
+function addCourse() {
+  const name = document.getElementById("courseName").value.trim();
+  const location = document.getElementById("courseLocation").value;
+  const instructor = document.getElementById("courseInstructor").value || null;
+
+  if (!name) {
+    alert("Course name is required");
+    return;
+  }
+
+  const el = document.createElement("div");
+  el.className = "external-event";
+  el.innerText = `${name} (${location})`;
+
+  el.dataset.className = name;
+  el.dataset.location = location;
+  el.dataset.instructor = instructor;
+
+  document.getElementById("externalEvents").appendChild(el);
+
+  makeExternalEventsDraggable();
+  closeAddCourseModal();
+}
+
 // =========================
 // CALENDAR INIT
 // =========================
@@ -138,6 +139,7 @@ function initCalendar() {
     height: 600,
     editable: true,
     droppable: true,
+    hiddenDays: [0, 6],
     headerToolbar: {
       left: "prev,next today",
       center: "title",
@@ -150,15 +152,9 @@ function initCalendar() {
 
     eventReceive(info) {
       const event = info.event;
-      const instructor = event.extendedProps.instructorName;
-
-      event.setProp("backgroundColor", getInstructorColor(instructor));
-      event.setProp("borderColor", getInstructorColor(instructor));
-
-      if (!event.end && event.start) {
-        event.setEnd(addDays(event.startStr, 1));
-      }
-
+      const monday = normalizeMonday(event.start);
+      event.setStart(monday.toISOString().split("T")[0]);
+      event.setEnd(exclusiveFridayFromMonday(monday));
       openEditModal(event);
     }
   });
@@ -170,28 +166,7 @@ function initCalendar() {
 // SCHEDULE ACTIONS
 // =========================
 
-async function saveSchedule() {
-  const events = adminCalendar.getEvents();
-  if (!events.length) return;
-
-  const schedule = events.map(e => ({
-    className: e.extendedProps.className,
-    location: e.extendedProps.location,
-    instructorName: e.extendedProps.instructorName,
-    weekStartDate: e.startStr,
-    weekEndDate: e.endStr || e.startStr
-  }));
-
-  await fetch(`${API_URL}/saveSchedule`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(schedule)
-  });
-}
-
 async function generateSchedule() {
-  if (!adminCalendar) return;
-
   const btn = document.getElementById("generateScheduleBtn");
   if (btn) {
     btn.disabled = true;
@@ -200,22 +175,41 @@ async function generateSchedule() {
 
   try {
     adminCalendar.removeAllEvents();
-
     const res = await fetch(`${API_URL}/schedule`);
     const schedule = await res.json();
-
     renderCalendarFromSchedule(schedule);
     renderDraggableCourses(schedule);
-
-  } catch (err) {
-    console.error("Generate schedule failed:", err);
-    alert("Failed to generate schedule");
   } finally {
     if (btn) {
       btn.disabled = false;
       btn.textContent = "Generate Schedule";
     }
   }
+}
+
+async function clearSchedule() {
+  if (!confirm("Reset schedule to recommended version?")) return;
+  await fetch(`${API_URL}/clearSchedule`, { method: "POST" });
+  generateSchedule();
+}
+
+async function saveSchedule() {
+  const events = adminCalendar.getEvents();
+
+  const schedule = events.map(e => ({
+    className: e.extendedProps.className,
+    location: e.extendedProps.location,
+    instructorName: e.extendedProps.instructorName,
+    weekStartDate: normalizeMonday(new Date(e.startStr))
+      .toISOString()
+      .split("T")[0]
+  }));
+
+  await fetch(`${API_URL}/saveSchedule`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(schedule)
+  });
 }
 
 // =========================
@@ -268,7 +262,7 @@ function renderDraggableCourses(schedule) {
 }
 
 // =========================
-// RENDER SCHEDULE
+// RENDER SCHEDULE (FINAL)
 // =========================
 
 function renderCalendarFromSchedule(schedule) {
@@ -278,18 +272,22 @@ function renderCalendarFromSchedule(schedule) {
     const baseDate = new Date(slot.weekStartDate);
     const isNTO = slot.className.toUpperCase().includes("NTO");
 
-    const start = isNTO
-      ? nextTuesday(baseDate)
-      : nextMonday(baseDate);
+    let startMonday;
 
-    const end = isNTO
-      ? nextFriday(addDays(start.toISOString().split("T")[0], 7))
-      : nextFriday(start);
+    if (isNTO) {
+      startMonday = normalizeMonday(baseDate);
+      startMonday.setDate(startMonday.getDate() + 7);
+      while (startMonday.getDay() !== 2) {
+        startMonday.setDate(startMonday.getDate() + 1);
+      }
+    } else {
+      startMonday = normalizeMonday(baseDate);
+    }
 
     adminCalendar.addEvent({
       title: `${slot.className} (${slot.location})`,
-      start: start.toISOString().split("T")[0],
-      end: addDays(end.toISOString().split("T")[0], 1),
+      start: startMonday.toISOString().split("T")[0],
+      end: exclusiveFridayFromMonday(startMonday),
       allDay: true,
       backgroundColor: getInstructorColor(slot.instructorName),
       extendedProps: {
@@ -344,11 +342,16 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+// =========================
+// EXPOSE FUNCTIONS FOR HTML
+// =========================
+
 Object.assign(window, {
   goBack,
   generateSchedule,
+  clearSchedule,
   openAddCourseModal,
   closeAddCourseModal,
-  closeEditModal,
-  clearSchedule
+  addCourse,
+  closeEditModal
 });
