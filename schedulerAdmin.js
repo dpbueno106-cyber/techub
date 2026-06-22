@@ -78,7 +78,12 @@ function addDays(dateString, days) {
 // =========================
 // MODALS
 // =========================
+async function clearSchedule() {
+  if (!confirm("Reset schedule to recommended version?")) return;
 
+  await fetch(`${API_URL}/clearSchedule`, { method: "POST" });
+  generateSchedule();
+}
 function openEditModal(event) {
   selectedEvent = event;
 
@@ -324,5 +329,6 @@ Object.assign(window, {
   generateSchedule,
   openAddCourseModal,
   closeAddCourseModal,
-  closeEditModal
+  closeEditModal,
+  clearSchedule
 });
