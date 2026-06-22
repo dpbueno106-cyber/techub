@@ -55,15 +55,14 @@ form.addEventListener("submit", async e => {
   const id = name.toLowerCase();
 
   await addDoc(collection(db, "instructors"), {
-    id,
-    name,
-    email,
-    role,
-    homeLocation,
-    canTravel,
-    active: true,
-    createdAt: serverTimestamp()
-  });
+  id,
+  name,
+  email,
+  homeLocation,
+  canTravel,
+  active: true,
+  createdAt: serverTimestamp()
+});
 
   form.reset();
   loadInstructors();

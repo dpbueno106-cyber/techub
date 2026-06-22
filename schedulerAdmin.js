@@ -63,18 +63,9 @@ function addDays(dateString, days) {
   date.setDate(date.getDate() + days);
   return date.toISOString().split("T")[0];
 }
-function isWeekend(date) {
-  const d = date.getDay();
-  return d === 0 || d === 6;
-}
 
-function nextWeekday(date) {
-  const d = new Date(date);
-  while (isWeekend(d)) {
-    d.setDate(d.getDate() + 1);
-  }
-  return d;
-}
+
+
 let selectedEvent = null;
 
 function openEditModal(event) {
@@ -135,6 +126,16 @@ function addCourse() {
 
 function openAddCourseModal() {
   const modal = document.getElementById("addCourseModal");
+  const props = event.extendedProps || {};
+  const titleInput = document.getElementById("courseName");
+  const locationInput = document.getElementById("courseLocation");
+
+  if (titleInput) {
+    titleInput.value = props.className || "";
+  }
+  if (locationInput) {
+    locationInput.value = props.location || "IN";
+  }
 
   if (!modal) {
     console.error("Add Course modal not found");
@@ -233,44 +234,32 @@ function initCalendar() {
       center: "title",
       right: "dayGridMonth,timeGridWeek"
     },
-    
+
     eventClick(info) {
-    openEditModal(info.event);
-  },
-  eventReceive(info) {
-  const event = info.event;
+      openEditModal(info.event);
+    },
 
-  const instructor = event.extendedProps.instructorName;
+    eventReceive(info) {
+      const event = info.event;
+      const instructor = event.extendedProps.instructorName;
 
-  // Apply color
-  event.setProp(
-    "backgroundColor",
-    getInstructorColor(instructor)
-  );
-  event.setProp(
-    "borderColor",
-    getInstructorColor(instructor)
-  );
+      event.setProp("backgroundColor", getInstructorColor(instructor));
+      event.setProp("borderColor", getInstructorColor(instructor));
 
-  // ENSURE ALL-DAY END DATE
-  if (!event.end && event.start) {
-    const end = addDays(event.startStr, 1);
-    event.setEnd(end);
-  }
+      if (!event.end && event.start) {
+        event.setEnd(addDays(event.startStr, 1));
+      }
 
-  console.log("Event dropped:", event);
-
-  // OPEN EDIT MODAL IMMEDIATELY
-  openEditModal(event);
-}
-
+      openEditModal(event);
+    }
   });
 
   adminCalendar.render();
   console.log("Calendar rendered");
-
-  
 }
+
+
+
 async function saveSchedule() {
   if (!adminCalendar) {
     alert("Calendar not ready.");
@@ -354,7 +343,7 @@ function makeExternalEventsDraggable() {
 
       return {
         title: eventEl.innerText,
-        duration: { days: Number(eventEl.dataset.duration || 1) * 5 },
+        duration: { days: 1 },
         backgroundColor: getInstructorColor(instructor),
         extendedProps: {
           className: eventEl.dataset.className,
@@ -411,9 +400,7 @@ function renderCalendarFromSchedule(schedule) {
 
     const baseDate = new Date(slot.weekStartDate);
 
-    const isNTO =
-      slot.className === "New Technician Orientation" ||
-      slot.className === "NTO";
+    const isNTO = slot.className.toUpperCase().includes("NTO");
 
     if (isNTO) {
       //  NTO: Tuesday → Friday NEXT week
@@ -462,9 +449,22 @@ const predefinedColors = {
 };
 
 function getInstructorColor(name) {
+  if (!name) return "#888";
   return predefinedColors[name] || "#888";
 }
 
+
+function populateAddCourseInstructorDropdown() {
+  const select = document.getElementById("courseInstructor");
+  if (!select) return;
+
+  select.innerHTML = `
+    <option value="">Unassigned</option>
+    ${defaultInstructorNames.map(name => `
+      <option value="${name}">${name}</option>
+    `).join("")}
+  `;
+}
 // =========================
 // INSTRUCTOR LEGEND
 // =========================
@@ -518,4 +518,8 @@ async function clearSchedule() {
 
 window.addEventListener("DOMContentLoaded", () => {
   initCalendar();
+  populateAddCourseInstructorDropdown();
+
+  document.getElementById("saveScheduleBtn")
+    ?.addEventListener("click", saveSchedule);
 });

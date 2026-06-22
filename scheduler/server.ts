@@ -6,6 +6,7 @@ import { generateSchedule } from "./src/engine/generateSchedule";
 import { db } from "./firebase";
 
 const app = express();
+app.disable("x-powered-by");
 app.use(express.json());
 
 app.use(

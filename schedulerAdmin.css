@@ -1,4 +1,11 @@
-/*  GLOBAL */
+/* =========================
+   GLOBAL
+========================= */
+
+* {
+  box-sizing: border-box;
+}
+
 body {
   font-family: Arial, sans-serif;
   background-color: #121212;
@@ -7,7 +14,10 @@ body {
   padding: 20px;
 }
 
-/*  TOP BAR */
+/* =========================
+   TOP BAR
+========================= */
+
 .topBar {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -24,58 +34,109 @@ body {
   justify-self: start;
 }
 
-/*  BUTTONS */
+/* =========================
+   BUTTONS
+========================= */
+
 button {
   padding: 10px 20px;
   background-color: #ffd400;
   border: none;
-  color: black;
+  color: #111827;
   font-weight: bold;
   border-radius: 5px;
   cursor: pointer;
 }
 
-.saveBtn {
-  background-color: #4caf50;
-  color: white;
-}
-.clearBtn {
-  background-color: #f44336;
-  color: white;
+button:hover {
+  opacity: 0.9;
 }
 
-.secondary {
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Primary actions */
+.saveBtn {
+  background-color: #4caf50;
+  color: #ffffff;
+}
+
+.saveBtn:hover {
+  background-color: #45a049;
+}
+
+.clearBtn {
+  background-color: #f44336;
+  color: #ffffff;
+}
+
+.clearBtn:hover {
+  background-color: #e53935;
+}
+
+/* Secondary buttons (dark) */
+button.secondary {
   background-color: #333;
   color: #ffd400;
 }
 
-/*  ACTION BAR */
+button.secondary:hover {
+  background-color: #444;
+}
+
+/* =========================
+   ACTION BAR
+========================= */
+
 .actionBar {
   display: flex;
   gap: 10px;
   margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
-/*  MAIN LAYOUT */
+/* =========================
+   MAIN LAYOUT
+========================= */
+
 .mainLayout {
   display: grid;
   grid-template-columns: 3fr 1fr;
   gap: 15px;
 }
 
-/*  CALENDAR */
+/* =========================
+   CALENDAR
+========================= */
+
 .calendarContainer {
   background: #1e1e1e;
   padding: 10px;
   border-radius: 10px;
+  box-shadow: 0 0 0 1px #2a2a2a;
 }
 
-/* SIDE PANEL */
+/* =========================
+   SIDE PANEL
+========================= */
+
 .sidePanel {
   background: #1e1e1e;
   padding: 15px;
   border-radius: 10px;
 }
+
+.sidePanel h2,
+.sidePanel h3 {
+  margin-top: 15px;
+  margin-bottom: 8px;
+}
+
+/* =========================
+   DRAGGABLE CLASSES
+========================= */
 
 .external-event {
   background: #333;
@@ -83,31 +144,22 @@ button {
   margin: 8px 0;
   border-radius: 5px;
   cursor: grab;
-  color: white;
-}
-button.secondary {
-  background-color: #ffd400;
-  color: #111827;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  gap: 6px;
-}
-button.saveBtn:hover {
-  background-color: #45a049;
-}
-button.clearBtn:hover {
-  background-color: #e53935;
+  color: #ffffff;
+  font-size: 14px;
 }
 
-button.secondary:hover {
-  background-color: #d1d5db;
+.external-event:active {
+  cursor: grabbing;
 }
+
+/* =========================
+   MODALS
+========================= */
+
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.75); /*  DARK OVERLAY */
+  background: rgba(0, 0, 0, 0.75);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -121,16 +173,17 @@ button.secondary:hover {
 .modalContent {
   background: #1e1e1e;
   border: 1px solid #444;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
   padding: 25px;
   border-radius: 12px;
   width: 320px;
-  animation: popIn .2s ease;
+  animation: popIn 0.2s ease;
 }
+
 @keyframes popIn {
   from {
-    transform: scale(0.8);
-    opacity: 0; 
+    transform: scale(0.9);
+    opacity: 0;
   }
   to {
     transform: scale(1);
@@ -138,14 +191,39 @@ button.secondary:hover {
   }
 }
 
+/* =========================
+   MODAL FORM ELEMENTS
+========================= */
+
+.modalContent label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
 .modalContent input,
 .modalContent select {
+  width: 100%;
   padding: 8px;
+  margin-bottom: 12px;
   border-radius: 5px;
-  border: none;
+  background-color: #2a2a2a;
+  color: #ffd400;
+  border: 1px solid #444;
 }
+
+.modalContent input:focus,
+.modalContent select:focus {
+  outline: none;
+  border-color: #ffd400;
+}
+
+/* =========================
+   MODAL ACTIONS
+========================= */
 
 .modalActions {
   display: flex;
   gap: 10px;
+  justify-content: flex-end;
 }
