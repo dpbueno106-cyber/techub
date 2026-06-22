@@ -265,6 +265,7 @@ async function generateSchedule() {
 
   try {
     adminCalendar.removeAllEvents();
+
     const res = await fetch(`${API_URL}/schedule`);
 const data = await res.json();
 
@@ -276,6 +277,11 @@ if (!res.ok || !Array.isArray(data)) {
 
 renderCalendarFromSchedule(data);
 renderDraggableCourses(data);
+
+
+  } catch (err) {
+    console.error("Generate schedule failed:", err);
+    alert("Unexpected error generating schedule");
   } finally {
     if (btn) {
       btn.disabled = false;
