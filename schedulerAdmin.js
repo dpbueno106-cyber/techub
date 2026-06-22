@@ -139,7 +139,7 @@ function initCalendar() {
     height: 600,
     editable: true,
     droppable: true,
-    hiddenDays: [0, 6],
+    //hiddenDays: [0, 6],
     headerToolbar: {
       left: "prev,next today",
       center: "title",
@@ -204,12 +204,14 @@ async function saveSchedule() {
       .toISOString()
       .split("T")[0]
   }));
-
+/*
   await fetch(`${API_URL}/saveSchedule`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(schedule)
-  });
+  }); */
+
+  alert("Schedule saved (not really, this is a demo)");
 }
 
 // =========================
