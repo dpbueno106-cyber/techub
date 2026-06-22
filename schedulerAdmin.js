@@ -318,3 +318,13 @@ window.addEventListener("DOMContentLoaded", () => {
       ?.addEventListener("click", saveSchedule);
   });
 });
+
+Object.assign(window, {
+  goBack,
+  generateSchedule,
+  clearSchedule,
+  openAddCourseModal,
+  closeAddCourseModal,
+  addCourse,
+  closeEditModal
+});
