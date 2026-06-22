@@ -102,7 +102,26 @@ app.get("/schedule", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch schedule" });
   }
 });
+app.post("/saveSchedule", async (req, res) => {
+  try {
+    const schedule = req.body;
 
+    if (!Array.isArray(schedule)) {
+      return res.status(400).json({ error: "Invalid schedule payload" });
+    }
+
+    await db.collection("schedules").doc("current").set({
+      schedule,
+      updatedAt: new Date()
+    });
+
+    res.json({ message: "Schedule saved successfully" });
+  } catch (err) {
+    console.error("Failed to save schedule:", err);
+    res.status(500).json({ error: "Failed to save schedule" });
+  }
+});
+``
 // Clear saved schedule (admin use)
 app.post("/clearSchedule", async (req, res) => {
   try {
