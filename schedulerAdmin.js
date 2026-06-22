@@ -322,9 +322,7 @@ window.addEventListener("DOMContentLoaded", () => {
 Object.assign(window, {
   goBack,
   generateSchedule,
-  clearSchedule,
   openAddCourseModal,
   closeAddCourseModal,
-  addCourse,
   closeEditModal
 });
