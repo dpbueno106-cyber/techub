@@ -143,8 +143,11 @@ document.getElementById("saveEventBtn")?.addEventListener("click", () => {
 
   if (instructor) {
     const color = getInstructorColor(instructor);
-    selectedEvent.setProp("backgroundColor", color);
-    selectedEvent.setProp("borderColor", color);
+const textColor = getContrastTextColor(color);
+
+selectedEvent.setProp("backgroundColor", color);
+selectedEvent.setProp("borderColor", color);
+selectedEvent.setProp("textColor", textColor);
   }
 
   closeEditModal();
@@ -152,7 +155,22 @@ document.getElementById("saveEventBtn")?.addEventListener("click", () => {
 // =========================
 // CALENDAR INIT
 // =========================
+function getContrastTextColor(hexColor) {
+  if (!hexColor) return "#000";
 
+  // Remove # if present
+  const hex = hexColor.replace("#", "");
+
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+
+  // Perceived brightness formula
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+
+  // Bright background → dark text, dark background → light text
+  return brightness > 160 ? "#000" : "#fff";
+}
 function initCalendar() {
   const calendarEl = document.getElementById("calendar");
   if (!calendarEl) return;
@@ -358,12 +376,17 @@ function renderCalendarFromSchedule(schedule) {
       startMonday = normalizeMonday(baseDate);
     }
 
+    const bgColor = getInstructorColor(slot.instructorName);
+    const textColor = getContrastTextColor(bgColor);
+
     adminCalendar.addEvent({
       title: `${slot.className} (${slot.location})`,
       start: startMonday.toISOString().split("T")[0],
       end: exclusiveFridayFromMonday(startMonday),
       allDay: true,
-      backgroundColor: getInstructorColor(slot.instructorName),
+      backgroundColor: bgColor,
+      borderColor: bgColor,
+      textColor: textColor,
       extendedProps: {
         className: slot.className,
         location: slot.location,
