@@ -1,5 +1,15 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  doc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD9i5yfE80MAsiri8SwiRCFParRb9jPyzY",
@@ -8,24 +18,42 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 const db = getFirestore(app);
 
 const instructorList = document.getElementById("instructorList");
 const backBtn = document.getElementById("backBtn");
 
-/*  Load instructors */
+/* AUTH + ADMIN GATE */
+onAuthStateChanged(auth, async user => {
+  if (!user) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  const token = await user.getIdTokenResult();
+
+  if (!token.claims.admin) {
+    alert("Access denied");
+    window.location.href = "adminDashboard.html";
+    return;
+  }
+
+  loadInstructors();
+});
+
+/* LOAD INSTRUCTORS (ADMIN ONLY) */
 async function loadInstructors() {
   instructorList.innerHTML = "Loading...";
 
   const snapshot = await getDocs(collection(db, "users"));
-
   instructorList.innerHTML = "";
 
-  snapshot.forEach((docSnap) => {
+  snapshot.forEach(docSnap => {
     const data = docSnap.data();
     const uid = docSnap.id;
 
-    /*  Only show instructors */
+    /* Only show instructors (metadata, not auth) */
     if (data.role !== "instructor") return;
 
     const div = document.createElement("div");
@@ -59,18 +87,16 @@ async function loadInstructors() {
       <button class="saveBtn">Save Changes</button>
     `;
 
-    /*  Pre-check saved capabilities */
+    /* Pre-check saved capabilities */
     const checkboxes = div.querySelectorAll("input");
-
     checkboxes.forEach(cb => {
       if (data.capabilities?.includes(cb.value)) {
         cb.checked = true;
       }
     });
 
-    /*  Save button logic */
+    /* Save button */
     const saveBtn = div.querySelector(".saveBtn");
-
     saveBtn.addEventListener("click", async () => {
       const selected = [...div.querySelectorAll("input:checked")]
         .map(cb => cb.value);
@@ -79,17 +105,14 @@ async function loadInstructors() {
         capabilities: selected
       }, { merge: true });
 
-      alert("Capabilities updated successfully!");
+      alert("Capabilities updated successfully");
     });
 
     instructorList.appendChild(div);
   });
 }
 
-/*  Back button */
+/* BACK BUTTON */
 backBtn.addEventListener("click", () => {
   window.location.href = "adminDashboard.html";
 });
-
-/*  Load on start */
-loadInstructors();

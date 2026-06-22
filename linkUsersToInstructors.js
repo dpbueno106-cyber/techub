@@ -23,25 +23,25 @@ const auth = getAuth(app);
 
 const tableBody = document.querySelector("#linkTable tbody");
 
-// ✅ AUTH GATE (ONLY ONCE)
+/* AUTH + ADMIN GATE */
 onAuthStateChanged(auth, async user => {
   if (!user) {
-    alert("You must be logged in to manage instructors.");
     window.location.href = "login.html";
     return;
   }
 
   const token = await user.getIdTokenResult();
+
   if (!token.claims.admin) {
     alert("Admins only.");
     window.location.href = "adminScheduleManagement.html";
     return;
   }
 
-  // ✅ Safe to load Firestore now
   loadData();
 });
 
+/* LOAD DATA (ADMIN ONLY) */
 async function loadData() {
   tableBody.innerHTML = "";
 
@@ -88,7 +88,7 @@ async function loadData() {
     const btn = document.createElement("button");
     btn.textContent = "Save";
 
-    btn.onclick = async () => {
+    btn.addEventListener("click", async () => {
       const selectedUid = select.value || null;
 
       await updateDoc(doc(db, "instructors", instructorId), {
@@ -101,9 +101,7 @@ async function loadData() {
           role: "instructor"
         });
       }
-
-      alert("Link updated successfully!");
-    };
+    });
 
     actionCell.appendChild(btn);
 

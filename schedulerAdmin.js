@@ -5,6 +5,7 @@
 let adminCalendar = null;
 let currentSchedule = [];
 let draggableInstance = null;
+let selectedEvent = null;
 
 const defaultInstructorNames = [
   "Aaron", "Jesse", "Marc", "Leon",
@@ -16,6 +17,22 @@ const API_URL = window.location.hostname.includes("localhost")
   : "https://techub-9gis.onrender.com";
 
 // =========================
+// AUTH + ADMIN GATE
+// =========================
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD9i5yfE80MAsiri8SwiRCFParRb9jPyzY",
+  authDomain: "techub-login-system.firebaseapp.com",
+  projectId: "techub-login-system"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+// =========================
 // NAVIGATION
 // =========================
 
@@ -24,69 +41,54 @@ function goBack() {
 }
 
 // =========================
-// DATE HELPER (REQUIRED)
+// DATE HELPERS
 // =========================
+
 function isWeekend(date) {
   const day = date.getDay();
-  return day === 0 || day === 6; // Sunday = 0, Saturday = 6
+  return day === 0 || day === 6;
 }
 
 function nextMonday(date) {
   const d = new Date(date);
-  while (d.getDay() !== 1) { // Monday
-    d.setDate(d.getDate() + 1);
-  }
+  while (d.getDay() !== 1) d.setDate(d.getDate() + 1);
   return d;
 }
 
 function nextTuesday(date) {
   const d = new Date(date);
-  while (d.getDay() !== 2) { // Tuesday
-    d.setDate(d.getDate() + 1);
-  }
+  while (d.getDay() !== 2) d.setDate(d.getDate() + 1);
   return d;
 }
 
 function nextFriday(date) {
   const d = new Date(date);
-  while (d.getDay() !== 5) { // Friday
-    d.setDate(d.getDate() + 1);
-  }
+  while (d.getDay() !== 5) d.setDate(d.getDate() + 1);
   return d;
 }
+
 function addDays(dateString, days) {
   if (!dateString) return null;
-
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return null;
-
   date.setDate(date.getDate() + days);
   return date.toISOString().split("T")[0];
 }
 
-
-
-let selectedEvent = null;
+// =========================
+// MODALS
+// =========================
 
 function openEditModal(event) {
-  console.log("Editing event:", event);
-  // Store the selected event globally if needed
   selectedEvent = event;
 
-  // Example: populate modal fields
-  const titleInput = document.getElementById("editEventTitle");
-  const locationInput = document.getElementById("editEventLocation");
+  document.getElementById("editEventTitle").value =
+    event.extendedProps.className || "";
+
+  document.getElementById("editEventLocation").value =
+    event.extendedProps.location || "IN";
+
   const instructorSelect = document.getElementById("editEventInstructor");
-
-  if (!titleInput || !locationInput || !instructorSelect) {
-    console.error("Edit modal elements not found");
-    return;
-  }
-
-  titleInput.value = event.extendedProps.className || "";
-  locationInput.value = event.extendedProps.location || "IN";
-
-
   instructorSelect.innerHTML = defaultInstructorNames
     .map(name => `
       <option ${name === event.extendedProps.instructorName ? "selected" : ""}>
@@ -95,134 +97,36 @@ function openEditModal(event) {
     `)
     .join("");
 
-  document.getElementById("eventEditMenu")?.classList.remove("hidden");
+  document.getElementById("eventEditMenu").classList.remove("hidden");
 }
 
-function addCourse() {
-  const name = document.getElementById("courseName")?.value.trim();
-  const location = document.getElementById("courseLocation")?.value || "IN";
-  const duration = Number(document.getElementById("courseDuration")?.value) || 1;
-  const instructor = document.getElementById("courseInstructor")?.value || null;
-
-  if (!name) {
-    alert("Course name is required");
-    return;
-  }
-
-  const el = document.createElement("div");
-  el.className = "external-event";
-  el.innerText = `${name} (${location})`;
-
-  el.dataset.className = name;
-  el.dataset.location = location;       // IN / MI from dropdown
-  el.dataset.duration = duration;
-  el.dataset.instructor = instructor;
-
-  document.getElementById("externalEvents")?.appendChild(el);
-
-  makeExternalEventsDraggable();
-  closeAddCourseModal();
+function closeEditModal() {
+  document.getElementById("eventEditMenu").classList.add("hidden");
+  selectedEvent = null;
 }
 
 function openAddCourseModal() {
-  const modal = document.getElementById("addCourseModal");
-  const props = event.extendedProps || {};
-  const titleInput = document.getElementById("courseName");
-  const locationInput = document.getElementById("courseLocation");
+  document.getElementById("courseName").value = "";
+  document.getElementById("courseLocation").value = "IN";
+  document.getElementById("courseDuration").value = 1;
+  document.getElementById("courseInstructor").value = "";
 
-  if (titleInput) {
-    titleInput.value = props.className || "";
-  }
-  if (locationInput) {
-    locationInput.value = props.location || "IN";
-  }
-
-  if (!modal) {
-    console.error("Add Course modal not found");
-    return;
-  }
-
-  modal.classList.remove("hidden");
+  document.getElementById("addCourseModal").classList.remove("hidden");
   document.body.style.overflow = "hidden";
 }
 
 function closeAddCourseModal() {
-  const modal = document.getElementById("addCourseModal");
-
-  if (!modal) {
-    console.error("Add Course modal not found");
-    return;
-  }
-
-  modal.classList.add("hidden");
+  document.getElementById("addCourseModal").classList.add("hidden");
   document.body.style.overflow = "auto";
 }
 
-document.getElementById("addCourseModal")?.addEventListener("click", (e) => {
-  if (e.target.id === "addCourseModal") {
-    closeAddCourseModal();
-  }
-});
-
-
-function closeEditModal() {
-  const modal = document.getElementById("eventEditMenu");
-  if (!modal) {
-    console.error("Edit modal not found");
-    return;
-  }
-
-  modal.classList.add("hidden");
-  selectedEvent = null;
-}
-
-document.getElementById("saveEventBtn")?.addEventListener("click", () => {
-  if (!selectedEvent) return;
-
-  const title = document.getElementById("editEventTitle")?.value;
-  const location = document.getElementById("editEventLocation")?.value;
-  const instructor = document.getElementById("editEventInstructor")?.value;
-
-  // Update title
-  selectedEvent.setProp("title", `${title} (${location})`);
-
-  // Update extended data
-  selectedEvent.setExtendedProp("className", title);
-  selectedEvent.setExtendedProp("location", location);
-  selectedEvent.setExtendedProp("instructorName", instructor);
-
-  // Update color
-  selectedEvent.setProp(
-    "backgroundColor",
-    getInstructorColor(instructor)
-  );
-
-  closeEditModal();
-
-  console.log("Event updated");
-});
- 
-document.getElementById("deleteEventBtn")?.addEventListener("click", () => {
-  if (!selectedEvent) return;
-
-  selectedEvent.remove();
-  closeEditModal();
-
-  console.log("Event deleted");
-});
-
-
 // =========================
-// CALENDAR INIT (CRITICAL)
+// CALENDAR INIT
 // =========================
 
 function initCalendar() {
   const calendarEl = document.getElementById("calendar");
-
-  if (!calendarEl) {
-    console.error("calendar element not found");
-    return;
-  }
+  if (!calendarEl) return;
 
   adminCalendar = new FullCalendar.Calendar(calendarEl, {
     initialView: "dayGridMonth",
@@ -255,23 +159,15 @@ function initCalendar() {
   });
 
   adminCalendar.render();
-  console.log("Calendar rendered");
 }
 
-
+// =========================
+// SCHEDULE ACTIONS
+// =========================
 
 async function saveSchedule() {
-  if (!adminCalendar) {
-    alert("Calendar not ready.");
-    return;
-  }
-
   const events = adminCalendar.getEvents();
-
-  if (!events.length) {
-    alert("Nothing to save.");
-    return;
-  }
+  if (!events.length) return;
 
   const schedule = events.map(e => ({
     className: e.extendedProps.className,
@@ -281,64 +177,35 @@ async function saveSchedule() {
     weekEndDate: e.endStr || e.startStr
   }));
 
-  try {
-    const res = await fetch(`${API_URL}/saveSchedule`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(schedule)
-    });
-
-    if (!res.ok) throw new Error("Save failed");
-
-    alert("Schedule saved successfully");
-  } catch (err) {
-    console.error("SaveSchedule failed:", err);
-    alert("Failed to save schedule");
-  }
+  await fetch(`${API_URL}/saveSchedule`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(schedule)
+  });
 }
-// =========================
-// GENERATE SCHEDULE
-// =========================
 
 async function generateSchedule() {
-  if (!adminCalendar) {
-    alert("Calendar not ready yet.");
-    return;
-  }
+  adminCalendar.removeAllEvents();
+  const res = await fetch(`${API_URL}/schedule`);
+  const schedule = await res.json();
 
-  try {
-    adminCalendar.removeAllEvents();
-
-    const res = await fetch(`${API_URL}/schedule`);
-    const schedule = await res.json();
-
-    if (!Array.isArray(schedule)) {
-      console.error("Schedule API error:", schedule);
-      alert(schedule.error || "Failed to load schedule");
-      return;
-    }
-
-    currentSchedule = schedule;
-    renderCalendarFromSchedule(schedule);
-    renderDraggableCourses(schedule);
-
-  } catch (err) {
-    console.error("Generate schedule failed:", err);
-    alert("Failed to generate schedule");
-  }
+  renderCalendarFromSchedule(schedule);
+  renderDraggableCourses(schedule);
 }
+
+// =========================
+// DRAGGABLE COURSES
+// =========================
 
 function makeExternalEventsDraggable() {
   const container = document.getElementById("externalEvents");
   if (!container) return;
 
-  if (draggableInstance) {
-    draggableInstance.destroy();
-  }
+  if (draggableInstance) draggableInstance.destroy();
 
   draggableInstance = new FullCalendar.Draggable(container, {
     itemSelector: ".external-event",
-    eventData: function (eventEl) {
+    eventData(eventEl) {
       const instructor = eventEl.dataset.instructor || null;
 
       return {
@@ -347,7 +214,7 @@ function makeExternalEventsDraggable() {
         backgroundColor: getInstructorColor(instructor),
         extendedProps: {
           className: eventEl.dataset.className,
-          location: eventEl.dataset.location || "IN",
+          location: eventEl.dataset.location,
           instructorName: instructor
         }
       };
@@ -357,79 +224,56 @@ function makeExternalEventsDraggable() {
 
 function renderDraggableCourses(schedule) {
   const container = document.getElementById("externalEvents");
-  if (!container) return;
-
   container.innerHTML = "";
 
-  const uniqueCourses = new Map();
+  const unique = new Map();
+  schedule.forEach(s => unique.set(s.className, s));
 
-  schedule.forEach(s => {
-    if (!uniqueCourses.has(s.className)) {
-      uniqueCourses.set(s.className, s);
-    }
-  });
-
-  uniqueCourses.forEach(course => {
+  unique.forEach(course => {
     const el = document.createElement("div");
-
     el.className = "external-event";
     el.innerText = `${course.className} (${course.location})`;
-
     el.dataset.className = course.className;
     el.dataset.location = course.location;
-    el.dataset.duration = course.durationWeeks || 1;
-    el.dataset.instructor = course.instructorName || course.instructorId || null;
-
+    el.dataset.instructor = course.instructorName || null;
     container.appendChild(el);
   });
 
   makeExternalEventsDraggable();
 }
+
 // =========================
 // RENDER SCHEDULE
 // =========================
 
 function renderCalendarFromSchedule(schedule) {
-  if (!adminCalendar || !Array.isArray(schedule)) return;
-
   adminCalendar.removeAllEvents();
 
   schedule.forEach(slot => {
-    let start;
-    let end;
-
     const baseDate = new Date(slot.weekStartDate);
-
     const isNTO = slot.className.toUpperCase().includes("NTO");
 
-    if (isNTO) {
-      //  NTO: Tuesday → Friday NEXT week
-      start = nextTuesday(baseDate);
+    const start = isNTO
+      ? nextTuesday(baseDate)
+      : nextMonday(baseDate);
 
-      end = new Date(start);
-      end.setDate(end.getDate() + 7); // move to next week
-      end = nextFriday(end);
-    } else {
-      //  Regular: Monday → Friday SAME week
-      start = nextMonday(baseDate);
-      end = nextFriday(start);
-    }
+    const end = isNTO
+      ? nextFriday(addDays(start.toISOString().split("T")[0], 7))
+      : nextFriday(start);
 
     adminCalendar.addEvent({
       title: `${slot.className} (${slot.location})`,
       start: start.toISOString().split("T")[0],
-      end: addDays(end.toISOString().split("T")[0], 1), // FullCalendar exclusive end
+      end: addDays(end.toISOString().split("T")[0], 1),
       allDay: true,
-      backgroundColor: getInstructorColor(slot.instructorName || slot.instructorId),
+      backgroundColor: getInstructorColor(slot.instructorName),
       extendedProps: {
         className: slot.className,
         location: slot.location,
-        instructorName: slot.instructorName || slot.instructorId
+        instructorName: slot.instructorName
       }
     });
   });
-
-  renderInstructorLegendFromSchedule(schedule);
 }
 
 // =========================
@@ -449,67 +293,7 @@ const predefinedColors = {
 };
 
 function getInstructorColor(name) {
-  if (!name) return "#888";
   return predefinedColors[name] || "#888";
-}
-
-
-function populateAddCourseInstructorDropdown() {
-  const select = document.getElementById("courseInstructor");
-  if (!select) return;
-
-  select.innerHTML = `
-    <option value="">Unassigned</option>
-    ${defaultInstructorNames.map(name => `
-      <option value="${name}">${name}</option>
-    `).join("")}
-  `;
-}
-// =========================
-// INSTRUCTOR LEGEND
-// =========================
-
-function renderInstructorLegendFromSchedule(schedule) {
-  const legend = document.getElementById("instructorLegend");
-  if (!legend) return;
-
-  legend.innerHTML = "";
-
-  const used = [...new Set(
-    schedule.map(s => s.instructorName || s.instructorId).filter(Boolean)
-  )];
-
-  used.forEach(name => {
-    const row = document.createElement("div");
-    row.style.display = "flex";
-    row.style.alignItems = "center";
-    row.style.marginBottom = "6px";
-
-    const swatch = document.createElement("span");
-    swatch.style.background = getInstructorColor(name);
-    swatch.style.width = "14px";
-    swatch.style.height = "14px";
-    swatch.style.marginRight = "8px";
-    swatch.style.display = "inline-block";
-
-    const label = document.createElement("span");
-    label.textContent = name;
-
-    row.appendChild(swatch);
-    row.appendChild(label);
-    legend.appendChild(row);
-  });
-}
-
-// =========================
-// CLEAR SCHEDULE
-// =========================
-
-async function clearSchedule() {
-  if (!confirm("Reset schedule to recommended version?")) return;
-
-  await fetch(`${API_URL}/clearSchedule`, { method: "POST" });
-  generateSchedule();
 }
 
 // =========================
@@ -517,9 +301,20 @@ async function clearSchedule() {
 // =========================
 
 window.addEventListener("DOMContentLoaded", () => {
-  initCalendar();
-  populateAddCourseInstructorDropdown();
+  onAuthStateChanged(auth, async user => {
+    if (!user) {
+      window.location.href = "index.html";
+      return;
+    }
 
-  document.getElementById("saveScheduleBtn")
-    ?.addEventListener("click", saveSchedule);
+    const token = await user.getIdTokenResult();
+    if (!token.claims.admin) {
+      window.location.href = "adminDashboard.html";
+      return;
+    }
+
+    initCalendar();
+    document.getElementById("saveScheduleBtn")
+      ?.addEventListener("click", saveSchedule);
+  });
 });

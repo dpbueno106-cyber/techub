@@ -1,10 +1,19 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
-import { collection, getFirestore, doc, getDoc, setDoc, getDocs } 
-from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  doc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
 const firebaseConfig = {
- apiKey: "AIzaSyD9i5yfE80MAsiri8SwiRCFParRb9jPyzY",
+  apiKey: "AIzaSyD9i5yfE80MAsiri8SwiRCFParRb9jPyzY",
   authDomain: "techub-login-system.firebaseapp.com",
   projectId: "techub-login-system"
 };
@@ -13,14 +22,19 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* ELEMENTS */
 const welcome = document.getElementById("welcome");
 const logoutBtn = document.getElementById("logoutBtn");
-const backBtn = document.getElementById("backBtn");
 
-/* AUTH PROTECTION */
-onAuthStateChanged(auth, async (user) => {
+/* ✅ AUTH + ADMIN GATE */
+onAuthStateChanged(auth, async user => {
   if (!user) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  const token = await user.getIdTokenResult();
+  if (!token.claims.admin) {
+    alert("Access denied");
     window.location.href = "index.html";
     return;
   }
@@ -29,16 +43,7 @@ onAuthStateChanged(auth, async (user) => {
     welcome.textContent = "Welcome, " + user.email;
   }
 
-  const docSnap = await getDoc(doc(db, "users", user.uid));
-
-  if (!docSnap.exists()) return;
-
-  const role = docSnap.data().role;
-
-  if (role !== "admin") {
-    alert("Access denied");
-    window.location.href = "index.html";
-  }
+  loadUsers();
 });
 
 /* LOGOUT */
@@ -49,7 +54,7 @@ if (logoutBtn) {
   });
 }
 
-/* LOAD USERS */
+/* LOAD USERS (ADMIN ONLY) */
 async function loadUsers() {
   const userList = document.getElementById("userList");
   if (!userList) return;
@@ -57,10 +62,9 @@ async function loadUsers() {
   userList.innerHTML = "Loading...";
 
   const snapshot = await getDocs(collection(db, "users"));
-
   userList.innerHTML = "";
 
-  snapshot.forEach((docSnap) => {
+  snapshot.forEach(docSnap => {
     const data = docSnap.data();
     const uid = docSnap.id;
 
@@ -69,7 +73,6 @@ async function loadUsers() {
 
     row.innerHTML = `
       <span>${data.email}</span>
-
       <select>
         <option value="admin" ${data.role === "admin" ? "selected" : ""}>Admin</option>
         <option value="instructor" ${data.role === "instructor" ? "selected" : ""}>Instructor</option>
@@ -77,7 +80,6 @@ async function loadUsers() {
     `;
 
     const select = row.querySelector("select");
-
     select.addEventListener("change", async () => {
       await setDoc(doc(db, "users", uid), {
         role: select.value
@@ -89,12 +91,3 @@ async function loadUsers() {
     userList.appendChild(row);
   });
 }
-/*
-backBtn.addEventListener("click", () => {
-  window.location.href = "adminDashboard.html";
-});
-*/
-/* LOAD ON READY */
-window.addEventListener("DOMContentLoaded", () => {
-  loadUsers();
-});
