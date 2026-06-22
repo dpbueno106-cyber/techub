@@ -266,9 +266,16 @@ async function generateSchedule() {
   try {
     adminCalendar.removeAllEvents();
     const res = await fetch(`${API_URL}/schedule`);
-    const schedule = await res.json();
-    renderCalendarFromSchedule(schedule);
-    renderDraggableCourses(schedule);
+const data = await res.json();
+
+if (!res.ok || !Array.isArray(data)) {
+  console.error("Schedule API error:", data);
+  alert(data?.error || "Failed to load schedule");
+  return;
+}
+
+renderCalendarFromSchedule(data);
+renderDraggableCourses(data);
   } finally {
     if (btn) {
       btn.disabled = false;
@@ -358,6 +365,10 @@ function renderDraggableCourses(schedule) {
 // =========================
 
 function renderCalendarFromSchedule(schedule) {
+  if (!Array.isArray(schedule)) {
+  console.error("renderCalendarFromSchedule received invalid data:", schedule);
+  return;
+}
   adminCalendar.removeAllEvents();
 
   schedule.forEach(slot => {
