@@ -20,5 +20,11 @@
   "allowScripts": {
     "@firebase/util@1.15.1": true,
     "protobufjs@7.6.3": true
-  }
+  },
+  "description": "This is our engine folder for the backend builder schedule program.",
+  "main": "setAdminClaim.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
 }
