@@ -388,5 +388,6 @@ Object.assign(window, {
   closeAddCourseModal,
   addCourse,
   closeEditModal,
+  saveSchedule,
   getAdminCalendar: () => adminCalendar
 });
