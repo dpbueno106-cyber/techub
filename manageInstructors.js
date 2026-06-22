@@ -6,7 +6,8 @@ import {
   getDocs,
   deleteDoc,
   doc,
-  serverTimestamp
+  serverTimestamp,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 import {
   getAuth,
@@ -20,7 +21,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
+const auth = getAuth(app);
 const listEl = document.getElementById("instructorList");
 const form = document.getElementById("addInstructorForm");
 
@@ -72,14 +73,20 @@ form.addEventListener("submit", async e => {
 });
 
 onAuthStateChanged(auth, async user => {
-  if (!user) return;
+  if (!user) {
+    alert("You must be logged in to manage instructors.");
+    window.location.href = "login.html";
+    return;
+  }
 
   const userDoc = await getDoc(doc(db, "users", user.uid));
-  if (userDoc.data()?.role !== "admin") {
+
+  if (!userDoc.exists() || userDoc.data()?.role !== "admin") {
     alert("Admins only.");
     window.location.href = "adminScheduleManagement.html";
     return;
   }
 
+  // User is authenticated AND admin
   loadInstructors();
 });
