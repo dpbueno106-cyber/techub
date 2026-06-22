@@ -92,7 +92,7 @@ function openAddCourseModal() {
   document.getElementById("courseLocation").value = "IN";
   document.getElementById("courseDuration").value = 1;
   document.getElementById("courseInstructor").value = "";
-
+  populateAddCourseInstructorDropdown();
   document.getElementById("addCourseModal").classList.remove("hidden");
   document.body.style.overflow = "hidden";
 }
@@ -130,7 +130,7 @@ document.getElementById("saveEventBtn")?.addEventListener("click", () => {
 
   const title = document.getElementById("editEventTitle").value;
   const location = document.getElementById("editEventLocation").value;
-  const instructor = document.getElementById("editEventInstructor").value;
+  const instructor = document.getElementById("editEventInstructor").value || null;
 
   selectedEvent.setProp(
     "title",
@@ -141,10 +141,11 @@ document.getElementById("saveEventBtn")?.addEventListener("click", () => {
   selectedEvent.setExtendedProp("location", location);
   selectedEvent.setExtendedProp("instructorName", instructor);
 
-  selectedEvent.setProp(
-    "backgroundColor",
-    getInstructorColor(instructor)
-  );
+  if (instructor) {
+    const color = getInstructorColor(instructor);
+    selectedEvent.setProp("backgroundColor", color);
+    selectedEvent.setProp("borderColor", color);
+  }
 
   closeEditModal();
 });
@@ -182,11 +183,60 @@ function initCalendar() {
   });
 
   adminCalendar.render();
+ 
+renderInstructorLegend();
 }
 
 // =========================
 // SCHEDULE ACTIONS
 // =========================
+function populateAddCourseInstructorDropdown() {
+  const select = document.getElementById("courseInstructor");
+  if (!select) return;
+
+  select.innerHTML = "";
+
+  const noneOption = document.createElement("option");
+  noneOption.value = "";
+  noneOption.textContent = "Unassigned";
+  select.appendChild(noneOption);
+
+  defaultInstructorNames.forEach(name => {
+    const option = document.createElement("option");
+    option.value = name;
+    option.textContent = name;
+    select.appendChild(option);
+  });
+}
+
+function renderInstructorLegend() {
+  const legend = document.getElementById("instructorLegend");
+  if (!legend) return;
+
+  legend.innerHTML = "";
+
+  Object.entries(predefinedColors).forEach(([name, color]) => {
+    const row = document.createElement("div");
+    row.style.display = "flex";
+    row.style.alignItems = "center";
+    row.style.marginBottom = "6px";
+
+    const swatch = document.createElement("span");
+    swatch.style.width = "14px";
+    swatch.style.height = "14px";
+    swatch.style.backgroundColor = color;
+    swatch.style.display = "inline-block";
+    swatch.style.marginRight = "8px";
+    swatch.style.borderRadius = "3px";
+
+    const label = document.createElement("span");
+    label.textContent = name;
+
+    row.appendChild(swatch);
+    row.appendChild(label);
+    legend.appendChild(row);
+  });
+}
 
 async function generateSchedule() {
   const btn = document.getElementById("generateScheduleBtn");
@@ -370,15 +420,7 @@ window.addEventListener("DOMContentLoaded", () => {
 // EXPOSE FUNCTIONS FOR HTML
 // =========================
 
-Object.assign(window, {
-  goBack,
-  generateSchedule,
-  clearSchedule,
-  openAddCourseModal,
-  closeAddCourseModal,
-  addCourse,
-  closeEditModal
-});
+
 
 Object.assign(window, {
   goBack,
