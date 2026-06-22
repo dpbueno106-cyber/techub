@@ -79,9 +79,9 @@ onAuthStateChanged(auth, async user => {
     return;
   }
 
-  const userDoc = await getDoc(doc(db, "users", user.uid));
+  const token = await user.getIdTokenResult();
 
-  if (!userDoc.exists() || userDoc.data()?.role !== "admin") {
+  if (!token.claims.admin) {
     alert("Admins only.");
     window.location.href = "adminScheduleManagement.html";
     return;

@@ -4,13 +4,13 @@ import {
   collection,
   getDocs,
   doc,
-  updateDoc,
-  getDoc
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 import {
   getAuth,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+
 const firebaseConfig = {
   apiKey: "AIzaSyD9i5yfE80MAsiri8SwiRCFParRb9jPyzY",
   authDomain: "techub-login-system.firebaseapp.com",
@@ -22,6 +22,8 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 const tableBody = document.querySelector("#linkTable tbody");
+
+// ✅ AUTH GATE (ONLY ONCE)
 onAuthStateChanged(auth, async user => {
   if (!user) {
     alert("You must be logged in to manage instructors.");
@@ -29,24 +31,17 @@ onAuthStateChanged(auth, async user => {
     return;
   }
 
-  const userRef = doc(db, "users", user.uid);
-  const userSnap = await getDoc(userRef);
-
-  if (!userSnap.exists()) {
-    alert("User record not found.");
-    window.location.href = "adminScheduleManagement.html";
-    return;
-  }
-
-  if (userSnap.data().role !== "admin") {
+  const token = await user.getIdTokenResult();
+  if (!token.claims.admin) {
     alert("Admins only.");
     window.location.href = "adminScheduleManagement.html";
     return;
   }
 
-  // NOW it is safe to call Firestore
+  // ✅ Safe to load Firestore now
   loadData();
 });
+
 async function loadData() {
   tableBody.innerHTML = "";
 
@@ -64,11 +59,9 @@ async function loadData() {
 
     const row = document.createElement("tr");
 
-    // Instructor name
     const instructorCell = document.createElement("td");
     instructorCell.textContent = instructor.name;
 
-    // User dropdown
     const userCell = document.createElement("td");
     const select = document.createElement("select");
 
@@ -91,7 +84,6 @@ async function loadData() {
 
     userCell.appendChild(select);
 
-    // Save button
     const actionCell = document.createElement("td");
     const btn = document.createElement("button");
     btn.textContent = "Save";
@@ -99,12 +91,10 @@ async function loadData() {
     btn.onclick = async () => {
       const selectedUid = select.value || null;
 
-      // Update instructor
       await updateDoc(doc(db, "instructors", instructorId), {
         userUid: selectedUid
       });
 
-      // Update user (if selected)
       if (selectedUid) {
         await updateDoc(doc(db, "users", selectedUid), {
           instructorRef: instructorId,
@@ -124,5 +114,3 @@ async function loadData() {
     tableBody.appendChild(row);
   });
 }
-
-
