@@ -22,7 +22,31 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 const tableBody = document.querySelector("#linkTable tbody");
+onAuthStateChanged(auth, async user => {
+  if (!user) {
+    alert("You must be logged in to manage instructors.");
+    window.location.href = "login.html";
+    return;
+  }
 
+  const userRef = doc(db, "users", user.uid);
+  const userSnap = await getDoc(userRef);
+
+  if (!userSnap.exists()) {
+    alert("User record not found.");
+    window.location.href = "adminScheduleManagement.html";
+    return;
+  }
+
+  if (userSnap.data().role !== "admin") {
+    alert("Admins only.");
+    window.location.href = "adminScheduleManagement.html";
+    return;
+  }
+
+  // NOW it is safe to call Firestore
+  loadData();
+});
 async function loadData() {
   tableBody.innerHTML = "";
 
@@ -102,28 +126,3 @@ async function loadData() {
 }
 
 
-onAuthStateChanged(auth, async user => {
-  if (!user) {
-    alert("You must be logged in to manage instructors.");
-    window.location.href = "login.html";
-    return;
-  }
-
-  const userRef = doc(db, "users", user.uid);
-  const userSnap = await getDoc(userRef);
-
-  if (!userSnap.exists()) {
-    alert("User record not found.");
-    window.location.href = "adminScheduleManagement.html";
-    return;
-  }
-
-  if (userSnap.data().role !== "admin") {
-    alert("Admins only.");
-    window.location.href = "adminScheduleManagement.html";
-    return;
-  }
-
-  // NOW it is safe to call Firestore
-  loadData();
-});
