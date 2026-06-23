@@ -211,6 +211,26 @@ app.post("/saveSchedule", async (req, res) => {
     res.status(500).json({ error: "Failed to save schedule" });
   }
 });
+
+app.get("/catalog", async (req, res) => {
+  try {
+    const snapshot = await db
+      .collection("catalog")
+      .where("isActive", "==", true)
+      .get();
+
+    const catalog = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    res.json(catalog);
+  } catch (err) {
+    console.error("Failed to load catalog:", err);
+    res.status(500).json({ error: "Failed to load catalog" });
+  }
+});
+
 app.post("/catalog", async (req, res) => {
   try {
     const {
