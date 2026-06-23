@@ -38,7 +38,7 @@ export function placeNTO(
             classId: "NTO",
             className: "New Technician Orientation",
             category: "NTO",
-            level: "Foundational",
+           
             durationWeeks: 2,
             instructorId: null,
             weekStartDate: week1.startDate, // Start on Tuesday
