@@ -45,7 +45,6 @@ export interface ClassSlot {
   classId: string;
   className: string;
   category: ClassCategory;
-  level: ClassLevel;
   durationWeeks: number;
   instructorId: string | null;
   weekStartDate: string;

@@ -45,11 +45,9 @@ function toFrequencyMode(value: unknown): "WEIGHT" | "MIN_MAX" {
 }
 function isClassCategory(value: unknown): value is ClassCategory {
   return (
-    value === "technical" ||
-    value === "safety" ||
-    value === "onboarding" ||
-    value === "product" ||
-    value === "other"
+    value === "NTO" ||
+    value === "Foundational" ||
+    value === "Advanced" 
   );
 }
 
@@ -213,7 +211,43 @@ app.post("/saveSchedule", async (req, res) => {
     res.status(500).json({ error: "Failed to save schedule" });
   }
 });
+app.post("/catalog", async (req, res) => {
+  try {
+    const {
+      name,
+      category,
+      durationWeeks,
+      defaultLocations,
+      frequencyMode,
+      frequencyWeight
+    } = req.body;
 
+    if (
+      !name ||
+      !["NTO", "Foundational", "Advanced"].includes(category) ||
+      typeof durationWeeks !== "number" ||
+      !Array.isArray(defaultLocations)
+    ) {
+      return res.status(400).json({ error: "Invalid catalog data" });
+    }
+
+    await db.collection("catalog").add({
+      name,
+      category,
+      durationWeeks,
+      defaultLocations,
+      frequencyMode,
+      frequencyWeight,
+      isActive: true,
+      createdAt: new Date()
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Catalog save failed:", err);
+    res.status(500).json({ error: "Failed to save catalog class" });
+  }
+});
 app.post("/clearSchedule", async (_req, res) => {
   try {
     await db.collection("schedules").doc("current").delete();
