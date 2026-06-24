@@ -220,7 +220,43 @@ async function generateSchedule() {
 // =========================
 // RENDER SCHEDULE
 // =========================
+document.getElementById("deleteEventBtn")?.addEventListener("click", () => {
+  if (!selectedEvent) return;
 
+  if (!confirm("Delete this event?")) return;
+
+  selectedEvent.remove();
+  closeEditModal();
+});
+
+function renderInstructorLegend() {
+  const legend = document.getElementById("instructorLegend");
+  if (!legend) return;
+
+  legend.innerHTML = "";
+
+  Object.entries(predefinedColors).forEach(([name, color]) => {
+    const row = document.createElement("div");
+    row.style.display = "flex";
+    row.style.alignItems = "center";
+    row.style.marginBottom = "6px";
+
+    const swatch = document.createElement("span");
+    swatch.style.width = "14px";
+    swatch.style.height = "14px";
+    swatch.style.backgroundColor = color;
+    swatch.style.display = "inline-block";
+    swatch.style.marginRight = "8px";
+    swatch.style.borderRadius = "3px";
+
+    const label = document.createElement("span");
+    label.textContent = name;
+
+    row.appendChild(swatch);
+    row.appendChild(label);
+    legend.appendChild(row);
+  });
+}
 function renderCalendarFromSchedule(schedule) {
   adminCalendar.removeAllEvents();
 
@@ -321,7 +357,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
     initCalendar();
     loadCatalog();
-
+    renderInstructorLegend();
     document.getElementById("saveScheduleBtn")?.addEventListener("click", saveSchedule);
   });
 });
