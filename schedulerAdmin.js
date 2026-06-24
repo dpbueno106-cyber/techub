@@ -264,21 +264,53 @@ function renderCalendarFromSchedule(schedule) {
     const bgColor = getInstructorColor(slot.instructorName);
     const textColor = getContrastTextColor(bgColor);
 
-    // ✅ Split multi-week classes into per-week events
-    for (let w = 0; w < slot.durationWeeks; w++) {
+    if (slot.category === "NTO") {
+      //  NTO: two instructional weeks, first starts Tuesday
+      for (let w = 0; w < slot.durationWeeks; w++) {
+        const startDate = new Date(slot.weekStartDate + "T00:00:00");
+
+        // Move to correct week
+        startDate.setDate(startDate.getDate() + w * 7);
+
+        // First NTO week starts on Tuesday
+        if (w === 0) {
+          startDate.setDate(startDate.getDate() + 1);
+        }
+
+        const endDate = new Date(startDate);
+
+        // Tue–Fri for week 1 (4 days), Mon–Fri for week 2 (5 days)
+        endDate.setDate(
+          endDate.getDate() + (w === 0 ? 4 : 5)
+        );
+
+        adminCalendar.addEvent({
+          title: `${slot.className} (${slot.location})`,
+          start: startDate.toLocaleDateString("en-CA"),
+          end: endDate.toLocaleDateString("en-CA"),
+          allDay: true,
+          backgroundColor: bgColor,
+          borderColor: bgColor,
+          textColor,
+          extendedProps: {
+            className: slot.className,
+            category: slot.category,
+            location: slot.location,
+            instructorName: slot.instructorName
+          }
+        });
+      }
+
+    } else {
+      //  Regular classes: Monday–Friday
       const startDate = new Date(slot.weekStartDate + "T00:00:00");
-      startDate.setDate(startDate.getDate() + w * 7);
-
       const endDate = new Date(startDate);
-      endDate.setDate(endDate.getDate() + 5); // Mon–Fri
-
-      const start = startDate.toLocaleDateString("en-CA");
-      const end = endDate.toLocaleDateString("en-CA");
+      endDate.setDate(endDate.getDate() + 5);
 
       adminCalendar.addEvent({
         title: `${slot.className} (${slot.location})`,
-        start,
-        end,
+        start: startDate.toLocaleDateString("en-CA"),
+        end: endDate.toLocaleDateString("en-CA"),
         allDay: true,
         backgroundColor: bgColor,
         borderColor: bgColor,
