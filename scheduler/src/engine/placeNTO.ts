@@ -9,7 +9,12 @@ export function placeNTO(
   weeks: WeekSlot[],
   locations: Location[]
 ): { slots: ClassSlot[]; usedWeeks: Set<number> } {
-
+console.log(
+  "Weeks:",
+  weeks.length,
+  "Blocked:",
+  weeks.filter(w => w.blocked).length
+);
   const slots: ClassSlot[] = [...existingSlots];
   const usedWeeks = new Set<number>();
 
@@ -57,7 +62,7 @@ export function placeNTO(
 
       if (alreadyUsed) continue;
 
-      // ✅ Place NTO for all locations
+      //  Place NTO for all locations
       for (const location of locations) {
         slots.push({
           classId: "NTO",
