@@ -261,33 +261,36 @@ function renderCalendarFromSchedule(schedule) {
   adminCalendar.removeAllEvents();
 
   schedule.forEach(slot => {
-    // Engine-provided start (already correct Monday)
-    const start = slot.weekStartDate;
-
-    // Engine-provided end is Friday; FullCalendar end is exclusive
-    const endDate = new Date(slot.weekEndDate + "T00:00:00");
-    endDate.setDate(endDate.getDate() + 1);
-
-    const end = endDate.toLocaleDateString("en-CA");
-
     const bgColor = getInstructorColor(slot.instructorName);
     const textColor = getContrastTextColor(bgColor);
 
-    adminCalendar.addEvent({
-      title: `${slot.className} (${slot.location})`,
-      start,
-      end,
-      allDay: true,
-      backgroundColor: bgColor,
-      borderColor: bgColor,
-      textColor,
-      extendedProps: {
-        className: slot.className,
-        category: slot.category,
-        location: slot.location,
-        instructorName: slot.instructorName
-      }
-    });
+    // ✅ Split multi-week classes into per-week events
+    for (let w = 0; w < slot.durationWeeks; w++) {
+      const startDate = new Date(slot.weekStartDate + "T00:00:00");
+      startDate.setDate(startDate.getDate() + w * 7);
+
+      const endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + 5); // Mon–Fri
+
+      const start = startDate.toLocaleDateString("en-CA");
+      const end = endDate.toLocaleDateString("en-CA");
+
+      adminCalendar.addEvent({
+        title: `${slot.className} (${slot.location})`,
+        start,
+        end,
+        allDay: true,
+        backgroundColor: bgColor,
+        borderColor: bgColor,
+        textColor,
+        extendedProps: {
+          className: slot.className,
+          category: slot.category,
+          location: slot.location,
+          instructorName: slot.instructorName
+        }
+      });
+    }
   });
 }
 
