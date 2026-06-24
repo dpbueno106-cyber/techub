@@ -41,10 +41,11 @@ export function placeNTO(
   const d1 = new Date(week1.startDate);
   const d2 = new Date(w.startDate);
 
-  const diffDays =
-    (d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24);
+  const diffMs = d2.getTime() - d1.getTime();
+const diffDays = diffMs / (1000 * 60 * 60 * 24);
 
-  return diffDays === 7;
+// Accept 6–8 days as “one week”
+return diffDays >= 6 && diffDays <= 8;
 });
 
       if (!week2) continue;
