@@ -266,7 +266,9 @@ function renderCalendarFromSchedule(schedule) {
 
     // End is exclusive: start + (durationWeeks * 7 days)
     const endDate = new Date(startDate);
-    endDate.setDate(endDate.getDate() + slot.durationWeeks * 7);
+// 5 instructional days per week, end is exclusive
+endDate.setDate(endDate.getDate() + slot.durationWeeks * 5);
+
 
     // Format as local YYYY-MM-DD (no UTC conversion)
     const start = startDate.toLocaleDateString("en-CA");
