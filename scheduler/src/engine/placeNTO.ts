@@ -6,7 +6,8 @@ import type { WeekSlot, ClassSlot, Location } from "../types";
  *
  * Rules:
  * - One 2-week NTO per month
- * - Must use consecutive, unblocked weeks
+ * - Week 1 must start in the month
+ * - Week 2 must be the immediately following week (may cross month boundary)
  * - Reserves both weeks so other classes do not overlap
  * - Places NTO for all provided locations
  */
@@ -16,16 +17,12 @@ export function placeNTO(
   locations: Location[]
 ): { slots: ClassSlot[]; usedWeeks: Set<number> } {
 
-  // Start with existing schedule
   const slots: ClassSlot[] = [...existingSlots];
   const usedWeeks = new Set<number>();
 
-  // Track weeks already occupied by existing slots
+  // Reserve weeks already occupied
   for (const slot of existingSlots) {
-    usedWeeks.add(slot.weekNumber);
-
-    // If the slot spans multiple weeks, reserve those too
-    for (let i = 1; i < slot.durationWeeks; i++) {
+    for (let i = 0; i < slot.durationWeeks; i++) {
       usedWeeks.add(slot.weekNumber + i);
     }
   }
@@ -39,40 +36,40 @@ export function placeNTO(
 
     let placedForMonth = false;
 
-    for (let i = 0; i < monthWeeks.length - 1; i++) {
-      const week1 = monthWeeks[i];
-      const week2 = monthWeeks[i + 1];
+    for (const week1 of monthWeeks) {
+      const week2 = availableWeeks.find(
+        w => w.weekNumber === week1.weekNumber + 1
+      );
 
-      const consecutive =
-        week2.weekNumber === week1.weekNumber + 1;
+      if (!week2) continue;
 
       const alreadyUsed =
         usedWeeks.has(week1.weekNumber) ||
         usedWeeks.has(week2.weekNumber);
 
-      if (consecutive && !alreadyUsed) {
-        // Place NTO for each location
-        for (const location of locations) {
-          slots.push({
-            classId: "NTO",
-            className: "New Technician Orientation",
-            category: "NTO",
-            location,
-            weekNumber: week1.weekNumber,
-            weekStartDate: week1.startDate,
-            weekEndDate: week2.endDate,
-            durationWeeks: 2,
-            instructorId: null
-          });
-        }
+      if (alreadyUsed) continue;
 
-        // Reserve both weeks
-        usedWeeks.add(week1.weekNumber);
-        usedWeeks.add(week2.weekNumber);
-
-        placedForMonth = true;
-        break;
+      // ✅ Place NTO for each location
+      for (const location of locations) {
+        slots.push({
+          classId: "NTO",
+          className: "New Technician Orientation",
+          category: "NTO",
+          location,
+          weekNumber: week1.weekNumber,
+          weekStartDate: week1.startDate,
+          weekEndDate: week2.endDate,
+          durationWeeks: 2,
+          instructorId: null
+        });
       }
+
+      // Reserve both weeks
+      usedWeeks.add(week1.weekNumber);
+      usedWeeks.add(week2.weekNumber);
+
+      placedForMonth = true;
+      break;
     }
 
     if (!placedForMonth) {
