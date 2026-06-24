@@ -332,5 +332,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
 Object.assign(window, {
   generateSchedule,
-  saveSchedule
+  saveSchedule,
+  clearSchedule,
+  openAddCourseModal,
+  closeEditModal
 });
