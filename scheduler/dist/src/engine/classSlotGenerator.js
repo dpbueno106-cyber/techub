@@ -45,7 +45,6 @@ function buildSlot(cls, week) {
         classId: cls.id,
         className: cls.name,
         category: cls.category,
-        level: cls.level,
         durationWeeks: cls.durationWeeks,
         instructorId: null,
         weekStartDate: week.startDate,

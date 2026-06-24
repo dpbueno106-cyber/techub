@@ -14,7 +14,6 @@ const formattedSchedule = schedule.map(slot => ({
         ? instructorById.get(slot.instructorId) ?? slot.instructorId
         : "TBD",
     durationWeeks: slot.durationWeeks,
-    category: slot.category,
-    level: slot.level
+    category: slot.category
 }));
 console.table(formattedSchedule);
