@@ -203,8 +203,8 @@ async function generateSchedule() {
       alert(data?.error || "Failed to load schedule");
       return;
     }
-
-    renderCalendarFromSchedule(data);
+renderCalendarFromSchedule(data);
+renderInstructorWorkload(data);
 
   } catch (err) {
     console.error("Generate schedule failed:", err);
@@ -421,7 +421,69 @@ function closeAddCourseModal() {
   document.getElementById("addCourseModal").classList.add("hidden");
   document.body.style.overflow = "auto";
 }
+function renderInstructorWorkload(schedule) {
+  const container = document.getElementById("instructorWorkload");
+  if (!container) return;
 
+  container.innerHTML = "";
+
+  const workload = {};
+
+  schedule.forEach(slot => {
+    const name = slot.instructorName || "TBD";
+    const weeks = slot.durationWeeks ?? 1;
+
+    if (!workload[name]) {
+      workload[name] = {
+        total: 0,
+        nto: 0,
+        other: 0
+      };
+    }
+
+    workload[name].total += weeks;
+
+    if (slot.category === "NTO") {
+      workload[name].nto += weeks;
+    } else {
+      workload[name].other += weeks;
+    }
+  });
+
+  Object.entries(workload).forEach(([name, data]) => {
+    const row = document.createElement("div");
+    row.style.marginBottom = "10px";
+
+    const label = document.createElement("div");
+    label.textContent = `${name}: ${data.total} weeks`;
+    label.style.fontSize = "13px";
+    label.style.marginBottom = "4px";
+
+    const bar = document.createElement("div");
+    bar.style.display = "flex";
+    bar.style.height = "10px";
+    bar.style.borderRadius = "4px";
+    bar.style.overflow = "hidden";
+    bar.style.background = "#333";
+
+    const ntoBar = document.createElement("div");
+    ntoBar.style.width = `${data.nto * 10}px`;
+    ntoBar.style.background = "#999";
+
+    const otherBar = document.createElement("div");
+    otherBar.style.width = `${data.other * 10}px`;
+    otherBar.style.background =
+      predefinedColors[name] || "#666";
+
+    bar.appendChild(ntoBar);
+    bar.appendChild(otherBar);
+
+    row.appendChild(label);
+    row.appendChild(bar);
+
+    container.appendChild(row);
+  });
+}
 async function saveCatalogClass() {
   const name = document.getElementById("courseName").value.trim();
   const durationWeeks = Number(

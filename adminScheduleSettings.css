@@ -1,0 +1,86 @@
+body {
+  font-family: system-ui, sans-serif;
+  margin: 0;
+  background: #111;
+  color: #eee;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background: #1c1c1c;
+}
+
+.topBar h1 {
+  flex: 1;
+  text-align: center;
+  margin: 0;
+}
+
+.backBtn {
+  background: none;
+  color: #fff;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.settingsContainer {
+  max-width: 700px;
+  margin: 20px auto;
+  padding: 20px;
+}
+
+section {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #333;
+}
+
+h2 {
+  margin-top: 0;
+}
+
+label {
+  display: block;
+  margin-bottom: 12px;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 6px;
+  margin-top: 4px;
+  background: #222;
+  color: #fff;
+  border: 1px solid #444;
+}
+
+input[disabled] {
+  opacity: 0.6;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inline {
+  display: flex;
+  gap: 20px;
+}
+
+.saveBtn {
+  padding: 10px 16px;
+  font-size: 16px;
+  background: #2e7d32;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+#status {
+  margin-top: 10px;
+}

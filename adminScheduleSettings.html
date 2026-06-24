@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Schedule Generator Settings</title>
+  <link rel="stylesheet" href="adminScheduleSettings.css" />
+</head>
+<body>
+
+  <div class="topBar">
+    <button class="backBtn" onclick="window.location.href='adminScheduleManagement.html'">Back</button>
+
+    <h1>Schedule Generator Settings</h1>
+  </div>
+  <div class="settingsContainer">
+
+    <section>
+      <h2>General</h2>
+
+      <label>
+        Schedule Year
+        <input type="number" id="year" />
+      </label>
+
+      <label>
+        Total Classes
+        <input type="number" id="totalClasses" min="1" />
+      </label>
+    </section>
+
+    <section>
+      <h2>Category Distribution</h2>
+
+      <label>
+        Foundational %
+        <input type="number" id="foundationalPct" min="0" max="100" />
+      </label>
+
+      <label>
+        Advanced %
+        <input type="number" id="advancedPct" disabled />
+      </label>
+    </section>
+
+    <section>
+      <h2>Instructor Rules</h2>
+
+      <label>
+        Max Consecutive Weeks
+        <input type="number" id="maxConsecutiveWeeks" min="1" />
+      </label>
+    </section>
+
+    <section>
+      <h2>NTO Settings</h2>
+
+      <label class="checkbox">
+        <input type="checkbox" id="ntoEnabled" />
+        Enable NTO
+      </label>
+
+      <label>
+        NTO Duration (weeks)
+        <input type="number" id="ntoWeeks" min="1" value="2" />
+      </label>
+
+      <label>
+        NTO Start Day
+        <select id="ntoStartDay">
+          <option value="Tuesday">Tuesday</option>
+          <option value="Monday">Monday</option>
+        </select>
+      </label>
+
+      <div class="inline">
+        <label class="checkbox">
+          <input type="checkbox" class="ntoLocation" value="IN" />
+          IN
+        </label>
+        <label class="checkbox">
+          <input type="checkbox" class="ntoLocation" value="MI" />
+          MI
+        </label>
+      </div>
+    </section>
+
+    <button id="saveSettingsBtn" class="saveBtn">
+      Save Settings
+    </button>
+
+    <p id="status"></p>
+  </div>
+
+  <script src="adminScheduleSettings.js"></script>
+</body>
+</html>
