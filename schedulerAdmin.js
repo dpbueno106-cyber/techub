@@ -261,25 +261,19 @@ function renderCalendarFromSchedule(schedule) {
   adminCalendar.removeAllEvents();
 
   schedule.forEach(slot => {
-    const baseDate = new Date(slot.weekStartDate);
-    const isNTO = slot.category === "NTO";
+    const start = new Date(slot.weekStartDate);
 
-    let startMonday = normalizeMonday(baseDate);
-
-    if (isNTO) {
-      startMonday.setDate(startMonday.getDate() + 7);
-      while (startMonday.getDay() !== 2) {
-        startMonday.setDate(startMonday.getDate() + 1);
-      }
-    }
+    // FullCalendar end is exclusive → add 1 day
+    const end = new Date(slot.weekEndDate);
+    end.setDate(end.getDate() + 1);
 
     const bgColor = getInstructorColor(slot.instructorName);
     const textColor = getContrastTextColor(bgColor);
 
     adminCalendar.addEvent({
       title: `${slot.className} (${slot.location})`,
-      start: startMonday.toISOString().split("T")[0],
-      end: exclusiveFridayFromMonday(startMonday),
+      start: start.toISOString().split("T")[0],
+      end: end.toISOString().split("T")[0],
       allDay: true,
       backgroundColor: bgColor,
       borderColor: bgColor,
