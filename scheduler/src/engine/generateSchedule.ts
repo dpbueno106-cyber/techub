@@ -1,4 +1,10 @@
-import type { ScheduleConfig, ClassDefinition, ClassSlot, Instructor } from "../types";
+import type {
+  ScheduleConfig,
+  ClassDefinition,
+  ClassSlot,
+  Instructor
+} from "../types";
+
 import { balanceLocations } from "./balanceLocations";
 import { buildWeeks } from "./buildWeeks";
 import { placeHolidays } from "./placeHolidays";
@@ -12,31 +18,52 @@ export function generateSchedule(
   instructors: Instructor[]
 ): ClassSlot[] {
 
+  // 1. Build calendar weeks
   let weeks = buildWeeks(config.year);
   weeks = placeHolidays(weeks, config.holidays);
 
-  const { slots: ntoSl  , usedWeeks } =
-    placeNTO(weeks, ["IN", "MI"]);
+  // 2. Start with empty schedule
+  let slots: ClassSlot[] = [];
 
-  const otherSl   = classSlotGenerator(
+  // 3. Place NTO (additive)
+  const ntoResult = placeNTO(
+    slots,
+    weeks,
+    ["IN", "MI"]
+  );
+
+  slots = ntoResult.slots;
+  const usedWeeks = ntoResult.usedWeeks;
+
+  // 4. Generate remaining classes
+  const remainingSlots = classSlotGenerator(
     weeks,
     catalog,
     usedWeeks,
-    config.totalClasses - ntoSl  .length
+    config.totalClasses - slots.length
   );
 
-  const allSl   = [...ntoSl  , ...otherSl  ];
+  slots = [...slots, ...remainingSlots];
 
-  // Balance IN vs MI
-  const balanced = balanceLocations(allSl  );
+  //  Debug visibility (safe to keep)
+  console.log(
+    "Slots by category:",
+    slots.reduce((acc, s) => {
+      acc[s.category] = (acc[s.category] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>)
+  );
 
+  // 5. Balance locations
+  const balanced = balanceLocations(slots);
+
+  // 6. Assign instructors
   const assigned = assignInstructors(balanced, instructors);
 
+  // 7. Final sort
   return assigned.sort((a, b) =>
     a.weekNumber === b.weekNumber
       ? a.location.localeCompare(b.location)
       : a.weekNumber - b.weekNumber
   );
 }
-
-
