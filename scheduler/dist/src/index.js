@@ -8,18 +8,23 @@ const generateSchedule_1 = require("./engine/generateSchedule");
 const firestoreLoaders_1 = require("./firestoreLoaders");
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
-app.get("/schedule", async (req, res) => {
+app.get("/schedule", async (_req, res) => {
     try {
         const config = await (0, firestoreLoaders_1.loadConfigFromFirestore)();
         const catalog = await (0, firestoreLoaders_1.loadCatalogFromFirestore)();
         const instructors = await (0, firestoreLoaders_1.loadInstructorsFromFirestore)();
-        if (!config || !catalog.length || !instructors.length) {
-            return res.status(400).json({
-                error: "Missing config, catalog, or instructors in Firestore"
+        if (!config) {
+            return res.status(404).json({
+                error: "Generation config not found"
             });
         }
-        const schedule = (0, generateSchedule_1.generateSchedule)(config, catalog, instructors);
-        const instructorById = new Map(instructors.map((i) => [i.id, i.name]));
+        if (!catalog.length) {
+            return res.status(400).json({
+                error: "Catalog is empty"
+            });
+        }
+        const schedule = (0, generateSchedule_1.generateSchedule)(config, catalog, instructors ?? []);
+        const instructorById = new Map((instructors ?? []).map((i) => [i.id, i.name]));
         const formattedSchedule = schedule.map(slot => ({
             weekStartDate: slot.weekStartDate,
             classId: slot.classId,

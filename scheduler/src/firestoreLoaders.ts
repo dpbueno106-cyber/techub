@@ -8,11 +8,19 @@ import type {
 // =========================
 // CONFIG
 // =========================
-export async function loadConfigFromFirestore(): Promise<ScheduleConfig | null> {
-  const snap = await db.collection("config").doc("current").get();
-  if (!snap.exists) return null;
+import type { GenerationConfig } from "./types";
 
-  return snap.data() as ScheduleConfig;
+export async function loadConfigFromFirestore(): Promise<GenerationConfig> {
+  const snap = await db
+    .collection("config")
+    .doc("generation")
+    .get();
+
+  if (!snap.exists) {
+    throw new Error("Generation config not found");
+  }
+
+  return snap.data() as GenerationConfig;
 }
 
 // =========================

@@ -20,24 +20,29 @@ app.use((0, cors_1.default)({
 // =========================
 // ROUTES
 // =========================
-app.get("/schedule", async (req, res) => {
+app.get("/schedule", async (_req, res) => {
     try {
         const config = await (0, firestoreLoaders_1.loadConfigFromFirestore)();
         const catalog = await (0, firestoreLoaders_1.loadCatalogFromFirestore)();
         const instructors = await (0, firestoreLoaders_1.loadInstructorsFromFirestore)();
-        if (!config || !catalog.length || !instructors.length) {
-            return res.status(400).json({
-                error: "Missing config, catalog, or instructors in Firestore"
+        if (!config) {
+            return res.status(404).json({
+                error: "Generation config not found"
             });
         }
-        const schedule = (0, generateSchedule_1.generateSchedule)(config, catalog, instructors);
+        if (!catalog.length) {
+            return res.status(400).json({
+                error: "Catalog is empty"
+            });
+        }
+        //  Instructors may be empty — engine can handle this
+        const schedule = (0, generateSchedule_1.generateSchedule)(config, catalog, instructors ?? []);
         res.json(schedule);
     }
     catch (err) {
         console.error("Schedule generation failed:", err);
-        console.error("FULL ERROR:", err);
         res.status(500).json({
-            error: err instanceof Error ? err.stack : String(err)
+            error: err instanceof Error ? err.message : "Failed to fetch schedule"
         });
     }
 });
@@ -47,13 +52,12 @@ app.get("/catalog", async (_req, res) => {
             .collection("catalog")
             .where("isActive", "==", true)
             .get();
-        const catalog = snapshot.docs.map(doc => ({
+        res.json(snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
-        }));
-        res.json(catalog);
+        })));
     }
-    catch (err) {
+    catch {
         res.status(500).json({ error: "Failed to load catalog" });
     }
 });

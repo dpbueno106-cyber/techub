@@ -32,7 +32,22 @@ export interface ClassDefinition {
 
   isActive: boolean;
 }
+export interface GenerationConfig {
+  year: number;
+  totalClasses: number;
 
+  categoryCaps: {
+    Foundational: number;
+    Advanced: number;
+  };
+
+  maxConsecutiveWeeks: number;
+
+  nto: {
+    enabled: boolean;
+    locations: ("IN" | "MI")[];
+  };
+}
 export interface RecommendedInstructor {
   id: string;
   name?: string;
@@ -58,5 +73,6 @@ export interface Instructor {
   name: string;
   homeLocation: Location;
   canTravel: boolean;
+  canTeach?: ("Foundational" | "Advanced" | "NTO")[];
 }
 

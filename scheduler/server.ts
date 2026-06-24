@@ -25,26 +25,38 @@ app.use(
 // ROUTES
 // =========================
 
-app.get("/schedule", async (req, res) => {
+app.get("/schedule", async (_req, res) => {
   try {
     const config = await loadConfigFromFirestore();
     const catalog = await loadCatalogFromFirestore();
     const instructors = await loadInstructorsFromFirestore();
 
-    if (!config || !catalog.length || !instructors.length) {
-      return res.status(400).json({
-        error: "Missing config, catalog, or instructors in Firestore"
+    if (!config) {
+      return res.status(404).json({
+        error: "Generation config not found"
       });
     }
 
-    const schedule = generateSchedule(config, catalog, instructors);
+    if (!catalog.length) {
+      return res.status(400).json({
+        error: "Catalog is empty"
+      });
+    }
+
+    //  Instructors may be empty — engine can handle this
+    const schedule = generateSchedule(
+      config,
+      catalog,
+      instructors ?? []
+    );
+
     res.json(schedule);
   } catch (err) {
     console.error("Schedule generation failed:", err);
-    console.error("FULL ERROR:", err);
-res.status(500).json({
-  error: err instanceof Error ? err.stack : String(err)
-});
+
+    res.status(500).json({
+      error: err instanceof Error ? err.message : "Failed to fetch schedule"
+    });
   }
 });
 
@@ -55,13 +67,13 @@ app.get("/catalog", async (_req, res) => {
       .where("isActive", "==", true)
       .get();
 
-    const catalog = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-
-    res.json(catalog);
-  } catch (err) {
+    res.json(
+      snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+    );
+  } catch {
     res.status(500).json({ error: "Failed to load catalog" });
   }
 });

@@ -1,5 +1,4 @@
 import type {
-  ScheduleConfig,
   ClassDefinition,
   ClassSlot,
   Instructor
@@ -7,48 +6,65 @@ import type {
 
 import { balanceLocations } from "./balanceLocations";
 import { buildWeeks } from "./buildWeeks";
-import { placeHolidays } from "./placeHolidays";
 import { placeNTO } from "./placeNTO";
 import { classSlotGenerator } from "./classSlotGenerator";
 import { assignInstructors } from "./assignInstructors";
 
 export function generateSchedule(
-  config: ScheduleConfig,
+  generationConfig: {
+    year: number;
+    totalClasses: number;
+    categoryCaps: {
+      Foundational: number;
+      Advanced: number;
+    };
+    nto: {
+      enabled: boolean;
+      locations: ("IN" | "MI")[];
+    };
+  },
   catalog: ClassDefinition[],
   instructors: Instructor[]
 ): ClassSlot[] {
 
   // 1. Build calendar weeks
-  let weeks = buildWeeks(config.year);
-  weeks = placeHolidays(weeks, config.holidays);
+  const weeks = buildWeeks(generationConfig.year);
 
-  // 2. Start with empty schedule
+  // 2. Initialize schedule state
   let slots: ClassSlot[] = [];
+  let usedWeeks = new Set<number>();
 
-  // 3. Place NTO (additive)
-  const ntoResult = placeNTO(
-    slots,
-    weeks,
-    ["IN", "MI"]
+  // 3. Place NTO (additive, optional)
+  if (generationConfig.nto.enabled) {
+    const ntoResult = placeNTO(
+      slots,
+      weeks,
+      generationConfig.nto.locations
+    );
+
+    slots = ntoResult.slots;
+    usedWeeks = ntoResult.usedWeeks;
+  }
+
+  // 4. Determine remaining capacity
+  const ntoCount = slots.length;
+  const reservedForNonNTO = Math.max(
+    generationConfig.totalClasses - ntoCount,
+    0
   );
 
-  slots = ntoResult.slots;
-  const usedWeeks = ntoResult.usedWeeks;
-const ntoCount = slots.length;
-const reservedForNonNTO = Math.max(
-  config.totalClasses - ntoCount,
-  0
-);
-  // 4. Generate remaining classes
-  const remainingSlots = classSlotGenerator(
-  weeks,
-  catalog,
-  usedWeeks,
-  reservedForNonNTO
-);
-  slots = [...slots, ...remainingSlots];
+  // 5. Generate remaining classes (config-driven)
+  const nonNTOSlots = classSlotGenerator(
+    weeks,
+    catalog,
+    usedWeeks,
+    reservedForNonNTO,
+    generationConfig
+  );
 
-  //  Debug visibility (safe to keep)
+  slots = [...slots, ...nonNTOSlots];
+
+  // Debug visibility (keep this)
   console.log(
     "Slots by category:",
     slots.reduce((acc, s) => {
@@ -57,13 +73,13 @@ const reservedForNonNTO = Math.max(
     }, {} as Record<string, number>)
   );
 
-  // 5. Balance locations
+  // 6. Balance locations
   const balanced = balanceLocations(slots);
 
-  // 6. Assign instructors
+  // 7. Assign instructors
   const assigned = assignInstructors(balanced, instructors);
 
-  // 7. Final sort
+  // 8. Final sort
   return assigned.sort((a, b) =>
     a.weekNumber === b.weekNumber
       ? a.location.localeCompare(b.location)

@@ -262,8 +262,10 @@ function renderCalendarFromSchedule(schedule) {
 // SAVE SCHEDULE (DEMO ONLY)
 // =========================
 
+
+
 async function saveSchedule() {
-  // 🚨 This is intentionally still a demo.
+  // This is intentionally still a demo.
   // We are NOT persisting schedules yet.
   // This will be wired after instructor scoring is finalized.
 
@@ -320,9 +322,7 @@ window.addEventListener("DOMContentLoaded", () => {
     initCalendar();
     loadCatalog();
 
-    document
-      .getElementById("saveScheduleBtn")
-      ?.addEventListener("click", saveSchedule);
+    document.getElementById("saveScheduleBtn")?.addEventListener("click", saveSchedule);
   });
 });
 

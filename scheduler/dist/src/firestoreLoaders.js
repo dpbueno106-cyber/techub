@@ -4,13 +4,14 @@ exports.loadConfigFromFirestore = loadConfigFromFirestore;
 exports.loadCatalogFromFirestore = loadCatalogFromFirestore;
 exports.loadInstructorsFromFirestore = loadInstructorsFromFirestore;
 const firebase_1 = require("../firebase");
-// =========================
-// CONFIG
-// =========================
 async function loadConfigFromFirestore() {
-    const snap = await firebase_1.db.collection("config").doc("current").get();
-    if (!snap.exists)
-        return null;
+    const snap = await firebase_1.db
+        .collection("config")
+        .doc("generation")
+        .get();
+    if (!snap.exists) {
+        throw new Error("Generation config not found");
+    }
     return snap.data();
 }
 // =========================

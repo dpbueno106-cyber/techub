@@ -1,109 +1,69 @@
 ﻿import type { ClassSlot, Instructor } from "../types";
+import { scoreInstructor } from "./scoreInstructor";
 
 export function assignInstructors(
   slots: ClassSlot[],
   instructors: Instructor[]
 ): ClassSlot[] {
-  const instructorSchedule = new Map<string, Set<number>>();
-  const load = new Map<string, number>();
-  const lastWeekTaught = new Map<string, number | null>();
-  const consecutiveWeeks = new Map<string, number>();
-  const lastLocation = new Map<string, string | null>();
-  const travelChanges = new Map<string, number>();
-  
-  instructors.forEach(inst => {
-    instructorSchedule.set(inst.id, new Set());
-    load.set(inst.id, 0);
-    lastWeekTaught.set(inst.id, null);
-    consecutiveWeeks.set(inst.id, 0);
-    lastLocation.set(inst.id, null);
-    travelChanges.set(inst.id, 0);
+
+  const assignmentsByInstructor = new Map<string, number[]>();
+
+  // Initialize tracking
+  instructors.forEach(i => {
+    assignmentsByInstructor.set(i.id, []);
   });
 
   return slots.map(slot => {
-    const eligible = instructors.filter(inst => {
-      const lastWeek = lastWeekTaught.get(inst.id) ?? null;
-      const weeks = instructorSchedule.get(inst.id);
-      if (weeks?.has(slot.weekNumber)) {
-        return false;
-      }
+    // Skip if already manually assigned (future-safe)
+    if (slot.instructorId) return slot;
 
-      
-      const consecutive = consecutiveWeeks.get(inst.id) ?? 0;
-      const isConsecutive = lastWeek !== null && slot.weekNumber === lastWeek + 1;
-      if (isConsecutive && consecutive >= 2) {
-        return false;
-      }
+    const eligible = instructors.filter(i => {
+  const canTeach =
+    !i.canTeach || i.canTeach.includes(slot.category);
 
-      if (!inst.canTravel && inst.homeLocation !== slot.location) {
-        return false;
-      }
-
-      const prevLoc = lastLocation.get(inst.id);
-      const willSwitch = prevLoc !== null && prevLoc !== slot.location;
-      const travelCount = travelChanges.get(inst.id) ?? 0;
-      const maxTravel = inst.id === "mike" ? 3 : 7;
-      if (willSwitch && travelCount >= maxTravel) {
-        return false;
-      }
-
-      return true;
-    });
+  const canBeThere =
+    slot.location === i.homeLocation || i.canTravel;
+if (!i.canTeach) {
+  console.warn(
+    `Instructor ${i.name} has no canTeach defined — allowing all categories`
+  );
+}
+  return canTeach && canBeThere;
+});
 
     if (eligible.length === 0) {
-      return {
-        ...slot,
-        instructorId: null
-      };
+      console.warn(
+        `No eligible instructor for ${slot.className} week ${slot.weekNumber}`
+      );
+      return slot;
     }
 
-    const scored = eligible.map(inst => {
-      const currentLoad = load.get(inst.id) ?? 0;
-      const prevLoc = lastLocation.get(inst.id);
-      const travelCount = travelChanges.get(inst.id) ?? 0;
+    const avgAssignments =
+      slots.length / instructors.length;
 
-      let score = currentLoad;
-      if (prevLoc !== null && prevLoc !== slot.location) {
-        score += 5;
-      }
-
-      score += travelCount * 0.5;
-      if (inst.homeLocation === slot.location) {
-        score -= 2;
-      }
-
-      return { inst, score };
+    const scored = eligible.map(i => {
+      const weeks = assignmentsByInstructor.get(i.id) ?? [];
+      return {
+        instructor: i,
+        score: scoreInstructor(i, slot, {
+          recentWeeks: weeks,
+          totalAssignments: weeks.length,
+          averageAssignments: avgAssignments
+        })
+      };
     });
 
     scored.sort((a, b) => a.score - b.score);
-    const chosen = scored[0].inst; //not using ranked here because we want to assign the best available, not just the best overall; i can change if needed
-    const ranked = scored.sort((a, b) => a.score - b.score);
-    instructorSchedule.get(chosen.id)?.add(slot.weekNumber);
-    load.set(chosen.id, (load.get(chosen.id) ?? 0) + 1);
+    const chosen = scored[0].instructor;
 
-    const lastWeek = lastWeekTaught.get(chosen.id) ?? null;
-    const isConsecutive = lastWeek !== null && slot.weekNumber === lastWeek + 1;
-    consecutiveWeeks.set(
-      chosen.id,
-      isConsecutive ? (consecutiveWeeks.get(chosen.id) ?? 0) + 1 : 1
-    );
-    lastWeekTaught.set(chosen.id, slot.weekNumber);
-
-    const prevLoc = lastLocation.get(chosen.id);
-    if (prevLoc !== null && prevLoc !== slot.location) {
-      travelChanges.set(chosen.id, (travelChanges.get(chosen.id) ?? 0) + 1);
-    }
-    lastLocation.set(chosen.id, slot.location);
+    // Track assignment
+    assignmentsByInstructor
+      .get(chosen.id)
+      ?.push(slot.weekNumber);
 
     return {
-      
-...slot,
-  instructorId: ranked[0]?.inst.id ?? null,
-  recommendedInstructors: ranked.map(r => ({
-    id: r.inst.id,
-    score: r.score
-  }))
-
+      ...slot,
+      instructorId: chosen.id
     };
   });
 }
