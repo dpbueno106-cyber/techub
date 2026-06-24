@@ -343,10 +343,52 @@ function openAddCourseModal() {
   document.getElementById("addCourseModal").classList.remove("hidden");
   document.body.style.overflow = "hidden";
 }
+
+function goBack() {
+  window.location.href = "adminDashboard.html";
+}
+
+function closeAddCourseModal() {
+  document.getElementById("addCourseModal").classList.add("hidden");
+  document.body.style.overflow = "auto";
+}
+
+async function saveCatalogClass() {
+  const name = document.getElementById("courseName").value.trim();
+  const durationWeeks = Number(
+    document.getElementById("courseDuration").value
+  );
+
+  if (!name || !durationWeeks) {
+    alert("Course name and duration are required");
+    return;
+  }
+
+  await fetch(`${API_URL}/catalog`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name,
+      category: "Foundational",
+      durationWeeks,
+      defaultLocations: ["IN"],
+      frequencyMode: "WEIGHT",
+      frequencyWeight: 1,
+      isActive: true
+    })
+  });
+
+  closeAddCourseModal();
+  loadCatalog();
+}
+
 Object.assign(window, {
+  goBack,
   generateSchedule,
   clearSchedule,
   openAddCourseModal,
+  closeAddCourseModal,
+  saveCatalogClass,
   closeEditModal,
   saveSchedule
 });
