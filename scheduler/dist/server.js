@@ -35,8 +35,9 @@ app.get("/schedule", async (req, res) => {
     }
     catch (err) {
         console.error("Schedule generation failed:", err);
+        console.error("FULL ERROR:", err);
         res.status(500).json({
-            error: err instanceof Error ? err.message : "Failed to fetch schedule"
+            error: err instanceof Error ? err.stack : String(err)
         });
     }
 });

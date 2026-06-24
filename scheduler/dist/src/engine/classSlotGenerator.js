@@ -19,7 +19,7 @@ function classSlotGenerator(weeks, catalog, usedWeeks, totalClasses) {
     let remaining = totalClasses - slots.length;
     const totalWeight = weighted.reduce((sum, c) => sum + (c.frequencyWeight ?? 0), 0);
     for (const cls of weighted) {
-        const runs = Math.round(((cls.frequencyWeight ?? 0) / totalWeight) * remaining);
+        const runs = Math.max(1, Math.round(((cls.frequencyWeight ?? 0) / totalWeight) * remaining));
         for (let i = 0; i < runs; i++) {
             const week = findNextFreeWeek(weeks, usedWeeks);
             if (!week)
@@ -28,6 +28,10 @@ function classSlotGenerator(weeks, catalog, usedWeeks, totalClasses) {
             markUsed(week.weekNumber, cls.durationWeeks, usedWeeks);
         }
     }
+    console.log("Generated class slots:", slots.reduce((acc, s) => {
+        acc[s.category] = (acc[s.category] || 0) + 1;
+        return acc;
+    }, {}));
     return slots;
 }
 function findNextFreeWeek(weeks, used) {
@@ -51,4 +55,3 @@ function buildSlot(cls, week) {
         weekEndDate: week.endDate
     };
 }
-``;
