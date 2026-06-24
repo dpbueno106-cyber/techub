@@ -3,37 +3,41 @@ import type { WeekSlot, ClassSlot, Location } from "../types";
 /**
  * Injects NTO (New Technician Orientation) slots into an existing schedule.
  * NTO is additive: it does NOT replace existing slots.
+ *
+ * Rules:
+ * - One 2-week NTO per month
+ * - Week 1 must start in the month
+ * - Week 2 must be the immediately following week (DST-safe)
+ * - Reserves both weeks so other classes do not overlap
+ * - Places NTO for all provided locations
  */
 export function placeNTO(
   existingSlots: ClassSlot[],
   weeks: WeekSlot[],
   locations: Location[]
 ): { slots: ClassSlot[]; usedWeeks: Set<number> } {
-console.log(
-  "Weeks:",
-  weeks.length,
-  "Blocked:",
-  weeks.filter(w => w.blocked).length
-);
+
   const slots: ClassSlot[] = [...existingSlots];
   const usedWeeks = new Set<number>();
 
-  // Reserve weeks already occupied
+  // Reserve weeks already occupied by existing slots
   for (const slot of existingSlots) {
     for (let i = 0; i < slot.durationWeeks; i++) {
       usedWeeks.add(slot.weekNumber + i);
     }
   }
 
+  // Only consider unblocked weeks
   const availableWeeks = weeks.filter(w => !w.blocked);
 
-  // ✅ Sort once, globally
+  // Sort weeks chronologically once
   const sortedWeeks = [...availableWeeks].sort(
     (a, b) =>
       new Date(a.startDate).getTime() -
       new Date(b.startDate).getTime()
   );
 
+  // Attempt to place one NTO per month
   for (let month = 0; month < 12; month++) {
     const monthWeeks = sortedWeeks.filter(
       w => new Date(w.startDate).getMonth() === month
@@ -50,7 +54,7 @@ console.log(
           (d2.getTime() - d1.getTime()) /
           (1000 * 60 * 60 * 24);
 
-        // ✅ DST‑safe “one week later”
+        // DST-safe definition of "next week"
         return diffDays >= 6 && diffDays <= 8;
       });
 
@@ -62,7 +66,7 @@ console.log(
 
       if (alreadyUsed) continue;
 
-      //  Place NTO for all locations
+      // Place NTO for all locations
       for (const location of locations) {
         slots.push({
           classId: "NTO",
