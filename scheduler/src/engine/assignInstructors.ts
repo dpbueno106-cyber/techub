@@ -40,27 +40,36 @@ export function assignInstructors(
     if (slot.instructorId) return slot;
 
     const eligible = instructors.filter(i => {
-      const canTeach =
-        !i.canTeach || i.canTeach.includes(slot.category);
+  const canTeach =
+    !i.canTeach || i.canTeach.includes(slot.category);
 
-      const canBeThere =
-        slot.location === i.homeLocation || i.canTravel;
+  const canBeThere =
+    slot.location === i.homeLocation || i.canTravel;
 
-      const assignedWeeks =
-        assignmentsByInstructor.get(i.id) ?? [];
+  const assignedWeeks =
+    assignmentsByInstructor.get(i.id) ?? [];
 
-      const maxWeeks =
-        generationConfig.maxConsecutiveWeeks ?? 2;
+  const hasConflict =
+    assignedWeeks.includes(slot.weekNumber);
 
-      const wouldExceed =
-        exceedsConsecutiveLimit(
-          assignedWeeks,
-          slot.weekNumber,
-          maxWeeks
-        );
+  const maxWeeks =
+    generationConfig.maxConsecutiveWeeks ?? 2;
 
-      return canTeach && canBeThere && !wouldExceed;
-    });
+  const wouldExceed =
+    exceedsConsecutiveLimit(
+      assignedWeeks,
+      slot.weekNumber,
+      maxWeeks
+    );
+
+  return (
+    canTeach &&
+    canBeThere &&
+    !hasConflict &&
+    !wouldExceed
+  );
+});
+
 
     if (eligible.length === 0) {
       console.warn(
