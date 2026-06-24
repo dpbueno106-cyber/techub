@@ -34,15 +34,18 @@ export function generateSchedule(
 
   slots = ntoResult.slots;
   const usedWeeks = ntoResult.usedWeeks;
-
+const ntoCount = slots.length;
+const reservedForNonNTO = Math.max(
+  config.totalClasses - ntoCount,
+  0
+);
   // 4. Generate remaining classes
   const remainingSlots = classSlotGenerator(
-    weeks,
-    catalog,
-    usedWeeks,
-    config.totalClasses - slots.length
-  );
-
+  weeks,
+  catalog,
+  usedWeeks,
+  reservedForNonNTO
+);
   slots = [...slots, ...remainingSlots];
 
   //  Debug visibility (safe to keep)
