@@ -4,15 +4,9 @@ exports.placeNTO = placeNTO;
 /**
  * Injects NTO (New Technician Orientation) slots into an existing schedule.
  * NTO is additive: it does NOT replace existing slots.
- *
- * Rules:
- * - One 2-week NTO per month
- * - Week 1 must start in the month
- * - Week 2 must be the immediately following week (may cross month boundary)
- * - Reserves both weeks so other classes do not overlap
- * - Places NTO for all provided locations
  */
 function placeNTO(existingSlots, weeks, locations) {
+    console.log("Weeks:", weeks.length, "Blocked:", weeks.filter(w => w.blocked).length);
     const slots = [...existingSlots];
     const usedWeeks = new Set();
     // Reserve weeks already occupied
@@ -22,18 +16,28 @@ function placeNTO(existingSlots, weeks, locations) {
         }
     }
     const availableWeeks = weeks.filter(w => !w.blocked);
+    // ✅ Sort once, globally
+    const sortedWeeks = [...availableWeeks].sort((a, b) => new Date(a.startDate).getTime() -
+        new Date(b.startDate).getTime());
     for (let month = 0; month < 12; month++) {
-        const monthWeeks = availableWeeks.filter(w => new Date(w.startDate).getMonth() === month);
+        const monthWeeks = sortedWeeks.filter(w => new Date(w.startDate).getMonth() === month);
         let placedForMonth = false;
         for (const week1 of monthWeeks) {
-            const week2 = availableWeeks.find(w => w.weekNumber === week1.weekNumber + 1);
+            const d1 = new Date(week1.startDate);
+            const week2 = sortedWeeks.find(w => {
+                const d2 = new Date(w.startDate);
+                const diffDays = (d2.getTime() - d1.getTime()) /
+                    (1000 * 60 * 60 * 24);
+                // ✅ DST‑safe “one week later”
+                return diffDays >= 6 && diffDays <= 8;
+            });
             if (!week2)
                 continue;
             const alreadyUsed = usedWeeks.has(week1.weekNumber) ||
                 usedWeeks.has(week2.weekNumber);
             if (alreadyUsed)
                 continue;
-            //  Place NTO for each location
+            //  Place NTO for all locations
             for (const location of locations) {
                 slots.push({
                     classId: "NTO",
@@ -47,7 +51,6 @@ function placeNTO(existingSlots, weeks, locations) {
                     instructorId: null
                 });
             }
-            // Reserve both weeks
             usedWeeks.add(week1.weekNumber);
             usedWeeks.add(week2.weekNumber);
             placedForMonth = true;
