@@ -261,19 +261,21 @@ function renderCalendarFromSchedule(schedule) {
   adminCalendar.removeAllEvents();
 
   schedule.forEach(slot => {
-    const start = new Date(slot.weekStartDate);
+    // ✅ Use engine-provided dates directly (no Date(), no toISOString)
+    const start = slot.weekStartDate;
 
-    // FullCalendar end is exclusive → add 1 day
-    const end = new Date(slot.weekEndDate);
-    end.setDate(end.getDate() + 1);
+    // ✅ FullCalendar end is exclusive → add one day manually
+    const endDate = new Date(slot.weekEndDate);
+    endDate.setDate(endDate.getDate() + 1);
+    const end = endDate.toISOString().split("T")[0];
 
     const bgColor = getInstructorColor(slot.instructorName);
     const textColor = getContrastTextColor(bgColor);
 
     adminCalendar.addEvent({
       title: `${slot.className} (${slot.location})`,
-      start: start.toISOString().split("T")[0],
-      end: end.toISOString().split("T")[0],
+      start,
+      end,
       allDay: true,
       backgroundColor: bgColor,
       borderColor: bgColor,
@@ -287,6 +289,7 @@ function renderCalendarFromSchedule(schedule) {
     });
   });
 }
+
 
 // =========================
 // SAVE SCHEDULE (DEMO ONLY)
