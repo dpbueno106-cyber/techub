@@ -27,9 +27,13 @@ function assignInstructors(slots, instructors, generationConfig) {
             const canTeach = !i.canTeach || i.canTeach.includes(slot.category);
             const canBeThere = slot.location === i.homeLocation || i.canTravel;
             const assignedWeeks = assignmentsByInstructor.get(i.id) ?? [];
+            const hasConflict = assignedWeeks.includes(slot.weekNumber);
             const maxWeeks = generationConfig.maxConsecutiveWeeks ?? 2;
             const wouldExceed = exceedsConsecutiveLimit(assignedWeeks, slot.weekNumber, maxWeeks);
-            return canTeach && canBeThere && !wouldExceed;
+            return (canTeach &&
+                canBeThere &&
+                !hasConflict &&
+                !wouldExceed);
         });
         if (eligible.length === 0) {
             console.warn(`No eligible instructor for ${slot.className} (week ${slot.weekNumber})`);
