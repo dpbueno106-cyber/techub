@@ -329,11 +329,24 @@ window.addEventListener("DOMContentLoaded", () => {
 // =========================
 // EXPOSE
 // =========================
+async function clearSchedule() {
+  if (!confirm("Reset schedule to recommended version?")) return;
 
+  await fetch(`${API_URL}/clearSchedule`, { method: "POST" });
+  generateSchedule();
+}
+
+function openAddCourseModal() {
+  document.getElementById("courseName").value = "";
+  document.getElementById("courseDuration").value = 1;
+
+  document.getElementById("addCourseModal").classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+}
 Object.assign(window, {
   generateSchedule,
-  saveSchedule,
   clearSchedule,
   openAddCourseModal,
-  closeEditModal
+  closeEditModal,
+  saveSchedule
 });
