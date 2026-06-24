@@ -49,7 +49,7 @@ export function placeNTO(
 
       if (alreadyUsed) continue;
 
-      // ✅ Place NTO for each location
+      //  Place NTO for each location
       for (const location of locations) {
         slots.push({
           classId: "NTO",
