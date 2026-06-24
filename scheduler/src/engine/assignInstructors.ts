@@ -1,48 +1,78 @@
 ﻿import type { ClassSlot, Instructor } from "../types";
 import { scoreInstructor } from "./scoreInstructor";
 
+function exceedsConsecutiveLimit(
+  assignedWeeks: number[],
+  nextWeek: number,
+  maxConsecutive: number
+): boolean {
+  const weeks = new Set(assignedWeeks);
+  weeks.add(nextWeek);
+
+  let streak = 0;
+  for (let w = nextWeek; weeks.has(w); w--) {
+    streak++;
+    if (streak > maxConsecutive) return true;
+  }
+
+  return false;
+}
+
 export function assignInstructors(
   slots: ClassSlot[],
-  instructors: Instructor[]
+  instructors: Instructor[],
+  generationConfig: {
+    maxConsecutiveWeeks: number;
+  }
 ): ClassSlot[] {
 
   const assignmentsByInstructor = new Map<string, number[]>();
 
-  // Initialize tracking
   instructors.forEach(i => {
     assignmentsByInstructor.set(i.id, []);
   });
 
+  const avgAssignments =
+    slots.length / Math.max(instructors.length, 1);
+
   return slots.map(slot => {
-    // Skip if already manually assigned (future-safe)
+    // Skip manual overrides (future‑safe)
     if (slot.instructorId) return slot;
 
     const eligible = instructors.filter(i => {
-  const canTeach =
-    !i.canTeach || i.canTeach.includes(slot.category);
+      const canTeach =
+        !i.canTeach || i.canTeach.includes(slot.category);
 
-  const canBeThere =
-    slot.location === i.homeLocation || i.canTravel;
-if (!i.canTeach) {
-  console.warn(
-    `Instructor ${i.name} has no canTeach defined — allowing all categories`
-  );
-}
-  return canTeach && canBeThere;
-});
+      const canBeThere =
+        slot.location === i.homeLocation || i.canTravel;
+
+      const assignedWeeks =
+        assignmentsByInstructor.get(i.id) ?? [];
+
+      const maxWeeks =
+        generationConfig.maxConsecutiveWeeks ?? 2;
+
+      const wouldExceed =
+        exceedsConsecutiveLimit(
+          assignedWeeks,
+          slot.weekNumber,
+          maxWeeks
+        );
+
+      return canTeach && canBeThere && !wouldExceed;
+    });
 
     if (eligible.length === 0) {
       console.warn(
-        `No eligible instructor for ${slot.className} week ${slot.weekNumber}`
+        `No eligible instructor for ${slot.className} (week ${slot.weekNumber})`
       );
       return slot;
     }
 
-    const avgAssignments =
-      slots.length / instructors.length;
-
     const scored = eligible.map(i => {
-      const weeks = assignmentsByInstructor.get(i.id) ?? [];
+      const weeks =
+        assignmentsByInstructor.get(i.id) ?? [];
+
       return {
         instructor: i,
         score: scoreInstructor(i, slot, {
@@ -56,7 +86,6 @@ if (!i.canTeach) {
     scored.sort((a, b) => a.score - b.score);
     const chosen = scored[0].instructor;
 
-    // Track assignment
     assignmentsByInstructor
       .get(chosen.id)
       ?.push(slot.weekNumber);

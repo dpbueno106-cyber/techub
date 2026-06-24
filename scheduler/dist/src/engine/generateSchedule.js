@@ -32,7 +32,7 @@ function generateSchedule(generationConfig, catalog, instructors) {
     // 6. Balance locations
     const balanced = (0, balanceLocations_1.balanceLocations)(slots);
     // 7. Assign instructors
-    const assigned = (0, assignInstructors_1.assignInstructors)(balanced, instructors);
+    const assigned = (0, assignInstructors_1.assignInstructors)(balanced, instructors, generationConfig);
     // 8. Final sort
     return assigned.sort((a, b) => a.weekNumber === b.weekNumber
         ? a.location.localeCompare(b.location)

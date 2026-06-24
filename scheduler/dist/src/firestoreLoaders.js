@@ -4,6 +4,9 @@ exports.loadConfigFromFirestore = loadConfigFromFirestore;
 exports.loadCatalogFromFirestore = loadCatalogFromFirestore;
 exports.loadInstructorsFromFirestore = loadInstructorsFromFirestore;
 const firebase_1 = require("../firebase");
+// =========================
+// GENERATION CONFIG
+// =========================
 async function loadConfigFromFirestore() {
     const snap = await firebase_1.db
         .collection("config")

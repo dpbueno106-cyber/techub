@@ -1,14 +1,13 @@
 import { db } from "../firebase";
 import type {
-  ScheduleConfig,
   ClassDefinition,
-  Instructor
+  Instructor,
+  GenerationConfig
 } from "./types";
 
 // =========================
-// CONFIG
+// GENERATION CONFIG
 // =========================
-import type { GenerationConfig } from "./types";
 
 export async function loadConfigFromFirestore(): Promise<GenerationConfig> {
   const snap = await db
@@ -26,6 +25,7 @@ export async function loadConfigFromFirestore(): Promise<GenerationConfig> {
 // =========================
 // CATALOG
 // =========================
+
 export async function loadCatalogFromFirestore(): Promise<ClassDefinition[]> {
   const snapshot = await db
     .collection("catalog")
@@ -41,6 +41,7 @@ export async function loadCatalogFromFirestore(): Promise<ClassDefinition[]> {
 // =========================
 // INSTRUCTORS
 // =========================
+
 export async function loadInstructorsFromFirestore(): Promise<Instructor[]> {
   const snapshot = await db.collection("instructors").get();
 

@@ -1,7 +1,8 @@
 import type {
   ClassDefinition,
   ClassSlot,
-  Instructor
+  Instructor,
+  GenerationConfig
 } from "../types";
 
 import { balanceLocations } from "./balanceLocations";
@@ -11,18 +12,7 @@ import { classSlotGenerator } from "./classSlotGenerator";
 import { assignInstructors } from "./assignInstructors";
 
 export function generateSchedule(
-  generationConfig: {
-    year: number;
-    totalClasses: number;
-    categoryCaps: {
-      Foundational: number;
-      Advanced: number;
-    };
-    nto: {
-      enabled: boolean;
-      locations: ("IN" | "MI")[];
-    };
-  },
+  generationConfig: GenerationConfig,
   catalog: ClassDefinition[],
   instructors: Instructor[]
 ): ClassSlot[] {
@@ -77,8 +67,11 @@ export function generateSchedule(
   const balanced = balanceLocations(slots);
 
   // 7. Assign instructors
-  const assigned = assignInstructors(balanced, instructors);
-
+  const assigned = assignInstructors(
+  balanced,
+  instructors,
+  generationConfig
+);
   // 8. Final sort
   return assigned.sort((a, b) =>
     a.weekNumber === b.weekNumber
