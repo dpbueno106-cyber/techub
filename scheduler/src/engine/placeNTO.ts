@@ -37,9 +37,15 @@ export function placeNTO(
     let placedForMonth = false;
 
     for (const week1 of monthWeeks) {
-      const week2 = availableWeeks.find(
-        w => w.weekNumber === week1.weekNumber + 1
-      );
+      const week2 = availableWeeks.find(w => {
+  const d1 = new Date(week1.startDate);
+  const d2 = new Date(w.startDate);
+
+  const diffDays =
+    (d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24);
+
+  return diffDays === 7;
+});
 
       if (!week2) continue;
 
