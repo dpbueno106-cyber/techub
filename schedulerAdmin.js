@@ -261,13 +261,16 @@ function renderCalendarFromSchedule(schedule) {
   adminCalendar.removeAllEvents();
 
   schedule.forEach(slot => {
-    // ✅ Use engine-provided dates directly (no Date(), no toISOString)
-    const start = slot.weekStartDate;
+    // Start date (engine already gives correct Monday)
+    const startDate = new Date(slot.weekStartDate + "T00:00:00");
 
-    // ✅ FullCalendar end is exclusive → add one day manually
-    const endDate = new Date(slot.weekEndDate);
-    endDate.setDate(endDate.getDate() + 1);
-    const end = endDate.toISOString().split("T")[0];
+    // End is exclusive: start + (durationWeeks * 7 days)
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + slot.durationWeeks * 7);
+
+    // Format as local YYYY-MM-DD (no UTC conversion)
+    const start = startDate.toLocaleDateString("en-CA");
+    const end = endDate.toLocaleDateString("en-CA");
 
     const bgColor = getInstructorColor(slot.instructorName);
     const textColor = getContrastTextColor(bgColor);
