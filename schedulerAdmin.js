@@ -16,6 +16,27 @@ const API_URL = window.location.hostname.includes("localhost")
   : "https://techub-9gis.onrender.com";
 
 // =========================
+// DOM REFERENCES (EXPLICIT)
+// =========================
+
+const calendarEl = document.getElementById("calendar");
+const externalEventsEl = document.getElementById("externalEvents");
+const instructorWorkloadEl = document.getElementById("instructorWorkload");
+
+const editEventTitleEl = document.getElementById("editEventTitle");
+const editEventLocationEl = document.getElementById("editEventLocation");
+const editEventInstructorEl = document.getElementById("editEventInstructor");
+
+const saveEventBtn = document.getElementById("saveEventBtn");
+const deleteEventBtn = document.getElementById("deleteEventBtn");
+const generateScheduleBtn = document.getElementById("generateScheduleBtn");
+
+const courseNameEl = document.getElementById("courseName");
+const courseDurationEl = document.getElementById("courseDuration");
+const addCourseModalEl = document.getElementById("addCourseModal");
+const eventEditMenuEl = document.getElementById("eventEditMenu");
+
+// =========================
 // FIREBASE AUTH (ADMIN ONLY)
 // =========================
 
@@ -38,6 +59,7 @@ const auth = getAuth(app);
 function populateInstructorDropdown(selectId) {
   const select = document.getElementById(selectId);
   if (!select) return;
+
   select.innerHTML = "";
   defaultInstructorNames.forEach(name => {
     const opt = document.createElement("option");
@@ -89,32 +111,32 @@ function serializeCalendarToSlots() {
 function openEditModal(event) {
   selectedEvent = event;
 
-  editEventTitle.value = event.extendedProps.className || "";
-  editEventLocation.value = event.extendedProps.location || "IN";
+  editEventTitleEl.value = event.extendedProps.className || "";
+  editEventLocationEl.value = event.extendedProps.location || "IN";
 
   populateInstructorDropdown("editEventInstructor");
 
   if (event.extendedProps.instructorName) {
-    editEventInstructor.value = event.extendedProps.instructorName;
+    editEventInstructorEl.value = event.extendedProps.instructorName;
   }
 
-  eventEditMenu.classList.remove("hidden");
+  eventEditMenuEl.classList.remove("hidden");
 }
 
 function closeEditModal() {
-  eventEditMenu.classList.add("hidden");
+  eventEditMenuEl.classList.add("hidden");
   selectedEvent = null;
 }
 
 function openAddCourseModal() {
-  courseName.value = "";
-  courseDuration.value = 1;
-  addCourseModal.classList.remove("hidden");
+  courseNameEl.value = "";
+  courseDurationEl.value = 1;
+  addCourseModalEl.classList.remove("hidden");
   document.body.style.overflow = "hidden";
 }
 
 function closeAddCourseModal() {
-  addCourseModal.classList.add("hidden");
+  addCourseModalEl.classList.add("hidden");
   document.body.style.overflow = "auto";
 }
 
@@ -123,7 +145,7 @@ function closeAddCourseModal() {
 // =========================
 
 async function saveCatalogClass() {
-  if (!courseName.value || !courseDuration.value) {
+  if (!courseNameEl.value || !courseDurationEl.value) {
     alert("Course name and duration are required");
     return;
   }
@@ -132,9 +154,9 @@ async function saveCatalogClass() {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      name: courseName.value.trim(),
+      name: courseNameEl.value.trim(),
       category: "Foundational",
-      durationWeeks: Number(courseDuration.value),
+      durationWeeks: Number(courseDurationEl.value),
       defaultLocations: ["IN"],
       frequencyMode: "WEIGHT",
       frequencyWeight: 1,
@@ -151,7 +173,7 @@ async function saveCatalogClass() {
 // =========================
 
 function initCalendar() {
-  adminCalendar = new FullCalendar.Calendar(calendar, {
+  adminCalendar = new FullCalendar.Calendar(calendarEl, {
     initialView: "dayGridMonth",
     height: 600,
     editable: true,
@@ -190,7 +212,7 @@ async function loadCatalog() {
   const res = await fetch(`${API_URL}/catalog`);
   const catalog = await res.json();
 
-  externalEvents.innerHTML = "";
+  externalEventsEl.innerHTML = "";
 
   catalog.forEach(cls => {
     if (!cls.isActive) return;
@@ -199,7 +221,6 @@ async function loadCatalog() {
     el.className = "external-event";
     el.dataset.category = cls.category;
     el.dataset.durationWeeks = cls.durationWeeks;
-
     el.textContent = cls.name;
 
     el.addEventListener("dblclick", async e => {
@@ -217,7 +238,7 @@ async function loadCatalog() {
       loadCatalog();
     });
 
-    externalEvents.appendChild(el);
+    externalEventsEl.appendChild(el);
   });
 
   makeExternalEventsDraggable();
@@ -230,7 +251,7 @@ async function loadCatalog() {
 function makeExternalEventsDraggable() {
   if (draggableInstance) draggableInstance.destroy();
 
-  draggableInstance = new FullCalendar.Draggable(externalEvents, {
+  draggableInstance = new FullCalendar.Draggable(externalEventsEl, {
     itemSelector: ".external-event",
     eventData(el) {
       return {
@@ -304,7 +325,7 @@ function renderCalendarFromSchedule(schedule, clearFirst = true) {
 // =========================
 
 function renderInstructorWorkloadFromCalendar() {
-  instructorWorkload.innerHTML = "";
+  instructorWorkloadEl.innerHTML = "";
   const counts = {};
 
   adminCalendar.getEvents().forEach(e => {
@@ -313,7 +334,7 @@ function renderInstructorWorkloadFromCalendar() {
   });
 
   Object.entries(counts).forEach(([n, w]) => {
-    instructorWorkload.innerHTML += `<div>${n}: ${w} Classes</div>`;
+    instructorWorkloadEl.innerHTML += `<div>${n}: ${w} Classes</div>`;
   });
 }
 
@@ -346,8 +367,27 @@ function getContrastTextColor(hex) {
 }
 
 // =========================
-// PERSISTENCE
+// GENERATE / PERSIST
 // =========================
+
+async function generateSchedule() {
+  if (generateScheduleBtn) {
+    generateScheduleBtn.disabled = true;
+    generateScheduleBtn.textContent = "Generating...";
+  }
+
+  try {
+    const res = await fetch(`${API_URL}/schedule`);
+    const data = await res.json();
+    renderCalendarFromSchedule(data, true);
+    renderInstructorWorkloadFromCalendar();
+  } finally {
+    if (generateScheduleBtn) {
+      generateScheduleBtn.disabled = false;
+      generateScheduleBtn.textContent = "Generate Schedule";
+    }
+  }
+}
 
 async function saveSchedule() {
   await fetch(`${API_URL}/schedule/save`, {
@@ -389,12 +429,12 @@ window.addEventListener("DOMContentLoaded", () => {
     loadCatalog();
 
     const loaded = await loadSavedSchedule();
-    if (!loaded) await generateSchedule();
+    if (!loaded) generateSchedule();
 
     saveEventBtn.onclick = () => {
       if (!selectedEvent) return;
-      selectedEvent.setExtendedProp("instructorName", editEventInstructor.value);
-      selectedEvent.setExtendedProp("location", editEventLocation.value);
+      selectedEvent.setExtendedProp("instructorName", editEventInstructorEl.value);
+      selectedEvent.setExtendedProp("location", editEventLocationEl.value);
       closeEditModal();
       renderInstructorWorkloadFromCalendar();
     };
@@ -417,6 +457,5 @@ Object.assign(window, {
   saveSchedule,
   openAddCourseModal,
   closeAddCourseModal,
-  saveCatalogClass,
-  goBack
+  saveCatalogClass
 });
