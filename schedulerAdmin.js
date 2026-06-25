@@ -442,6 +442,19 @@ async function saveSchedule() {
   alert("Schedule saved");
 }
 
+editEventInstructorEl.onchange = () => {
+  if (!selectedEvent) return;
+
+  const instructor = editEventInstructorEl.value;
+  const bg = getInstructorColor(instructor);
+  const text = getContrastTextColor(bg);
+
+  selectedEvent.setExtendedProp("instructorName", instructor);
+  selectedEvent.setProp("backgroundColor", bg);
+  selectedEvent.setProp("borderColor", bg);
+  selectedEvent.setProp("textColor", text);
+};
+
 async function loadSavedSchedule() {
   const year = new Date().getFullYear();
   const res = await fetch(`${API_URL}/schedule/load?year=${year}`);

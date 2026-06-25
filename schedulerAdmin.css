@@ -248,3 +248,11 @@ button.secondary:hover {
 .external-event.confirm-delete {
   box-shadow: 0 0 0 2px #f44336;
 }
+
+/* Smooth color transitions for calendar events */
+.fc-event {
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease;
+}
