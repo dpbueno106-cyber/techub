@@ -512,5 +512,10 @@ Object.assign(window, {
   saveCatalogClass,
   goBack: () => window.location.href = "adminDashboard.html",
   openEditModal,
-  closeEditModal
-});
+  closeEditModal,
+  clearSchedule: () => {
+    if (confirm("Are you sure you want to clear the schedule?")) {
+      adminCalendar.removeAllEvents();
+      renderInstructorWorkloadFromCalendar();
+    }
+} });
