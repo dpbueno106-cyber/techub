@@ -87,7 +87,9 @@ function populateInstructorDropdown(selectId) {
 // =========================
 // MODALS
 // =========================
-
+function goBack() {
+  window.location.href = "adminDashboard.html";
+}
 function openEditModal(event) {
   selectedEvent = event;
 
@@ -125,7 +127,7 @@ function closeEditModal() {
 function openAddCourseModal() {
   document.getElementById("courseName").value = "";
   document.getElementById("courseDuration").value = 1;
-  populateInstructorDropdown("courseInstructor");
+
   document.getElementById("addCourseModal")
     .classList.remove("hidden");
   document.body.style.overflow = "hidden";
@@ -423,5 +425,6 @@ Object.assign(window, {
   closeAddCourseModal,
   saveCatalogClass,
   clearSchedule,
-  saveSchedule
+  saveSchedule,
+  goBack
 });
