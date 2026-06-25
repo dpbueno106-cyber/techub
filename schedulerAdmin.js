@@ -323,7 +323,34 @@ function renderCalendarFromSchedule(schedule, clearFirst = true) {
 // =========================
 // WORKLOAD
 // =========================
+function renderInstructorLegend() {
+  const legend = document.getElementById("instructorLegend");
+  if (!legend) return;
 
+  legend.innerHTML = "";
+
+  Object.entries(predefinedColors).forEach(([name, color]) => {
+    const row = document.createElement("div");
+    row.style.display = "flex";
+    row.style.alignItems = "center";
+    row.style.marginBottom = "6px";
+
+    const swatch = document.createElement("span");
+    swatch.style.width = "12px";
+    swatch.style.height = "12px";
+    swatch.style.backgroundColor = color;
+    swatch.style.display = "inline-block";
+    swatch.style.marginRight = "6px";
+    swatch.style.borderRadius = "3px";
+
+    const label = document.createElement("span");
+    label.textContent = name;
+
+    row.appendChild(swatch);
+    row.appendChild(label);
+    legend.appendChild(row);
+  });
+}
 function renderInstructorWorkloadFromCalendar() {
   instructorWorkloadEl.innerHTML = "";
   const counts = {};
@@ -427,7 +454,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
     initCalendar();
     loadCatalog();
-
+    renderInstructorLegend();
     const loaded = await loadSavedSchedule();
     if (!loaded) generateSchedule();
 
@@ -457,5 +484,6 @@ Object.assign(window, {
   saveSchedule,
   openAddCourseModal,
   closeAddCourseModal,
-  saveCatalogClass
+  saveCatalogClass,
+  goBack: () => window.location.href = "adminScheduleManagement.html"
 });
