@@ -24,7 +24,20 @@ app.use(
 // =========================
 // ROUTES
 // =========================
+app.delete("/catalog/:id", async (req, res) => {
+  const { id } = req.params;
 
+  try {
+    await db.collection("catalog").doc(id).update({
+      isActive: false
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Failed to delete catalog item", err);
+    res.status(500).json({ error: "Failed to remove course" });
+  }
+});
 app.get("/schedule", async (_req, res) => {
   try {
     const config = await loadConfigFromFirestore();

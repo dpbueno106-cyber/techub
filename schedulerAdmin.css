@@ -227,3 +227,45 @@ button.secondary:hover {
   gap: 10px;
   justify-content: flex-end;
 }
+.external-event {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  background: #2a2a2a;
+  margin-bottom: 6px;
+  cursor: grab;
+}
+
+/* The small hover delete box */
+.remove-course-btn {
+  width: 18px;
+  height: 18px;
+  line-height: 16px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
+
+  background: transparent;
+  border: 1px solid rgba(242, 195, 0, 0.4);
+  color: #f2c300;
+
+  border-radius: 3px;
+  cursor: pointer;
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+
+/* Only show on hover */
+.external-event:hover .remove-course-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Hover feedback */
+.remove-course-btn:hover {
+  background: rgba(242, 195, 0, 0.15);
+}
