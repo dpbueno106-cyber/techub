@@ -34,6 +34,43 @@ const auth = getAuth(app);
 // =========================
 // INSTRUCTOR HELPERS
 // =========================
+async function saveCatalogClass() {
+  const name = document.getElementById("courseName").value.trim();
+  const durationWeeks = Number(
+    document.getElementById("courseDuration").value
+  );
+
+  if (!name || !durationWeeks) {
+    alert("Course name and duration are required");
+    return;
+  }
+
+  await fetch(`${API_URL}/catalog`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name,
+      category: "Foundational",
+      durationWeeks,
+      defaultLocations: ["IN"],
+      frequencyMode: "WEIGHT",
+      frequencyWeight: 1,
+      isActive: true
+    })
+  });
+
+  closeAddCourseModal();
+  loadCatalog();
+}
+async function clearSchedule() {
+  if (!confirm("Reset schedule to recommended version?")) return;
+
+  await fetch(`${API_URL}/clearSchedule`, {
+    method: "POST"
+  });
+
+  generateSchedule();
+}
 
 function populateInstructorDropdown(selectId) {
   const select = document.getElementById(selectId);
@@ -384,5 +421,7 @@ Object.assign(window, {
   closeEditModal,
   openAddCourseModal,
   closeAddCourseModal,
+  saveCatalogClass,
+  clearSchedule,
   saveSchedule
 });
