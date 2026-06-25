@@ -389,7 +389,7 @@ window.addEventListener("DOMContentLoaded", () => {
     loadCatalog();
 
     const loaded = await loadSavedSchedule();
-    if (!loaded) generateSchedule();
+    if (!loaded) await generateSchedule();
 
     saveEventBtn.onclick = () => {
       if (!selectedEvent) return;
