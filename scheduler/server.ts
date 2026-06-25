@@ -73,6 +73,29 @@ app.get("/schedule", async (_req, res) => {
   }
 });
 
+app.get("/schedule/load", async (req, res) => {
+  const year = req.query.year;
+  const doc = await db.collection("schedules").doc(String(year)).get();
+
+  if (!doc.exists) {
+    return res.json({ slots: [] });
+  }
+
+  res.json(doc.data());
+});
+
+app.post("/schedule/save", async (req, res) => {
+  const { year, slots } = req.body;
+
+  await db.collection("schedules").doc(String(year)).set({
+    year,
+    slots,
+    updatedAt: new Date()
+  });
+
+  res.json({ success: true });
+});
+
 app.get("/catalog", async (_req, res) => {
   try {
     const snapshot = await db
