@@ -193,26 +193,37 @@ async function loadCatalog() {
     const el = document.createElement("div");
     el.className = "external-event";
 
-    const label = document.createElement("span");
-    label.textContent = cls.name;
-
-    const removeBtn = document.createElement("button");
-    removeBtn.textContent = "×";
-    removeBtn.className = "remove-course-btn";
-    removeBtn.title = "Remove course";
-
-    removeBtn.addEventListener("click", async e => {
-      e.stopPropagation();
-      if (!confirm(`Remove "${cls.name}" from catalog?`)) return;
-      await fetch(`${API_URL}/catalog/${cls.id}`, { method: "DELETE" });
-      loadCatalog();
-    });
-
+    // Required for dragging
     el.dataset.category = cls.category;
     el.dataset.durationWeeks = cls.durationWeeks;
 
+    const label = document.createElement("span");
+    label.textContent = cls.name;
     el.appendChild(label);
-    el.appendChild(removeBtn);
+
+    // ✅ Double-click delete
+    el.addEventListener("dblclick", async e => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      el.classList.add("confirm-delete");
+
+      const confirmed = confirm(
+        `Are you sure you want to permanently remove "${cls.name}"?`
+      );
+
+      if (!confirmed) {
+        el.classList.remove("confirm-delete");
+        return;
+      }
+
+      await fetch(`${API_URL}/catalog/${cls.id}`, {
+        method: "DELETE"
+      });
+
+      loadCatalog();
+    });
+
     container.appendChild(el);
   });
 
@@ -232,19 +243,19 @@ function makeExternalEventsDraggable() {
   draggableInstance = new FullCalendar.Draggable(container, {
     itemSelector: ".external-event",
     eventData(el) {
-      return {
-        title: el.innerText.replace("×", "").trim(),
-        allDay: true,
-        backgroundColor: "#888",
-        extendedProps: {
-          className: el.innerText.replace("×", "").trim(),
-          category: el.dataset.category,
-          location: null,
-          instructorName: null,
-          durationWeeks: Number(el.dataset.durationWeeks)
-        }
-      };
+  return {
+    title: el.innerText.trim(),
+    allDay: true,
+    backgroundColor: "#888",
+    extendedProps: {
+      className: el.innerText.trim(),
+      category: el.dataset.category,
+      location: null,
+      instructorName: null,
+      durationWeeks: Number(el.dataset.durationWeeks)
     }
+  };
+}
   });
 }
 
