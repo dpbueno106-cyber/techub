@@ -229,21 +229,24 @@ button.secondary:hover {
 }
 .external-event {
   position: relative;
-  display: flex;
-  align-items: center;
-  padding: 8px 28px 8px 8px; /* right padding makes room for X */
+  display: block;
+  padding: 8px 28px 8px 8px;
   background: #2a2a2a;
   margin-bottom: 6px;
   cursor: grab;
   color: #ffffff;
 }
 
-/* Small, centered hover delete box */
+.course-label {
+  display: inline-block;
+  line-height: 1.2;
+}
+
+/* Delete button aligned to text block */
 .remove-course-btn {
   position: absolute;
-  top: 50%;
+  top: 10px;           /* aligns with first text line */
   right: 6px;
-  transform: translateY(-50%);
 
   width: 18px;
   height: 18px;
@@ -268,13 +271,11 @@ button.secondary:hover {
   transition: opacity 0.15s ease, background-color 0.15s ease;
 }
 
-/* Only show on hover */
 .external-event:hover .remove-course-btn {
   opacity: 1;
   pointer-events: auto;
 }
 
-/* Hover feedback */
 .remove-course-btn:hover {
   background: rgba(242, 195, 0, 0.15);
 }
