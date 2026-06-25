@@ -50,3 +50,25 @@ export async function loadInstructorsFromFirestore(): Promise<Instructor[]> {
     ...(doc.data() as Omit<Instructor, "id">)
   }));
 }
+
+
+
+
+export function attachPossibleInstructors(
+  catalog: ClassDefinition[],
+  instructors: Instructor[]
+): ClassDefinition[] {
+  return catalog.map(cls => {
+    // Match by level OR category (choose one)
+    const possible = instructors
+      .filter(i =>
+        i.canTeach?.includes(cls.category)
+      )
+      .map(i => i.id);
+
+    return {
+      ...cls,
+      possibleInstructors: possible.length ? possible : undefined
+    };
+  });
+}

@@ -29,7 +29,7 @@ export interface ClassDefinition {
   frequencyWeight?: number;
   minPerYear?: number;
   maxPerYear?: number;
-
+  possibleInstructors?: string[];
   isActive: boolean;
 }
 export interface GenerationConfig {

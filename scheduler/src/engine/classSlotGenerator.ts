@@ -33,18 +33,117 @@ export function classSlotGenerator(
   const minMax = active.filter(c => c.frequencyMode === "MIN_MAX");
   const weighted = active.filter(c => c.frequencyMode === "WEIGHT");
 
+  const classStats: Record<string, {
+  lastWeek: number;
+  timesScheduled: number;
+}> = {};
+const instructorStats: Record<string, {
+  lastWeek: number;
+  timesScheduled: number;
+}> = {};
+
+active.forEach(cls => {
+  classStats[cls.name] = {
+    lastWeek: -Infinity,
+    timesScheduled: 0
+  };
+});
+
+catalog.forEach(cls => {
+  cls.possibleInstructors?.forEach(id => {
+    if (!instructorStats[id]) {
+      instructorStats[id] = {
+        lastWeek: -Infinity,
+        timesScheduled: 0
+      };
+    }
+  });
+});
+function minSpacingWeeks(cls: ClassDefinition) {
+  if (cls.category === "NTO") return 4;
+  if (cls.durationWeeks >= 2) return 3;
+  return 2;
+}
+function instructorPenalty(
+  cls: ClassDefinition,
+  weekIndex: number
+) {
+  if (!cls.possibleInstructors?.length) return 0;
+
+  let penalty = 0;
+
+  for (const id of cls.possibleInstructors) {
+    const stats = instructorStats[id];
+    if (!stats) continue;
+
+    const spacing = weekIndex - stats.lastWeek;
+
+    // Too soon → strong penalty
+    if (spacing < 2) penalty += 20;
+
+    // Overuse → gradual penalty
+    penalty += stats.timesScheduled * 3;
+  }
+
+  return penalty;
+}
+function scoreClass(
+  cls: ClassDefinition,
+  weekIndex: number
+) {
+  const stats = classStats[cls.name];
+  const spacing = weekIndex - stats.lastWeek;
+
+  // Hard block if too soon
+  if (spacing < minSpacingWeeks(cls)) {
+    return -Infinity;
+  }
+
+  let score = 0;
+
+  // Frequency importance
+  score += (cls.frequencyWeight ?? 1) * 10;
+
+  // Reward waiting
+  score += spacing * 3;
+
+  // Penalize overuse
+  score -= stats.timesScheduled * 5;
+score -= instructorPenalty(cls, weekIndex);
+
+  return score;
+}
   // -------------------------
   // Place MIN_MAX classes
   // -------------------------
+
+
+
+
   for (const cls of minMax) {
     const min = cls.minPerYear ?? 0;
 
     for (let i = 0; i < min; i++) {
-      const week = findNextFreeWeek(weeks, usedWeeks);
+      const weekIndex = weeks.findIndex(
+  (w, idx) =>
+    !w.blocked &&
+    !usedWeeks.has(w.weekNumber) &&
+    scoreClass(cls, idx) !== -Infinity
+);
+
+const week = weekIndex >= 0 ? weeks[weekIndex] : null;
       if (!week) break;
 
-      slots.push(buildSlot(cls, week));
-      markUsed(week.weekNumber, cls.durationWeeks, usedWeeks);
+     slots.push(buildSlot(cls, week));
+markUsed(week.weekNumber, cls.durationWeeks, usedWeeks);
+
+classStats[cls.name].lastWeek = weekIndex;
+classStats[cls.name].timesScheduled++;
+
+cls.possibleInstructors?.forEach(id => {
+  instructorStats[id].lastWeek = weekIndex;
+  instructorStats[id].timesScheduled++;
+});
     }
   }
 
@@ -69,6 +168,8 @@ export function classSlotGenerator(
   // -------------------------
   // Foundational cap (config-driven)
   // -------------------------
+
+
   const foundationalCap =
     generationConfig.categoryCaps.Foundational;
 
@@ -77,34 +178,38 @@ export function classSlotGenerator(
 
   let foundationalCount = 0;
 
-  const foundationalWeight = foundational.reduce(
-    (sum, c) => sum + (c.frequencyWeight ?? 0),
-    0
-  );
+  
 
-  for (const cls of foundational) {
-    if (foundationalCount >= maxFoundational) break;
 
-    const desiredRuns = Math.round(
-      ((cls.frequencyWeight ?? 0) / foundationalWeight) *
-        maxFoundational
-    );
+for (let i = 0; i < weeks.length && foundationalCount < maxFoundational; i++) {
+  if (!foundational.length) break;
+  if (usedWeeks.has(weeks[i].weekNumber)) continue;
 
-    const runs = Math.max(1, desiredRuns);
+  const scored = foundational.map(cls => ({
+    cls,
+    score: scoreClass(cls, i)
+  }));
 
-    for (
-      let i = 0;
-      i < runs && foundationalCount < maxFoundational;
-      i++
-    ) {
-      const week = findNextFreeWeek(weeks, usedWeeks);
-      if (!week) break;
+  scored.sort((a, b) => b.score - a.score);
 
-      slots.push(buildSlot(cls, week));
-      markUsed(week.weekNumber, cls.durationWeeks, usedWeeks);
-      foundationalCount++;
-    }
-  }
+  const chosen =
+    scored[0].score === -Infinity
+      ? foundational[Math.floor(Math.random() * foundational.length)]
+      : scored[0].cls;
+
+  const week = weeks[i];
+
+  slots.push(buildSlot(chosen, week));
+  markUsed(week.weekNumber, chosen.durationWeeks, usedWeeks);
+
+  classStats[chosen.name].lastWeek = i;
+  classStats[chosen.name].timesScheduled++;
+  chosen.possibleInstructors?.forEach(id => {
+  instructorStats[id].lastWeek = i;
+  instructorStats[id].timesScheduled++;
+});
+  foundationalCount++;
+}
 
   // -------------------------
   // Advanced fills remainder
@@ -112,27 +217,43 @@ export function classSlotGenerator(
   const remainingAfterFoundational =
     remaining - foundationalCount;
 
-  const advancedWeight = advanced.reduce(
-    (sum, c) => sum + (c.frequencyWeight ?? 0),
-    0
-  );
+  
 
-  for (const cls of advanced) {
-    const desiredRuns = Math.round(
-      ((cls.frequencyWeight ?? 0) / advancedWeight) *
-        remainingAfterFoundational
-    );
+  
 
-    const runs = Math.max(1, desiredRuns);
+  let advancedCount = 0;
 
-    for (let i = 0; i < runs; i++) {
-      const week = findNextFreeWeek(weeks, usedWeeks);
-      if (!week) break;
+for (
+  let i = 0; i < weeks.length && advancedCount < remainingAfterFoundational; i++
+) {
+  if (!advanced.length) break;
+  if (usedWeeks.has(weeks[i].weekNumber)) continue;
 
-      slots.push(buildSlot(cls, week));
-      markUsed(week.weekNumber, cls.durationWeeks, usedWeeks);
-    }
-  }
+  const scored = advanced.map(cls => ({
+    cls,
+    score: scoreClass(cls, i)
+  }));
+
+  scored.sort((a, b) => b.score - a.score);
+
+  const chosen =
+    scored[0].score === -Infinity
+      ? advanced[Math.floor(Math.random() * advanced.length)]
+      : scored[0].cls;
+
+  const week = weeks[i];
+
+  slots.push(buildSlot(chosen, week));
+  markUsed(week.weekNumber, chosen.durationWeeks, usedWeeks);
+
+  classStats[chosen.name].lastWeek = i;
+  classStats[chosen.name].timesScheduled++;
+  chosen.possibleInstructors?.forEach(id => {
+  instructorStats[id].lastWeek = i;
+  instructorStats[id].timesScheduled++;
+});
+  advancedCount++;
+}
 
   // -------------------------
   // Debug summary (keep this)
@@ -151,16 +272,6 @@ export function classSlotGenerator(
 /* =========================
    Helpers
 ========================= */
-
-function findNextFreeWeek(
-  weeks: WeekSlot[],
-  used: Set<number>
-): WeekSlot | null {
-  return (
-    weeks.find(w => !w.blocked && !used.has(w.weekNumber)) ||
-    null
-  );
-}
 
 function markUsed(
   startWeek: number,
@@ -188,3 +299,5 @@ function buildSlot(
     weekEndDate: week.endDate
   };
 }
+
+

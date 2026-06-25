@@ -3,7 +3,8 @@ import { generateSchedule } from "./engine/generateSchedule";
 import {
   loadConfigFromFirestore,
   loadCatalogFromFirestore,
-  loadInstructorsFromFirestore
+  loadInstructorsFromFirestore,
+  attachPossibleInstructors
 } from "./firestoreLoaders";
 import type { Instructor } from "./types";
 
@@ -27,10 +28,13 @@ app.get("/schedule", async (_req: Request, res: Response) => {
         error: "Catalog is empty"
       });
     }
+    
+const catalogWithPossibleInstructors =
+  attachPossibleInstructors(catalog, instructors);
 
     const schedule = generateSchedule(
       config,
-      catalog,
+      catalogWithPossibleInstructors,
       instructors ?? []
     );
 
