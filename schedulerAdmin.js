@@ -38,9 +38,7 @@ const auth = getAuth(app);
 function populateInstructorDropdown(selectId) {
   const select = document.getElementById(selectId);
   if (!select) return;
-
   select.innerHTML = "";
-
   defaultInstructorNames.forEach(name => {
     const option = document.createElement("option");
     option.value = name;
@@ -78,16 +76,31 @@ function openEditModal(event) {
     event.setProp("textColor", "#000");
   }
 
-  document
-    .getElementById("eventEditMenu")
+  document.getElementById("eventEditMenu")
     .classList.remove("hidden");
 }
-async function saveSchedule() {
-  alert("Schedule persistence is not enabled yet.");
-}
+
 function closeEditModal() {
   document.getElementById("eventEditMenu").classList.add("hidden");
   selectedEvent = null;
+}
+
+function openAddCourseModal() {
+  document.getElementById("courseName").value = "";
+  document.getElementById("courseDuration").value = 1;
+  populateInstructorDropdown("courseInstructor");
+  document.getElementById("addCourseModal")
+    .classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+}
+
+function closeAddCourseModal() {
+  document.getElementById("addCourseModal").classList.add("hidden");
+  document.body.style.overflow = "auto";
+}
+
+async function saveSchedule() {
+  alert("Schedule persistence is not enabled yet.");
 }
 
 // =========================
@@ -126,7 +139,7 @@ function initCalendar() {
       };
 
       event.remove();
-      renderCalendarFromSchedule([slot]);
+      renderCalendarFromSchedule([slot], false);
     }
   });
 
@@ -140,7 +153,6 @@ function initCalendar() {
 async function loadCatalog() {
   const res = await fetch(`${API_URL}/catalog`);
   const catalog = await res.json();
-
   if (!Array.isArray(catalog)) return;
 
   const container = document.getElementById("externalEvents");
@@ -148,15 +160,11 @@ async function loadCatalog() {
 
   catalog.forEach(cls => {
     if (!cls.isActive) return;
-
     const el = document.createElement("div");
     el.className = "external-event";
     el.innerText = cls.name;
-
-    el.dataset.classId = cls.id;
     el.dataset.category = cls.category;
     el.dataset.durationWeeks = cls.durationWeeks;
-
     container.appendChild(el);
   });
 
@@ -204,8 +212,7 @@ async function generateSchedule() {
   try {
     const res = await fetch(`${API_URL}/schedule`);
     const data = await res.json();
-
-    renderCalendarFromSchedule(data);
+    renderCalendarFromSchedule(data, true);
     renderInstructorWorkload(data);
   } finally {
     btn.disabled = false;
@@ -216,36 +223,9 @@ async function generateSchedule() {
 // =========================
 // RENDER SCHEDULE
 // =========================
-function renderInstructorLegend() {
-  const legend = document.getElementById("instructorLegend");
-  if (!legend) return;
 
-  legend.innerHTML = "";
-
-  Object.entries(predefinedColors).forEach(([name, color]) => {
-    const row = document.createElement("div");
-    row.style.display = "flex";
-    row.style.alignItems = "center";
-    row.style.marginBottom = "6px";
-
-    const swatch = document.createElement("span");
-    swatch.style.width = "14px";
-    swatch.style.height = "14px";
-    swatch.style.backgroundColor = color;
-    swatch.style.display = "inline-block";
-    swatch.style.marginRight = "8px";
-    swatch.style.borderRadius = "3px";
-
-    const label = document.createElement("span");
-    label.textContent = name;
-
-    row.appendChild(swatch);
-    row.appendChild(label);
-    legend.appendChild(row);
-  });
-}
-function renderCalendarFromSchedule(schedule) {
-  adminCalendar.removeAllEvents();
+function renderCalendarFromSchedule(schedule, clearFirst = true) {
+  if (clearFirst) adminCalendar.removeAllEvents();
 
   schedule.forEach(slot => {
     const bgColor = getInstructorColor(slot.instructorName);
@@ -255,7 +235,6 @@ function renderCalendarFromSchedule(schedule) {
       for (let w = 0; w < slot.durationWeeks; w++) {
         const startDate = new Date(slot.weekStartDate + "T00:00:00");
         startDate.setDate(startDate.getDate() + w * 7);
-
         if (w === 0) startDate.setDate(startDate.getDate() + 1);
 
         const endDate = new Date(startDate);
@@ -269,12 +248,7 @@ function renderCalendarFromSchedule(schedule) {
           backgroundColor: bgColor,
           borderColor: bgColor,
           textColor,
-          extendedProps: {
-            className: slot.className,
-            category: slot.category,
-            location: slot.location,
-            instructorName: slot.instructorName
-          }
+          extendedProps: { ...slot }
         });
       }
     } else {
@@ -290,49 +264,45 @@ function renderCalendarFromSchedule(schedule) {
         backgroundColor: bgColor,
         borderColor: bgColor,
         textColor,
-        extendedProps: {
-          className: slot.className,
-          category: slot.category,
-          location: slot.location,
-          instructorName: slot.instructorName
-        }
+        extendedProps: { ...slot }
       });
     }
   });
 }
 
 // =========================
-// INSTRUCTOR WORKLOAD
+// INSTRUCTOR LEGEND & WORKLOAD
 // =========================
+
+function renderInstructorLegend() {
+  const legend = document.getElementById("instructorLegend");
+  if (!legend) return;
+  legend.innerHTML = "";
+  Object.entries(predefinedColors).forEach(([name, color]) => {
+    const row = document.createElement("div");
+    row.innerHTML = `<span style="display:inline-block;width:12px;height:12px;background:${color};margin-right:6px"></span>${name}`;
+    legend.appendChild(row);
+  });
+}
 
 function renderInstructorWorkload(schedule) {
   const container = document.getElementById("instructorWorkload");
   if (!container) return;
-
   container.innerHTML = "";
-
   const workload = {};
-
-  schedule.forEach(slot => {
-    const name = slot.instructorName || "TBD";
-    const weeks = slot.durationWeeks ?? 1;
-
-    workload[name] ??= { total: 0, nto: 0, other: 0 };
-    workload[name].total += weeks;
-
-    if (slot.category === "NTO") workload[name].nto += weeks;
-    else workload[name].other += weeks;
+  schedule.forEach(s => {
+    const name = s.instructorName || "TBD";
+    workload[name] = (workload[name] || 0) + (s.durationWeeks ?? 1);
   });
-
-  Object.entries(workload).forEach(([name, data]) => {
+  Object.entries(workload).forEach(([n, w]) => {
     const row = document.createElement("div");
-    row.textContent = `${name}: ${data.total} weeks`;
+    row.textContent = `${n}: ${w} weeks`;
     container.appendChild(row);
   });
 }
 
 // =========================
-// COLOR SYSTEM
+// COLORS
 // =========================
 
 const predefinedColors = {
@@ -351,12 +321,11 @@ function getInstructorColor(name) {
   return predefinedColors[name] || "#888";
 }
 
-function getContrastTextColor(hexColor) {
-  if (!hexColor) return "#000";
-  const hex = hexColor.replace("#", "");
-  const r = parseInt(hex.substr(0, 2), 16);
-  const g = parseInt(hex.substr(2, 2), 16);
-  const b = parseInt(hex.substr(4, 2), 16);
+function getContrastTextColor(hex) {
+  if (!hex) return "#000";
+  const r = parseInt(hex.substr(1, 2), 16);
+  const g = parseInt(hex.substr(3, 2), 16);
+  const b = parseInt(hex.substr(5, 2), 16);
   return (r * 299 + g * 587 + b * 114) / 1000 > 160 ? "#000" : "#fff";
 }
 
@@ -375,42 +344,28 @@ window.addEventListener("DOMContentLoaded", () => {
     loadCatalog();
     renderInstructorLegend();
 
-    document
-      .getElementById("saveEventBtn")
+    document.getElementById("saveEventBtn")
       ?.addEventListener("click", () => {
         if (!selectedEvent) return;
 
-        const title =
-          document.getElementById("editEventTitle").value;
+        const title = document.getElementById("editEventTitle").value;
+        const location = document.getElementById("editEventLocation").value;
+        const instructor = document.getElementById("editEventInstructor").value;
 
-        const location =
-          document.getElementById("editEventLocation").value;
-
-        const instructor =
-          document.getElementById("editEventInstructor").value;
-
-        selectedEvent.setProp(
-          "title",
-          `${title} (${location})`
-        );
-
+        selectedEvent.setProp("title", `${title} (${location})`);
         selectedEvent.setExtendedProp("className", title);
         selectedEvent.setExtendedProp("location", location);
         selectedEvent.setExtendedProp("instructorName", instructor);
 
-        const bgColor = getInstructorColor(instructor);
-        selectedEvent.setProp("backgroundColor", bgColor);
-        selectedEvent.setProp("borderColor", bgColor);
-        selectedEvent.setProp(
-          "textColor",
-          getContrastTextColor(bgColor)
-        );
+        const bg = getInstructorColor(instructor);
+        selectedEvent.setProp("backgroundColor", bg);
+        selectedEvent.setProp("borderColor", bg);
+        selectedEvent.setProp("textColor", getContrastTextColor(bg));
 
         closeEditModal();
       });
 
-    document
-      .getElementById("deleteEventBtn")
+    document.getElementById("deleteEventBtn")
       ?.addEventListener("click", () => {
         if (!selectedEvent) return;
         selectedEvent.remove();
@@ -427,5 +382,7 @@ Object.assign(window, {
   generateSchedule,
   openEditModal,
   closeEditModal,
+  openAddCourseModal,
+  closeAddCourseModal,
   saveSchedule
 });
