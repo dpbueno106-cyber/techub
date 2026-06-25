@@ -32,20 +32,21 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 // =========================
-// DATE HELPERS
+// INSTRUCTOR HELPERS
 // =========================
 
-function normalizeMonday(date) {
-  const d = new Date(date);
-  while (d.getDay() !== 1) d.setDate(d.getDate() + 1);
-  return d;
-}
+function populateInstructorDropdown(selectId) {
+  const select = document.getElementById(selectId);
+  if (!select) return;
 
-function exclusiveFridayFromMonday(monday) {
-  const d = new Date(monday);
-  while (d.getDay() !== 5) d.setDate(d.getDate() + 1);
-  d.setDate(d.getDate() + 1);
-  return d.toISOString().split("T")[0];
+  select.innerHTML = "";
+
+  defaultInstructorNames.forEach(name => {
+    const option = document.createElement("option");
+    option.value = name;
+    option.textContent = name;
+    select.appendChild(option);
+  });
 }
 
 // =========================
@@ -61,25 +62,29 @@ function openEditModal(event) {
   document.getElementById("editEventLocation").value =
     event.extendedProps.location || "IN";
 
-  const instructorSelect = document.getElementById("editEventInstructor");
-  instructorSelect.innerHTML = defaultInstructorNames
-    .map(name => `
-      <option ${name === event.extendedProps.instructorName ? "selected" : ""}>
-        ${name}
-      </option>
-    `)
-    .join("");
+  populateInstructorDropdown("editEventInstructor");
 
-  const instructor = event.extendedProps.instructorName;
-  if (!instructor) {
+  const instructorSelect =
+    document.getElementById("editEventInstructor");
+
+  const selectedInstructor =
+    event.extendedProps.instructorName;
+
+  if (selectedInstructor) {
+    instructorSelect.value = selectedInstructor;
+  } else {
     event.setProp("backgroundColor", "#888");
     event.setProp("borderColor", "#888");
     event.setProp("textColor", "#000");
   }
 
-  document.getElementById("eventEditMenu").classList.remove("hidden");
+  document
+    .getElementById("eventEditMenu")
+    .classList.remove("hidden");
 }
-
+async function saveSchedule() {
+  alert("Schedule persistence is not enabled yet.");
+}
 function closeEditModal() {
   document.getElementById("eventEditMenu").classList.add("hidden");
   selectedEvent = null;
@@ -110,10 +115,18 @@ function initCalendar() {
 
     eventReceive(info) {
       const event = info.event;
-      const monday = normalizeMonday(event.start);
-      event.setStart(monday.toISOString().split("T")[0]);
-      event.setEnd(exclusiveFridayFromMonday(monday));
-      openEditModal(event);
+
+      const slot = {
+        className: event.extendedProps.className,
+        category: event.extendedProps.category,
+        location: event.extendedProps.location ?? "IN",
+        instructorName: event.extendedProps.instructorName,
+        durationWeeks: event.extendedProps.durationWeeks ?? 1,
+        weekStartDate: event.startStr.split("T")[0]
+      };
+
+      event.remove();
+      renderCalendarFromSchedule([slot]);
     }
   });
 
@@ -128,10 +141,7 @@ async function loadCatalog() {
   const res = await fetch(`${API_URL}/catalog`);
   const catalog = await res.json();
 
-  if (!Array.isArray(catalog)) {
-    console.error("Catalog load failed:", catalog);
-    return;
-  }
+  if (!Array.isArray(catalog)) return;
 
   const container = document.getElementById("externalEvents");
   container.innerHTML = "";
@@ -168,13 +178,14 @@ function makeExternalEventsDraggable() {
     eventData(eventEl) {
       return {
         title: eventEl.innerText,
-        duration: { days: Number(eventEl.dataset.durationWeeks) * 5 },
+        allDay: true,
         backgroundColor: "#888",
         extendedProps: {
           className: eventEl.innerText,
           category: eventEl.dataset.category,
           location: null,
-          instructorName: null
+          instructorName: null,
+          durationWeeks: Number(eventEl.dataset.durationWeeks)
         }
       };
     }
@@ -187,48 +198,24 @@ function makeExternalEventsDraggable() {
 
 async function generateSchedule() {
   const btn = document.getElementById("generateScheduleBtn");
-  if (btn) {
-    btn.disabled = true;
-    btn.textContent = "Generating...";
-  }
+  btn.disabled = true;
+  btn.textContent = "Generating...";
 
   try {
-    adminCalendar.removeAllEvents();
-
     const res = await fetch(`${API_URL}/schedule`);
     const data = await res.json();
 
-    if (!res.ok || !Array.isArray(data)) {
-      console.error("Schedule API error:", data);
-      alert(data?.error || "Failed to load schedule");
-      return;
-    }
-renderCalendarFromSchedule(data);
-renderInstructorWorkload(data);
-
-  } catch (err) {
-    console.error("Generate schedule failed:", err);
-    alert("Unexpected error generating schedule");
+    renderCalendarFromSchedule(data);
+    renderInstructorWorkload(data);
   } finally {
-    if (btn) {
-      btn.disabled = false;
-      btn.textContent = "Generate Schedule";
-    }
+    btn.disabled = false;
+    btn.textContent = "Generate Schedule";
   }
 }
 
 // =========================
 // RENDER SCHEDULE
 // =========================
-document.getElementById("deleteEventBtn")?.addEventListener("click", () => {
-  if (!selectedEvent) return;
-
-  if (!confirm("Delete this event?")) return;
-
-  selectedEvent.remove();
-  closeEditModal();
-});
-
 function renderInstructorLegend() {
   const legend = document.getElementById("instructorLegend");
   if (!legend) return;
@@ -265,24 +252,14 @@ function renderCalendarFromSchedule(schedule) {
     const textColor = getContrastTextColor(bgColor);
 
     if (slot.category === "NTO") {
-      //  NTO: two instructional weeks, first starts Tuesday
       for (let w = 0; w < slot.durationWeeks; w++) {
         const startDate = new Date(slot.weekStartDate + "T00:00:00");
-
-        // Move to correct week
         startDate.setDate(startDate.getDate() + w * 7);
 
-        // First NTO week starts on Tuesday
-        if (w === 0) {
-          startDate.setDate(startDate.getDate() + 1);
-        }
+        if (w === 0) startDate.setDate(startDate.getDate() + 1);
 
         const endDate = new Date(startDate);
-
-        // Tue–Fri for week 1 (4 days), Mon–Fri for week 2 (5 days)
-        endDate.setDate(
-          endDate.getDate() + (w === 0 ? 4 : 5)
-        );
+        endDate.setDate(endDate.getDate() + (w === 0 ? 4 : 5));
 
         adminCalendar.addEvent({
           title: `${slot.className} (${slot.location})`,
@@ -300,9 +277,7 @@ function renderCalendarFromSchedule(schedule) {
           }
         });
       }
-
     } else {
-      //  Regular classes: Monday–Friday
       const startDate = new Date(slot.weekStartDate + "T00:00:00");
       const endDate = new Date(startDate);
       endDate.setDate(endDate.getDate() + 5);
@@ -326,19 +301,34 @@ function renderCalendarFromSchedule(schedule) {
   });
 }
 
-
 // =========================
-// SAVE SCHEDULE (DEMO ONLY)
+// INSTRUCTOR WORKLOAD
 // =========================
 
+function renderInstructorWorkload(schedule) {
+  const container = document.getElementById("instructorWorkload");
+  if (!container) return;
 
+  container.innerHTML = "";
 
-async function saveSchedule() {
-  // This is intentionally still a demo.
-  // We are NOT persisting schedules yet.
-  // This will be wired after instructor scoring is finalized.
+  const workload = {};
 
-  alert("Schedule saved (demo only — not persisted)");
+  schedule.forEach(slot => {
+    const name = slot.instructorName || "TBD";
+    const weeks = slot.durationWeeks ?? 1;
+
+    workload[name] ??= { total: 0, nto: 0, other: 0 };
+    workload[name].total += weeks;
+
+    if (slot.category === "NTO") workload[name].nto += weeks;
+    else workload[name].other += weeks;
+  });
+
+  Object.entries(workload).forEach(([name, data]) => {
+    const row = document.createElement("div");
+    row.textContent = `${name}: ${data.total} weeks`;
+    container.appendChild(row);
+  });
 }
 
 // =========================
@@ -367,8 +357,7 @@ function getContrastTextColor(hexColor) {
   const r = parseInt(hex.substr(0, 2), 16);
   const g = parseInt(hex.substr(2, 2), 16);
   const b = parseInt(hex.substr(4, 2), 16);
-  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-  return brightness > 160 ? "#000" : "#fff";
+  return (r * 299 + g * 587 + b * 114) / 1000 > 160 ? "#000" : "#fff";
 }
 
 // =========================
@@ -376,150 +365,67 @@ function getContrastTextColor(hexColor) {
 // =========================
 
 window.addEventListener("DOMContentLoaded", () => {
-  onAuthStateChanged(auth, async user => {
+  onAuthStateChanged(auth, user => {
     if (!user) {
       window.location.href = "index.html";
-      return;
-    }
-
-    const token = await user.getIdTokenResult();
-    if (!token.claims.admin) {
-      window.location.href = "adminDashboard.html";
       return;
     }
 
     initCalendar();
     loadCatalog();
     renderInstructorLegend();
-    document.getElementById("saveScheduleBtn")?.addEventListener("click", saveSchedule);
+
+    document
+      .getElementById("saveEventBtn")
+      ?.addEventListener("click", () => {
+        if (!selectedEvent) return;
+
+        const title =
+          document.getElementById("editEventTitle").value;
+
+        const location =
+          document.getElementById("editEventLocation").value;
+
+        const instructor =
+          document.getElementById("editEventInstructor").value;
+
+        selectedEvent.setProp(
+          "title",
+          `${title} (${location})`
+        );
+
+        selectedEvent.setExtendedProp("className", title);
+        selectedEvent.setExtendedProp("location", location);
+        selectedEvent.setExtendedProp("instructorName", instructor);
+
+        const bgColor = getInstructorColor(instructor);
+        selectedEvent.setProp("backgroundColor", bgColor);
+        selectedEvent.setProp("borderColor", bgColor);
+        selectedEvent.setProp(
+          "textColor",
+          getContrastTextColor(bgColor)
+        );
+
+        closeEditModal();
+      });
+
+    document
+      .getElementById("deleteEventBtn")
+      ?.addEventListener("click", () => {
+        if (!selectedEvent) return;
+        selectedEvent.remove();
+        closeEditModal();
+      });
   });
 });
 
 // =========================
 // EXPOSE
 // =========================
-async function clearSchedule() {
-  if (!confirm("Reset schedule to recommended version?")) return;
-
-  await fetch(`${API_URL}/clearSchedule`, { method: "POST" });
-  generateSchedule();
-}
-
-function openAddCourseModal() {
-  document.getElementById("courseName").value = "";
-  document.getElementById("courseDuration").value = 1;
-
-  document.getElementById("addCourseModal").classList.remove("hidden");
-  document.body.style.overflow = "hidden";
-}
-
-function goBack() {
-  window.location.href = "adminDashboard.html";
-}
-
-function closeAddCourseModal() {
-  document.getElementById("addCourseModal").classList.add("hidden");
-  document.body.style.overflow = "auto";
-}
-function renderInstructorWorkload(schedule) {
-  const container = document.getElementById("instructorWorkload");
-  if (!container) return;
-
-  container.innerHTML = "";
-
-  const workload = {};
-
-  schedule.forEach(slot => {
-    const name = slot.instructorName || "TBD";
-    const weeks = slot.durationWeeks ?? 1;
-
-    if (!workload[name]) {
-      workload[name] = {
-        total: 0,
-        nto: 0,
-        other: 0
-      };
-    }
-
-    workload[name].total += weeks;
-
-    if (slot.category === "NTO") {
-      workload[name].nto += weeks;
-    } else {
-      workload[name].other += weeks;
-    }
-  });
-
-  Object.entries(workload).forEach(([name, data]) => {
-    const row = document.createElement("div");
-    row.style.marginBottom = "10px";
-
-    const label = document.createElement("div");
-    label.textContent = `${name}: ${data.total} weeks`;
-    label.style.fontSize = "13px";
-    label.style.marginBottom = "4px";
-
-    const bar = document.createElement("div");
-    bar.style.display = "flex";
-    bar.style.height = "10px";
-    bar.style.borderRadius = "4px";
-    bar.style.overflow = "hidden";
-    bar.style.background = "#333";
-
-    const ntoBar = document.createElement("div");
-    ntoBar.style.width = `${data.nto * 10}px`;
-    ntoBar.style.background = "#999";
-
-    const otherBar = document.createElement("div");
-    otherBar.style.width = `${data.other * 10}px`;
-    otherBar.style.background =
-      predefinedColors[name] || "#666";
-
-    bar.appendChild(ntoBar);
-    bar.appendChild(otherBar);
-
-    row.appendChild(label);
-    row.appendChild(bar);
-
-    container.appendChild(row);
-  });
-}
-async function saveCatalogClass() {
-  const name = document.getElementById("courseName").value.trim();
-  const durationWeeks = Number(
-    document.getElementById("courseDuration").value
-  );
-
-  if (!name || !durationWeeks) {
-    alert("Course name and duration are required");
-    return;
-  }
-
-  await fetch(`${API_URL}/catalog`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name,
-      category: "Foundational",
-      durationWeeks,
-      defaultLocations: ["IN"],
-      frequencyMode: "WEIGHT",
-      frequencyWeight: 1,
-      isActive: true
-    })
-  });
-
-  closeAddCourseModal();
-  loadCatalog();
-}
 
 Object.assign(window, {
-  goBack,
   generateSchedule,
-  clearSchedule,
-  openAddCourseModal,
-  closeAddCourseModal,
-  saveCatalogClass,
+  openEditModal,
   closeEditModal,
   saveSchedule
 });
