@@ -119,6 +119,19 @@ function openEditModal(event) {
   if (event.extendedProps.instructorName) {
     editEventInstructorEl.value = event.extendedProps.instructorName;
   }
+  
+editEventInstructorEl.onchange = () => {
+    if (!selectedEvent) return;
+
+    const instructor = editEventInstructorEl.value;
+    const bg = getInstructorColor(instructor);
+    const text = getContrastTextColor(bg);
+
+    selectedEvent.setExtendedProp("instructorName", instructor);
+    selectedEvent.setProp("backgroundColor", bg);
+    selectedEvent.setProp("borderColor", bg);
+    selectedEvent.setProp("textColor", text);
+  };
 
   eventEditMenuEl.classList.remove("hidden");
 }
@@ -459,12 +472,24 @@ window.addEventListener("DOMContentLoaded", () => {
     if (!loaded) generateSchedule();
 
     saveEventBtn.onclick = () => {
-      if (!selectedEvent) return;
-      selectedEvent.setExtendedProp("instructorName", editEventInstructorEl.value);
-      selectedEvent.setExtendedProp("location", editEventLocationEl.value);
-      closeEditModal();
-      renderInstructorWorkloadFromCalendar();
-    };
+  if (!selectedEvent) return;
+
+  const instructor = editEventInstructorEl.value;
+  const location = editEventLocationEl.value;
+
+  selectedEvent.setExtendedProp("instructorName", instructor);
+  selectedEvent.setExtendedProp("location", location);
+
+  const bg = getInstructorColor(instructor);
+  const text = getContrastTextColor(bg);
+
+  selectedEvent.setProp("backgroundColor", bg);
+  selectedEvent.setProp("borderColor", bg);
+  selectedEvent.setProp("textColor", text);
+
+  closeEditModal();
+  renderInstructorWorkloadFromCalendar();
+};
 
     deleteEventBtn.onclick = () => {
       if (!selectedEvent) return;
@@ -485,5 +510,7 @@ Object.assign(window, {
   openAddCourseModal,
   closeAddCourseModal,
   saveCatalogClass,
-  goBack: () => window.location.href = "adminScheduleManagement.html"
+  goBack: () => window.location.href = "adminDashboard.html",
+  openEditModal,
+  closeEditModal
 });
