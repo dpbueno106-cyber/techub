@@ -53,6 +53,8 @@ export interface RecommendedInstructor {
   name?: string;
   score: number;
 }
+export type UserRole = "admin" | "instructor" | "pending";
+
 
 export interface ClassSlot {
   weekNumber: number;

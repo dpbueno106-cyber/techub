@@ -43,7 +43,10 @@ export async function loadCatalogFromFirestore(): Promise<ClassDefinition[]> {
 // =========================
 
 export async function loadInstructorsFromFirestore(): Promise<Instructor[]> {
-  const snapshot = await db.collection("instructors").get();
+  const snapshot = await db
+    .collection("users")
+    .where("role", "==", "instructor")
+    .get();
 
   return snapshot.docs.map(doc => ({
     id: doc.id,

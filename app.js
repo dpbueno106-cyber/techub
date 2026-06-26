@@ -45,6 +45,8 @@ document.getElementById("showLogin").addEventListener("click", () => {
   loginBox.style.display = "block";
 });
 
+
+
 // AUTH-BASED ROUTING (FINAL)
 onAuthStateChanged(auth, async user => {
   if (!user) return;
@@ -104,10 +106,11 @@ signupBtn.addEventListener("click", async () => {
     );
 
     // Store metadata only (not authorization)
-    await setDoc(doc(db, "users", userCredential.user.uid), {
-      email,
-      role: "instructor"
-    });
+    await setDoc(doc(db, "users", user.uid), {
+  email: user.email,
+  role: "pending",       // 
+  capabilities: []
+});
 
     signupMessage.textContent = "Account created";
     signupMessage.style.color = "green";
