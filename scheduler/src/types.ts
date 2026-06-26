@@ -64,6 +64,7 @@ export interface ClassSlot {
   instructorId: string | null;
   weekStartDate: string;
   weekEndDate: string;
+  possibleInstructors?: string[];
   instructorName?: string | null;
   recommendedInstructors?: RecommendedInstructor[];
 }

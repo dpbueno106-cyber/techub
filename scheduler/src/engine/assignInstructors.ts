@@ -40,6 +40,10 @@ export function assignInstructors(
     if (slot.instructorId) return slot;
 
     const eligible = instructors.filter(i => {
+  const allowedByClass =
+    !slot.possibleInstructors ||
+    slot.possibleInstructors.includes(i.id);
+
   const canTeach =
     !i.canTeach || i.canTeach.includes(slot.category);
 
@@ -63,6 +67,7 @@ export function assignInstructors(
     );
 
   return (
+    allowedByClass &&
     canTeach &&
     canBeThere &&
     !hasConflict &&

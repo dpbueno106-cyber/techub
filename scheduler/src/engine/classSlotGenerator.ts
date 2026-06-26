@@ -296,7 +296,8 @@ function buildSlot(
     durationWeeks: cls.durationWeeks,
     instructorId: null,
     weekStartDate: week.startDate,
-    weekEndDate: week.endDate
+    weekEndDate: week.endDate,
+    possibleInstructors: cls.possibleInstructors
   };
 }
 
