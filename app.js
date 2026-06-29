@@ -62,17 +62,6 @@ onAuthStateChanged(auth, async user => {
 
   let snap = await getDoc(doc(db, "users", user.uid));
 
-  for (let i = 0; i < 3 && !snap.exists(); i++) {
-    await new Promise(res => setTimeout(res, 300));
-    snap = await getDoc(doc(db, "users", user.uid));
-  }
-
-  if (!snap.exists()) {
-    console.error("User document missing after retry");
-    window.location.href = "pending.html";
-    return;
-  }
-
   const { role } = snap.data();
 
   if (role === "admin") {
