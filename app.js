@@ -62,7 +62,15 @@ onAuthStateChanged(auth, async user => {
 
   let snap = await getDoc(doc(db, "users", user.uid));
 
-  const { role } = snap.data();
+  if (!snap.exists()) {
+  console.error("User document does not exist");
+
+  window.location.href = "pending.html";
+  return;
+}
+
+const { role } = snap.data();
+
 
   if (role === "admin") {
     window.location.href = "adminDashboard.html";
