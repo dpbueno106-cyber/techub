@@ -22,9 +22,9 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const instructorList = document.getElementById("instructorList");
+const pendingInvitesEl = document.getElementById("pendingInvites");
 const backBtn = document.getElementById("backBtn");
 
-// ✅ NEW: pre‑approve UI elements
 const preapproveForm = document.getElementById("preapproveForm");
 const preapproveEmail = document.getElementById("preapproveEmail");
 
@@ -40,16 +40,16 @@ onAuthStateChanged(auth, async user => {
   const token = await user.getIdTokenResult();
 
   if (!token.claims.admin) {
-    alert("Access denied");
+    alert("Admins only");
     window.location.href = "adminDashboard.html";
     return;
   }
 
-  loadInstructors();
+  await loadInstructorsAndInvites();
 });
 
 /* =========================
-   PRE‑APPROVE INSTRUCTOR
+   PRE-APPROVE INSTRUCTOR
 ========================= */
 if (preapproveForm) {
   preapproveForm.addEventListener("submit", async e => {
@@ -71,25 +71,84 @@ if (preapproveForm) {
       }
     );
 
-    alert(`${email} is now pre‑approved`);
+    alert(`${email} pre-approved`);
     preapproveForm.reset();
+
+    // Refresh list after adding
+    await loadInstructorsAndInvites();
   });
 }
 
 /* =========================
-   LOAD INSTRUCTORS
+   LOAD EVERYTHING (SAFE)
 ========================= */
-async function loadInstructors() {
+async function loadInstructorsAndInvites() {
   instructorList.innerHTML = "Loading...";
+  pendingInvitesEl.innerHTML = "Loading...";
 
-  const snapshot = await getDocs(collection(db, "users"));
+  const usersSnap = await getDocs(collection(db, "users"));
+  const preapprovedSnap = await getDocs(
+    collection(db, "preapprovedInstructors")
+  );
+
+  /* =========================
+     BUILD EMAIL SET
+  ========================= */
+  const signedUpEmails = new Set();
+
+  usersSnap.forEach(docSnap => {
+    const data = docSnap.data();
+    if (data.email) {
+      signedUpEmails.add(data.email.toLowerCase());
+    }
+  });
+
+  /* =========================
+     FIND PENDING INVITES
+  ========================= */
+  const pendingInvites = [];
+
+  preapprovedSnap.forEach(docSnap => {
+    const email = docSnap.id.toLowerCase();
+    if (!signedUpEmails.has(email)) {
+      pendingInvites.push(email);
+    }
+  });
+
+  renderPendingInvites(pendingInvites);
+  renderInstructors(usersSnap);
+}
+
+/* =========================
+   RENDER PENDING (RIGHT SIDE)
+========================= */
+function renderPendingInvites(pendingInvites) {
+  if (!pendingInvites.length) {
+    pendingInvitesEl.innerHTML = `
+      <h2>Pre‑Approved</h2>
+      <p style="text-align:center;">No pending invites</p>
+    `;
+    return;
+  }
+
+  pendingInvitesEl.innerHTML = `
+    <h2>Pre‑Approved (Not Signed Up)</h2>
+    <ul>
+      ${pendingInvites.map(email => `<li>${email}</li>`).join("")}
+    </ul>
+  `;
+}
+
+/* =========================
+   RENDER INSTRUCTORS
+========================= */
+function renderInstructors(usersSnap) {
   instructorList.innerHTML = "";
 
-  snapshot.forEach(docSnap => {
+  usersSnap.forEach(docSnap => {
     const data = docSnap.data();
     const uid = docSnap.id;
 
-    // ✅ Only show approved instructors
     if (data.role !== "instructor") return;
 
     const div = document.createElement("div");
@@ -99,31 +158,13 @@ async function loadInstructors() {
       <h3>${data.email}</h3>
 
       <div class="capabilities">
-        <label><input type="checkbox" value="DGT"> Diagnostic Tools</label>
-        <label><input type="checkbox" value="ELE"> Electrical</label>
-        <label><input type="checkbox" value="ENG"> Engines</label>
-        <label><input type="checkbox" value="EPG"> Electric Power Generation</label>
-        <label><input type="checkbox" value="FUE"> Fuel Systems</label>
-        <label><input type="checkbox" value="HAC"> Heating & Conditioning</label>
-        <label><input type="checkbox" value="HYD"> Hydraulics</label>
-        <label><input type="checkbox" value="MNT"> Maintenance</label>
-        <label><input type="checkbox" value="NTO"> New Hire Technician Onboarding</label>
-        <label><input type="checkbox" value="PRD"> Product Information</label>
-        <label><input type="checkbox" value="PWT"> Powertrain</label>
-        <label><input type="checkbox" value="SAF"> Safety</label>
-        <label><input type="checkbox" value="SAG"> Seals & Gaskets</label>
-        <label><input type="checkbox" value="SIS"> Service Information System</label>
-        <label><input type="checkbox" value="SRW"> Service Report Writing</label>
-        <label><input type="checkbox" value="TCH"> Technology</label>
-        <label><input type="checkbox" value="TDV"> Technician Development</label>
-        <label><input type="checkbox" value="TRB"> Troubleshooting</label>
-        <label><input type="checkbox" value="WMH"> Welding and Metal Handling</label>
+        ${buildCapabilitiesHTML()}
       </div>
 
       <button class="saveBtn">Save Changes</button>
     `;
 
-    // ✅ Pre‑check saved capabilities
+    /*  Pre-check */
     const checkboxes = div.querySelectorAll("input");
     checkboxes.forEach(cb => {
       if (data.capabilities?.includes(cb.value)) {
@@ -131,7 +172,7 @@ async function loadInstructors() {
       }
     });
 
-    // ✅ Save capabilities
+    /*  Save */
     const saveBtn = div.querySelector(".saveBtn");
     saveBtn.addEventListener("click", async () => {
       const selected = [...div.querySelectorAll("input:checked")]
@@ -143,11 +184,44 @@ async function loadInstructors() {
         { merge: true }
       );
 
-      alert("Capabilities updated successfully");
+      alert("Saved");
     });
 
     instructorList.appendChild(div);
   });
+}
+
+/* =========================
+   CAPABILITIES TEMPLATE
+========================= */
+function buildCapabilitiesHTML() {
+  const items = [
+    ["DGT", "Diagnostic Tools"],
+    ["ELE", "Electrical"],
+    ["ENG", "Engines"],
+    ["EPG", "Electric Power Generation"],
+    ["FUE", "Fuel Systems"],
+    ["HAC", "Heating & Conditioning"],
+    ["HYD", "Hydraulics"],
+    ["MNT", "Maintenance"],
+    ["NTO", "New Hire Technician Onboarding"],
+    ["PRD", "Product Information"],
+    ["PWT", "Powertrain"],
+    ["SAF", "Safety"],
+    ["SAG", "Seals & Gaskets"],
+    ["SIS", "Service Information System"],
+    ["SRW", "Service Report Writing"],
+    ["TCH", "Technology"],
+    ["TDV", "Technician Development"],
+    ["TRB", "Troubleshooting"],
+    ["WMH", "Welding and Metal Handling"]
+  ];
+
+  return items
+    .map(([val, label]) =>
+      `<label><input type="checkbox" value="${val}"> ${label}</label>`
+    )
+    .join("");
 }
 
 /* =========================

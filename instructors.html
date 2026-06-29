@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Instructor Management</title>
-  <link rel ="stylesheet" href="instructors.css">
+  <link rel="stylesheet" href="instructors.css">
 </head>
 
 <body>
@@ -14,27 +14,40 @@
   </header>
 
   <main>
+
+    <!-- ✅ PRE‑APPROVE SECTION -->
     <div class="preapprove-container">
-  <h2>Pre‑Approve Instructor</h2>
+      <h2>Pre‑Approve Instructor</h2>
 
-  <form id="preapproveForm" class="preapprove-form">
-    <input
-      type="email"
-      id="preapproveEmail"
-      placeholder="Instructor email"
-      required
-    />
-    <button type="submit">Pre‑Approve</button>
-  </form>
+      <form id="preapproveForm" class="preapprove-form">
+        <input
+          type="email"
+          id="preapproveEmail"
+          placeholder="Instructor email"
+          required
+        />
+        <button type="submit">Pre‑Approve</button>
+      </form>
 
-  <p class="preapprove-hint">
-    If this email signs up, they will be auto‑approved as an instructor.
-  </p>
-</div>
-    <div id="instructorList"></div>
+      <p class="preapprove-hint">
+        If this email signs up, they will be auto‑approved as an instructor.
+      </p>
+    </div>
+
+    <!-- ✅ MAIN TWO‑COLUMN LAYOUT -->
+    <div class="page-layout">
+
+      <!-- LEFT: Instructor cards -->
+      <div id="instructorList"></div>
+
+      <!-- RIGHT: Pending invites -->
+      <div id="pendingInvites" class="pending-invites"></div>
+
+    </div>
+
   </main>
 
-  <script type="module" src="instructors.js" ></script>
+  <script type="module" src="instructors.js"></script>
 
 </body>
 </html>

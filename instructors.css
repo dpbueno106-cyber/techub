@@ -175,6 +175,28 @@ body {
   transition: 0.2s;
 }
 
+
+/* LEFT SIDE (already styled cards) */
+#instructorList {
+  width: 100%;
+}
+
+
+
+/* TITLE */
+
+
+/* MOBILE: stack vertically */
+@media (max-width: 900px) {
+  .page-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .pending-invites {
+    margin-top: 20px;
+  }
+}
+
 .preapprove-form button:hover {
   background: #e6c200;
 }
@@ -189,5 +211,45 @@ body {
 @media (max-width: 600px) {
   .instructor-card {
     padding: 15px;
+  }
+}
+.page-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 20px auto;
+}
+
+.pending-invites {
+  background: #1e1e1e;
+  border: 2px solid #ffd400;
+  border-radius: 10px;
+  padding: 15px;
+  height: fit-content;
+}
+
+.pending-invites h2 {
+  margin-top: 0;
+  text-align: center;
+}
+
+.pending-invites ul {
+  list-style: none;
+  padding: 0;
+}
+
+.pending-invites li {
+  background: #121212;
+  border: 1px solid #ffd400;
+  margin-bottom: 6px;
+  padding: 8px;
+  border-radius: 5px;
+}
+
+/* Mobile fallback */
+@media (max-width: 900px) {
+  .page-layout {
+    grid-template-columns: 1fr;
   }
 }
