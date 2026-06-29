@@ -106,13 +106,13 @@ console.log(" Role =", role);
       doc(db, "preapprovedInstructors", email)
     );
 
-    const role = approvalSnap.exists()
+    const assignedRole = approvalSnap.exists()
       ? "instructor"
       : "pending";
 
     await setDoc(doc(db, "users", uid), {
       email,
-      role,
+      assignedRole,
       canTeach: [],
       createdAt: new Date()
     });
@@ -124,9 +124,9 @@ console.log(" Role =", role);
     snap = await getDoc(doc(db, "users", uid));
   }
 
-  const { role } = snap.data();
+ 
 
-  // ✅ ROUTING
+  //  ROUTING
   if (role === "admin") {
     window.location.href = "adminDashboard.html";
   } else if (role === "instructor") {
