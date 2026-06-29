@@ -27,7 +27,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-
+let hasLoaded = false;
 // UI Elements
 const loginBtn = document.getElementById("loginBtn");
 const signupBtn = document.getElementById("signupBtn");
@@ -50,19 +50,32 @@ document.getElementById("showLogin").addEventListener("click", () => {
 
 
 // AUTH-BASED ROUTING (FINAL)
+
 onAuthStateChanged(auth, async user => {
-  if (!user) return;
+  
+  if (!user) {
+    // Don't block — just wait for next auth state
+    return;
+  }
 
-  let snap = await getDoc(doc(db, "users", user.uid));
+  if (hasLoaded) return;
+  hasLoaded = true;
+let snap = await getDoc(doc(db, "users", user.uid));
 
-if (!snap.exists()) {
-  // wait once for Firestore write to land
+
+
+for (let i = 0; i < 3 && !snap.exists(); i++) {
   await new Promise(res => setTimeout(res, 300));
   snap = await getDoc(doc(db, "users", user.uid));
 }
 
+ 
+
 if (!snap.exists()) {
   console.error("User document missing after retry");
+
+  // Fallback: send to pending instead of getting stuck
+  window.location.href = "pending.html";
   return;
 }
 
