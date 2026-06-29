@@ -52,32 +52,26 @@ document.getElementById("showLogin").addEventListener("click", () => {
 // AUTH-BASED ROUTING (FINAL)
 
 onAuthStateChanged(auth, async user => {
-  
+
   if (!user) {
-    // Don't block — just wait for next auth state
     return;
   }
 
   if (hasLoaded) return;
   hasLoaded = true;
-let snap = await getDoc(doc(db, "users", user.uid));
 
+  let snap = await getDoc(doc(db, "users", user.uid));
 
+  for (let i = 0; i < 3 && !snap.exists(); i++) {
+    await new Promise(res => setTimeout(res, 300));
+    snap = await getDoc(doc(db, "users", user.uid));
+  }
 
-for (let i = 0; i < 3 && !snap.exists(); i++) {
-  await new Promise(res => setTimeout(res, 300));
-  snap = await getDoc(doc(db, "users", user.uid));
-}
-
- 
-
-if (!snap.exists()) {
-  console.error("User document missing after retry");
-
-  // Fallback: send to pending instead of getting stuck
-  window.location.href = "pending.html";
-  return;
-}
+  if (!snap.exists()) {
+    console.error("User document missing after retry");
+    window.location.href = "pending.html";
+    return;
+  }
 
   const { role } = snap.data();
 
@@ -86,9 +80,7 @@ if (!snap.exists()) {
   } else if (role === "instructor") {
     window.location.href = "userDashboard.html";
   } else {
-    // pending
     window.location.href = "pending.html";
-   
   }
 });
 
@@ -168,10 +160,22 @@ if (approvalSnap.exists()) {
 
   
 
-  } catch (error) {
+  }  catch (error) {
+  if (error.code === "auth/email-already-in-use") {
+    signupMessage.textContent = "Email already registered. Please log in instead.";
+  } else if (error.code === "auth/invalid-email") {
+    signupMessage.textContent = "Invalid email format.";
+  } else if (error.code === "auth/weak-password") {
+    signupMessage.textContent = "Password must be at least 6 characters.";
+  } else if (error.code === "auth/too-many-requests") {
+    signupMessage.textContent = "Too many attempts. Try again later.";
+  } else {
     signupMessage.textContent = error.message;
-    signupMessage.style.color = "red";
   }
+
+  signupMessage.style.color = "red";
+}
+
 });
 
 // HELP
