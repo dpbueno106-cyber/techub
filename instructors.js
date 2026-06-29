@@ -24,7 +24,13 @@ const db = getFirestore(app);
 const instructorList = document.getElementById("instructorList");
 const backBtn = document.getElementById("backBtn");
 
-/* AUTH + ADMIN GATE */
+// ✅ NEW: pre‑approve UI elements
+const preapproveForm = document.getElementById("preapproveForm");
+const preapproveEmail = document.getElementById("preapproveEmail");
+
+/* =========================
+   AUTH + ADMIN GATE
+========================= */
 onAuthStateChanged(auth, async user => {
   if (!user) {
     window.location.href = "index.html";
@@ -42,7 +48,37 @@ onAuthStateChanged(auth, async user => {
   loadInstructors();
 });
 
-/* LOAD INSTRUCTORS (ADMIN ONLY) */
+/* =========================
+   PRE‑APPROVE INSTRUCTOR
+========================= */
+if (preapproveForm) {
+  preapproveForm.addEventListener("submit", async e => {
+    e.preventDefault();
+
+    const email = preapproveEmail.value.trim().toLowerCase();
+
+    if (!email || !email.includes("@")) {
+      alert("Enter a valid email");
+      return;
+    }
+
+    await setDoc(
+      doc(db, "preapprovedInstructors", email),
+      {
+        email,
+        approvedRole: "instructor",
+        createdAt: new Date()
+      }
+    );
+
+    alert(`${email} is now pre‑approved`);
+    preapproveForm.reset();
+  });
+}
+
+/* =========================
+   LOAD INSTRUCTORS
+========================= */
 async function loadInstructors() {
   instructorList.innerHTML = "Loading...";
 
@@ -53,7 +89,7 @@ async function loadInstructors() {
     const data = docSnap.data();
     const uid = docSnap.id;
 
-    /* Only show instructors (metadata, not auth) */
+    // ✅ Only show approved instructors
     if (data.role !== "instructor") return;
 
     const div = document.createElement("div");
@@ -87,7 +123,7 @@ async function loadInstructors() {
       <button class="saveBtn">Save Changes</button>
     `;
 
-    /* Pre-check saved capabilities */
+    // ✅ Pre‑check saved capabilities
     const checkboxes = div.querySelectorAll("input");
     checkboxes.forEach(cb => {
       if (data.capabilities?.includes(cb.value)) {
@@ -95,15 +131,17 @@ async function loadInstructors() {
       }
     });
 
-    /* Save button */
+    // ✅ Save capabilities
     const saveBtn = div.querySelector(".saveBtn");
     saveBtn.addEventListener("click", async () => {
       const selected = [...div.querySelectorAll("input:checked")]
         .map(cb => cb.value);
 
-      await setDoc(doc(db, "users", uid), {
-        capabilities: selected
-      }, { merge: true });
+      await setDoc(
+        doc(db, "users", uid),
+        { capabilities: selected },
+        { merge: true }
+      );
 
       alert("Capabilities updated successfully");
     });
@@ -112,7 +150,9 @@ async function loadInstructors() {
   });
 }
 
-/* BACK BUTTON */
+/* =========================
+   BACK BUTTON
+========================= */
 backBtn.addEventListener("click", () => {
   window.location.href = "adminDashboard.html";
 });

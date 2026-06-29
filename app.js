@@ -73,7 +73,10 @@ if (!snap.exists()) {
     window.location.href = "userDashboard.html";
   } else {
     // pending
-    window.location.href = "pending.html";
+    //window.location.href = "pending.html";
+    errorMessage.textContent = "Your account is pending approval. Please wait for an admin to approve your account.";
+    signupMessage.textContent = error.message;
+    signupMessage.style.color = "red";
   }
 });
 

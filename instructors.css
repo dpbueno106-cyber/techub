@@ -102,6 +102,89 @@ body {
   overflow-y: scroll;
 }
 
+
+.preapprove-container h2 {
+  margin-bottom: 12px;
+}
+
+.preapprove-form {
+  display: flex;
+  gap: 10px;
+}
+
+.preapprove-form input {
+  flex: 1;
+  padding: 10px;
+  font-size: 14px;
+}
+
+.preapprove-form button {
+  padding: 10px 16px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* PRE‑APPROVE INSTRUCTOR */
+.preapprove-container {
+  max-width: 420px;
+  margin: 30px auto;
+  padding: 20px;
+  text-align: center;
+  background: #1e1e1e;
+  border: 2px solid #ffd400;
+  border-radius: 10px;
+}
+
+.preapprove-container h2 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  color: #ffd400;
+}
+
+/* FORM LAYOUT */
+.preapprove-form {
+  display: flex;
+  gap: 10px;
+}
+
+/* EMAIL INPUT */
+.preapprove-form input {
+  flex: 1;
+  padding: 10px;
+  font-size: 14px;
+  background: #121212;
+  color: #ffd400;
+  border: 1px solid #ffd400;
+  border-radius: 5px;
+}
+
+.preapprove-form input::placeholder {
+  color: #bfae3a;
+}
+
+/* BUTTON */
+.preapprove-form button {
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: bold;
+  background: #ffd400;
+  color: black;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.preapprove-form button:hover {
+  background: #e6c200;
+}
+
+/* HELPER TEXT */
+.preapprove-hint {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #bfae3a;
+}
 /* RESPONSIVE */
 @media (max-width: 600px) {
   .instructor-card {
