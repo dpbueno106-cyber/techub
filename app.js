@@ -14,7 +14,9 @@ import {
   deleteDoc
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
-// Firebase config
+// =========================
+// FIREBASE SETUP
+// =========================
 const firebaseConfig = {
   apiKey: "AIzaSyD9i5yfE80MAsiri8SwiRCFParRb9jPyzY",
   authDomain: "techub-login-system.firebaseapp.com",
@@ -28,80 +30,104 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// UI
-const loginBtn = document.getElementById("loginBtn");
-const signupBtn = document.getElementById("signupBtn");
-const message = document.getElementById("message");
 
-const loginEmail = document.getElementById("loginEmail");
-const loginPassword = document.getElementById("loginPassword");
+// =========================
+// UI TOGGLE (LOGIN ↔ SIGNUP)
+// =========================
+const loginBox = document.getElementById("loginBox");
+const signupBox = document.getElementById("signupBox");
 
-const signupEmail = document.getElementById("signupEmail");
-const signupPassword = document.getElementById("signupPassword");
-const signupMessage = document.getElementById("signupMessage");
+document.getElementById("showSignup").addEventListener("click", () => {
+  loginBox.style.display = "none";
+  signupBox.style.display = "block";
+});
+
+document.getElementById("showLogin").addEventListener("click", () => {
+  signupBox.style.display = "none";
+  loginBox.style.display = "block";
+});
+
 
 // =========================
 // LOGIN
 // =========================
+const loginBtn = document.getElementById("loginBtn");
+const loginEmail = document.getElementById("loginEmail");
+const loginPassword = document.getElementById("loginPassword");
+const message = document.getElementById("message");
+
 loginBtn.addEventListener("click", async () => {
   try {
-    await(signOut(auth));
+    // ✅ clear previous session (prevents auto admin login bug)
+    await signOut(auth);
+
     await signInWithEmailAndPassword(
       auth,
       loginEmail.value.trim(),
       loginPassword.value
     );
-  } catch (err) {
-    message.textContent = err.message;
+
+  } catch (error) {
+    message.textContent = error.message;
   }
 });
+
 
 // =========================
 // SIGNUP
 // =========================
+const signupBtn = document.getElementById("signupBtn");
+const signupEmail = document.getElementById("signupEmail");
+const signupPassword = document.getElementById("signupPassword");
+const signupMessage = document.getElementById("signupMessage");
+
 signupBtn.addEventListener("click", async () => {
   const email = signupEmail.value.trim();
   const password = signupPassword.value;
 
+  if (!email.includes("@")) {
+    signupMessage.textContent = "Enter a valid email";
+    return;
+  }
+
+  if (password.length < 6) {
+    signupMessage.textContent = "Password must be at least 6 characters";
+    return;
+  }
+
   try {
     await createUserWithEmailAndPassword(auth, email, password);
-    signupMessage.textContent = "Account created";
+
+    signupMessage.textContent = "Account created successfully";
     signupMessage.style.color = "green";
-  } catch (err) {
-    if (err.code === "auth/email-already-in-use") {
-      signupMessage.textContent = "Email already registered. Log in instead.";
+
+  } catch (error) {
+    if (error.code === "auth/email-already-in-use") {
+      signupMessage.textContent = "Email already registered. Log in.";
     } else {
-      signupMessage.textContent = err.message;
+      signupMessage.textContent = error.message;
     }
     signupMessage.style.color = "red";
   }
 });
 
+
 // =========================
-// AUTH HANDLER (CORE LOGIC)
+// AUTH STATE HANDLER (CORE)
 // =========================
-onAuthStateChanged(auth, async user => {
+onAuthStateChanged(auth, async (user) => {
   if (!user) return;
 
   const uid = user.uid;
   const email = user.email.toLowerCase();
 
-console.log(" Logged in user:", user.email);
+  let snap = await getDoc(doc(db, "users", uid));
 
-let snap = await getDoc(doc(db, "users", user.uid));
-
-if (!snap.exists()) {
-  console.error(" No user doc found");
-  return;
-}
-
-const { role } = snap.data();
-console.log(" Role =", role);
-
+  //  Create Firestore user AFTER auth is ready
   if (!snap.exists()) {
-    console.log("Creating Firestore user...");
 
-    // Check preapproval
+    console.log("Creating new user document...");
+
     const approvalSnap = await getDoc(
       doc(db, "preapprovedInstructors", email)
     );
@@ -112,7 +138,7 @@ console.log(" Role =", role);
 
     await setDoc(doc(db, "users", uid), {
       email,
-      assignedRole,
+      role: assignedRole,
       canTeach: [],
       createdAt: new Date()
     });
@@ -124,9 +150,11 @@ console.log(" Role =", role);
     snap = await getDoc(doc(db, "users", uid));
   }
 
- 
+  const { role } = snap.data();
 
-  //  ROUTING
+  console.log("Logged in as:", email, "| Role:", role);
+
+  //  Routing
   if (role === "admin") {
     window.location.href = "adminDashboard.html";
   } else if (role === "instructor") {
@@ -134,4 +162,13 @@ console.log(" Role =", role);
   } else {
     window.location.href = "pending.html";
   }
+});
+
+
+// =========================
+// HELP BUTTON
+// =========================
+const helpBtn = document.getElementById("helpBtn");
+helpBtn.addEventListener("click", () => {
+  alert("Enter your email and password. If new, click Sign Up.");
 });
