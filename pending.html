@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pending Approval</title>
+  <style>
+    body {
+      background: #121212;
+      color: #ffd400;
+      font-family: Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .pending-box {
+      background: #1e1e1e;
+      border: 2px solid #ffd400;
+      border-radius: 10px;
+      padding: 30px;
+      text-align: center;
+      max-width: 420px;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #ffd400;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="pending-box">
+    <h2>Account Pending Approval</h2>
+
+    <p>
+      Your account has been created successfully.<br><br>
+      An administrator must approve your account before you can access instructor tools.
+    </p>
+
+    <p id="status">Waiting for admin approval…</p>
+
+    <button id="logoutBtn">Log Out</button>
+
+  </div>
+
+  <!--Auto‑refresh logic -->
+  <script type="module" src="pending.js"></script>
+</body>
+</html>

@@ -9,7 +9,8 @@ import {
   getFirestore,
   setDoc,
   doc,
-  getDoc
+  getDoc,
+  deleteDoc
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -73,10 +74,8 @@ if (!snap.exists()) {
     window.location.href = "userDashboard.html";
   } else {
     // pending
-    //window.location.href = "pending.html";
-    errorMessage.textContent = "Your account is pending approval. Please wait for an admin to approve your account.";
-    signupMessage.textContent = error.message;
-    signupMessage.style.color = "red";
+    window.location.href = "pending.html";
+   
   }
 });
 
@@ -128,12 +127,28 @@ signupBtn.addEventListener("click", async () => {
     // Store metadata only (not authorization)
     const user = userCredential.user;
 
+//  Check pre‑approval
+const approvalSnap = await getDoc(
+  doc(db, "preapprovedInstructors", user.email.toLowerCase())
+);
+
+const role = approvalSnap.exists()
+  ? "instructor"
+  : "pending";
+
 await setDoc(doc(db, "users", user.uid), {
   email: user.email,
-  role: "pending",
+  role,
   canTeach: [],
   createdAt: new Date()
 });
+
+//  Optional cleanup
+if (approvalSnap.exists()) {
+  await deleteDoc(
+    doc(db, "preapprovedInstructors", user.email.toLowerCase())
+  );
+}
 
     signupMessage.textContent = "Account created";
     signupMessage.style.color = "green";
