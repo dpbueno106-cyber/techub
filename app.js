@@ -151,16 +151,21 @@ signupBtn.addEventListener("click", async () => {
       : "pending";
 
     //  Create Firestore user doc
-    await setDoc(doc(db, "users", user.uid), {
-      email,
-      role,
-      canTeach: [],
-      capabilities: [],
-      createdAt: new Date()
-    });
+    try {
+  console.log("🔥 Starting Firestore write...");
 
-    console.log(" User document created");
+  await setDoc(doc(db, "users", user.uid), {
+    email,
+    role,
+    canTeach: [],
+    capabilities: []
+  });
 
+  console.log("User doc created successfully");
+
+} catch (err) {
+  console.error("Firestore failed:", err);
+}
     // Remove pre-approved entry
     if (approvalSnap.exists()) {
       await deleteDoc(doc(db, "preapprovedInstructors", email));
