@@ -21,7 +21,9 @@ const db = getFirestore(app);
 
 // Check every 5 seconds
 const CHECK_INTERVAL_MS = 5000;
-
+backBtn.addEventListener("click", () => {
+  window.location.href = "index.html";
+});
 onAuthStateChanged(auth, user => {
   if (!user) {
     window.location.href = "index.html";
