@@ -1,255 +1,171 @@
-/* PAGE BASE */
+/* =======================
+   BASE
+======================= */
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: #121212;
-  color: #ffd400;
+  font-family: 'Segoe UI', sans-serif;
+  background: #0f0f0f;
+  color: #f5f5f5;
 }
 
-/* HEADER */
-header {
-  background: black;
-  padding: 20px;
-  text-align: center;
-  border-bottom: 4px solid #ffd400;
+/* =======================
+   CONTAINER
+======================= */
+.container {
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 0 20px;
 }
 
-h1 {
-  margin: 0;
-}
-
-/* BACK BUTTON */
-#backBtn {
-  margin-top: 10px;
-  padding: 10px 20px;
-  background: #ffd400;
-  color: black;
-  border: none;
-  cursor: pointer;
-  font-weight: bold;
-  border-radius: 5px;
-}
-
-#backBtn:hover {
-  background: #e6c200;
-}
-
-/* MAIN LIST CONTAINER */
-#instructorList {
-  max-width: 900px;
-  margin: 20px auto;
-  padding: 10px;
-}
-
-/* INSTRUCTOR CARD */
-.instructor-card {
-  background: #1e1e1e;
-  border: 2px solid #ffd400;
-  border-radius: 10px;
-  padding: 20px;
-  margin-bottom: 20px;
-  transition: 0.2s;
-}
-
-.instructor-card:hover {
-  transform: scale(1.01);
-}
-
-/* EMAIL / NAME */
-.instructor-card h3 {
-  margin-top: 0;
-  margin-bottom: 10px;
-}
-
-/* CAPABILITIES SECTION */
-.capabilities {
-  margin-top: 10px;
-}
-
-/* CHECKBOXES */
-.capabilities label {
-  display: block;
-  padding: 5px 0;
-  cursor: pointer;
-}
-
-/* INPUT CHECKBOX */
-.capabilities input {
-  margin-right: 8px;
-  cursor: pointer;
-}
-
-/* SAVE BUTTON */
-.saveBtn {
-  margin-top: 12px;
-  padding: 10px;
-  width: 100%;
-  background: #ffd400;
-  color: black;
-  border: none;
-  cursor: pointer;
-  font-weight: bold;
-  border-radius: 5px;
-  transition: 0.2s;
-}
-
-.saveBtn:hover {
-  background: #e6c200;
-}
-
-/* OPTIONAL: SCROLL BEHAVIOR (nice touch) */
-body {
-  overflow-y: scroll;
-}
-
-
-.preapprove-container h2 {
-  margin-bottom: 12px;
-}
-
-.preapprove-form {
+/* =======================
+   HEADER
+======================= */
+.header {
   display: flex;
-  gap: 10px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
 }
 
-.preapprove-form input {
-  flex: 1;
-  padding: 10px;
-  font-size: 14px;
+.header h1 {
+  margin: 0;
+  font-size: 28px;
 }
 
-.preapprove-form button {
+.header-actions button {
+  margin-left: 10px;
+}
+
+/* =======================
+   BUTTONS
+======================= */
+button {
   padding: 10px 16px;
-  font-size: 14px;
+  border: none;
+  border-radius: 6px;
+  background: #ffd400;
+  color: black;
+  font-weight: bold;
   cursor: pointer;
 }
 
-/* PRE‑APPROVE INSTRUCTOR */
-.preapprove-container {
-  max-width: 420px;
-  margin: 30px auto;
+button:hover {
+  background: #e6c200;
+}
+
+/* =======================
+   SECTION (CARD)
+======================= */
+.section {
+  background: #1a1a1a;
   padding: 20px;
-  text-align: center;
-  background: #1e1e1e;
-  border: 2px solid #ffd400;
   border-radius: 10px;
+  margin-bottom: 20px;
 }
 
-.preapprove-container h2 {
+.section h2 {
   margin-top: 0;
-  margin-bottom: 12px;
-  color: #ffd400;
+  margin-bottom: 15px;
 }
 
-/* FORM LAYOUT */
-.preapprove-form {
+/* =======================
+   FORM
+======================= */
+.form-row {
   display: flex;
   gap: 10px;
 }
 
-/* EMAIL INPUT */
-.preapprove-form input {
+.form-row input {
   flex: 1;
   padding: 10px;
-  font-size: 14px;
-  background: #121212;
+  border-radius: 6px;
+  border: none;
+  background: #2a2a2a;
+  color: white;
+}
+
+/* =======================
+   USER LIST
+======================= */
+#userList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.user-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+
+  background: #222;
+  padding: 12px 16px;
+  border-radius: 8px;
+}
+
+.user-row span {
+  flex: 1;
+}
+
+.user-row select {
+  padding: 8px;
+  border-radius: 6px;
+  background: #111;
   color: #ffd400;
   border: 1px solid #ffd400;
-  border-radius: 5px;
 }
 
-.preapprove-form input::placeholder {
-  color: #bfae3a;
-}
-
-/* BUTTON */
-.preapprove-form button {
-  padding: 10px 16px;
-  font-size: 14px;
-  font-weight: bold;
-  background: #ffd400;
-  color: black;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-
-/* LEFT SIDE (already styled cards) */
-#instructorList {
-  width: 100%;
-}
-
-
-
-/* TITLE */
-
-
-/* MOBILE: stack vertically */
-@media (max-width: 900px) {
-  .page-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .pending-invites {
-    margin-top: 20px;
-  }
-}
-
-.preapprove-form button:hover {
-  background: #e6c200;
-}
-
-/* HELPER TEXT */
-.preapprove-hint {
-  margin-top: 10px;
-  font-size: 12px;
-  color: #bfae3a;
-}
-/* RESPONSIVE */
-@media (max-width: 600px) {
-  .instructor-card {
-    padding: 15px;
-  }
-}
-.page-layout {
-  display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 20px;
-  max-width: 1200px;
-  margin: 20px auto;
-}
-
-.pending-invites {
-  background: #1e1e1e;
-  border: 2px solid #ffd400;
-  border-radius: 10px;
+/* =======================
+   INSTRUCTOR CARDS
+======================= */
+.instructor-card {
+  background: #222;
   padding: 15px;
-  height: fit-content;
+  border-radius: 8px;
+  margin-bottom: 12px;
 }
 
-.pending-invites h2 {
-  margin-top: 0;
-  text-align: center;
+.instructor-card h3 {
+  margin: 0 0 10px;
 }
 
-.pending-invites ul {
+/* CAPABILITIES GRID */
+.capabilities {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 6px;
+}
+
+.capabilities label {
+  font-size: 13px;
+}
+
+/* =======================
+   PENDING LIST
+======================= */
+#pendingInvites {
   list-style: none;
   padding: 0;
 }
 
-.pending-invites li {
-  background: #121212;
-  border: 1px solid #ffd400;
+#pendingInvites li {
+  background: #222;
+  padding: 8px 10px;
+  border-radius: 6px;
   margin-bottom: 6px;
-  padding: 8px;
-  border-radius: 5px;
 }
 
-/* Mobile fallback */
-@media (max-width: 900px) {
-  .page-layout {
-    grid-template-columns: 1fr;
+/* =======================
+   MOBILE
+======================= */
+@media (max-width: 600px) {
+  .user-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .form-row {
+    flex-direction: column;
   }
 }

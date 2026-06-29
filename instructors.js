@@ -4,7 +4,8 @@ import {
   collection,
   getDocs,
   doc,
-  setDoc
+  setDoc,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 import {
   getAuth,
@@ -37,16 +38,16 @@ onAuthStateChanged(auth, async user => {
     return;
   }
 
-  const token = await user.getIdTokenResult();
+  const userDoc = await getDoc(doc(db, "users", user.uid));
 
-  if (!token.claims.admin) {
-    alert("Admins only");
-    window.location.href = "adminDashboard.html";
-    return;
-  }
+if (!userDoc.exists() || userDoc.data().role !== "admin") {
+  alert("Admins only");
+  window.location.href = "index.html";
+  return;
+}
 
   await loadInstructorsAndInvites();
-  loadUsers();
+  await loadUsers();
 });
 
 /* =========================

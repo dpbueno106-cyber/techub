@@ -113,17 +113,21 @@ h1 {
 
 .user-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 20px; /* spacing between email and dropdown */
+
+  padding: 16px 20px;
+  border-radius: 10px;
   background: #1e1e1e;
   border: 2px solid #ffd400;
-  padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 8px;
+
+  transition: 0.2s ease;
 }
 
 .user-row span {
-  font-weight: bold;
+  flex: 1;
+  border-right: 1px solid rgba(255, 212, 0, 0.2);
+  padding-right: 15px;
 }
 
 .user-row select {
@@ -132,4 +136,6 @@ h1 {
   color: #ffd400;
   border: 1px solid #ffd400;
   cursor: pointer;
+  width: 150px;
+  margin-left: auto;
 }

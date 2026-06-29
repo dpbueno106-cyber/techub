@@ -43,7 +43,7 @@ onAuthStateChanged(auth, async user => {
     welcome.textContent = "Welcome, " + user.email;
   }
 
-  loadUsers();
+  
 });
 
 /* LOGOUT */

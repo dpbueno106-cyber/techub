@@ -8,46 +8,48 @@
 
 <body>
 
-  <header>
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
     <h1>Instructor Management</h1>
-    <button id="backBtn">⬅ Back to Dashboard</button>
-  </header>
 
-  <main>
-
-    <!-- ✅ PRE‑APPROVE SECTION -->
-    <div class="preapprove-container">
-      <h2>Pre‑Approve Instructor</h2>
-
-      <form id="preapproveForm" class="preapprove-form">
-        <input
-          type="email"
-          id="preapproveEmail"
-          placeholder="Instructor email"
-          required
-        />
-        <button type="submit">Pre‑Approve</button>
-      </form>
-
-      <p class="preapprove-hint">
-        If this email signs up, they will be auto‑approved as an instructor.
-      </p>
+    <div class="header-actions">
+      <button id="backBtn">Back</button>
+      <button id="logoutBtn">Logout</button>
     </div>
+  </div>
 
-    <!-- ✅ MAIN TWO‑COLUMN LAYOUT -->
-    <div class="page-layout">
+  <!-- PREAPPROVE -->
+  <div class="section">
+    <h2>Pre‑Approve Instructor</h2>
 
-      <!-- LEFT: Instructor cards -->
-      <div id="instructorList"></div>
+    <form id="preapproveForm" class="form-row">
+      <input type="email" id="preapproveEmail" placeholder="Enter email..." required>
+      <button type="submit">Add</button>
+    </form>
+  </div>
+<div class="section">
+    <h2>Pending Invites</h2>
+    <ul id="pendingInvites"></ul>
+  </div>
+  <!-- USERS -->
+  <div class="section">
+    <h2>User Roles</h2>
+    <div id="userList"></div>
+  </div>
 
-      <!-- RIGHT: Pending invites -->
-      <div id="pendingInvites" class="pending-invites"></div>
+  <!-- INSTRUCTORS -->
+  <div class="section">
+    <h2>Instructor Capabilities</h2>
+    <div id="instructorList"></div>
+  </div>
 
-    </div>
+  <!-- PENDING -->
+  
 
-  </main>
+</div>
 
-  <script type="module" src="instructors.js"></script>
-
+<script type="module" src="instructors.js"></script>
 </body>
 </html>
