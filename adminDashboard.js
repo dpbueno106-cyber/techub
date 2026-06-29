@@ -72,12 +72,22 @@ async function loadUsers() {
     row.classList.add("user-row");
 
     row.innerHTML = `
-      <span>${data.email}</span>
-      <select>
-        <option value="admin" ${data.role === "admin" ? "selected" : ""}>Admin</option>
-        <option value="instructor" ${data.role === "instructor" ? "selected" : ""}>Instructor</option>
-      </select>
-    `;
+  <span>
+    ${data.email}
+    ${data.role === "pending" ? "<em style='color: orange;'> (Pending)</em>" : ""}
+  </span>
+  <select>
+    <option value="pending" ${data.role === "pending" ? "selected" : ""}>
+      Pending
+    </option>
+    <option value="instructor" ${data.role === "instructor" ? "selected" : ""}>
+      Instructor
+    </option>
+    <option value="admin" ${data.role === "admin" ? "selected" : ""}>
+      Admin
+    </option>
+  </select>
+`;
 
     const select = row.querySelector("select");
     select.addEventListener("change", async () => {
