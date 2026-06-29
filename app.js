@@ -60,7 +60,18 @@ onAuthStateChanged(auth, async user => {
   hasLoaded = true;
 
   let snap = null;
+if (!snap.exists()) {
+  console.warn(" Creating missing user doc...");
 
+  await setDoc(doc(db, "users", user.uid), {
+    email: user.email.toLowerCase(),
+    role: "pending",
+    canTeach: [],
+    capabilities: []
+  });
+
+  snap = await getDoc(doc(db, "users", user.uid));
+}
   //  Retry until doc exists (important)
   for (let i = 0; i < 5; i++) {
     snap = await getDoc(doc(db, "users", user.uid));
