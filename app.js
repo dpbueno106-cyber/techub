@@ -59,19 +59,21 @@ onAuthStateChanged(auth, async user => {
   if (hasLoaded) return;
   hasLoaded = true;
 
-  let snap = await getDoc(doc(db, "users", user.uid));
+  let snap = null;
 
-  // Retry a few times if not ready yet
-  for (let i = 0; i < 3 && !snap.exists(); i++) {
-    await new Promise(res => setTimeout(res, 300));
+  //  Retry until doc exists (important)
+  for (let i = 0; i < 5; i++) {
     snap = await getDoc(doc(db, "users", user.uid));
+
+    if (snap.exists()) break;
+
+    console.log("Waiting for user document...");
+    await new Promise(res => setTimeout(res, 300));
   }
 
-  //  Safe fallback
-  if (!snap.exists()) {
-    console.error("User document missing");
-
-    // Optional: auto-create fallback instead
+  //  If STILL missing → then fallback
+  if (!snap || !snap.exists()) {
+    console.error("User doc never created");
     window.location.href = "pending.html";
     return;
   }
@@ -86,6 +88,7 @@ onAuthStateChanged(auth, async user => {
     window.location.href = "pending.html";
   }
 });
+
 
 
 // =========================
