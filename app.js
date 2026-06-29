@@ -23,11 +23,12 @@ const firebaseConfig = {
   measurementId: "G-PQ5RJ1V0BB"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
 let hasLoaded = false;
+
 // UI Elements
 const loginBtn = document.getElementById("loginBtn");
 const signupBtn = document.getElementById("signupBtn");
@@ -48,29 +49,34 @@ document.getElementById("showLogin").addEventListener("click", () => {
 });
 
 
-
-// AUTH-BASED ROUTING (FINAL)
-
+// =========================
+// AUTH-BASED ROUTING
+// =========================
 onAuthStateChanged(auth, async user => {
 
-  if (!user) {
-    return;
-  }
+  if (!user) return;
 
   if (hasLoaded) return;
   hasLoaded = true;
 
   let snap = await getDoc(doc(db, "users", user.uid));
 
+  // Retry a few times if not ready yet
+  for (let i = 0; i < 3 && !snap.exists(); i++) {
+    await new Promise(res => setTimeout(res, 300));
+    snap = await getDoc(doc(db, "users", user.uid));
+  }
+
+  //  Safe fallback
   if (!snap.exists()) {
-  console.error("User document does not exist");
+    console.error("User document missing");
 
-  window.location.href = "pending.html";
-  return;
-}
+    // Optional: auto-create fallback instead
+    window.location.href = "pending.html";
+    return;
+  }
 
-const { role } = snap.data();
-
+  const { role } = snap.data();
 
   if (role === "admin") {
     window.location.href = "adminDashboard.html";
@@ -81,7 +87,10 @@ const { role } = snap.data();
   }
 });
 
+
+// =========================
 // LOGIN
+// =========================
 const loginEmail = document.getElementById("loginEmail");
 const loginPassword = document.getElementById("loginPassword");
 
@@ -92,22 +101,24 @@ loginBtn.addEventListener("click", async () => {
       loginEmail.value.trim(),
       loginPassword.value
     );
-    // Routing handled by onAuthStateChanged
   } catch (error) {
     message.textContent = error.message;
   }
 });
 
+
+// =========================
 // SIGNUP
+// =========================
 const signupEmail = document.getElementById("signupEmail");
 const signupPassword = document.getElementById("signupPassword");
 const signupMessage = document.getElementById("signupMessage");
 
 signupBtn.addEventListener("click", async () => {
-  const email = signupEmail.value.trim();
+  const inputEmail = signupEmail.value.trim();
   const password = signupPassword.value;
 
-  if (!email || !email.includes("@")) {
+  if (!inputEmail || !inputEmail.includes("@")) {
     signupMessage.textContent = "Please enter a valid email address";
     signupMessage.style.color = "red";
     return;
@@ -120,63 +131,66 @@ signupBtn.addEventListener("click", async () => {
   }
 
   try {
+    //  Create Auth user
     const userCredential = await createUserWithEmailAndPassword(
       auth,
-      email,
+      inputEmail,
       password
     );
 
-    // Store metadata only (not authorization)
     const user = userCredential.user;
+    const email = user.email.toLowerCase();
 
-//  Check pre‑approval
-const approvalSnap = await getDoc(
-  doc(db, "preapprovedInstructors", user.email.toLowerCase())
-);
+    //  Check pre‑approval
+    const approvalSnap = await getDoc(
+      doc(db, "preapprovedInstructors", email)
+    );
 
-const role = approvalSnap.exists()
-  ? "instructor"
-  : "pending";
-const email = user.email.toLowerCase();
-await setDoc(doc(db, "users", user.uid), {
-  email,
-  role,
-  canTeach: [],
-  capabilities: []
-  //createdAt: new Date()
-});
+    const role = approvalSnap.exists()
+      ? "instructor"
+      : "pending";
 
-//  Optional cleanup
-if (approvalSnap.exists()) {
-  await deleteDoc(
-    doc(db, "preapprovedInstructors", user.email.toLowerCase())
-  );
-}
+    //  Create Firestore user doc
+    await setDoc(doc(db, "users", user.uid), {
+      email,
+      role,
+      canTeach: [],
+      capabilities: [],
+      createdAt: new Date()
+    });
+
+    console.log(" User document created");
+
+    // Remove pre-approved entry
+    if (approvalSnap.exists()) {
+      await deleteDoc(doc(db, "preapprovedInstructors", email));
+    }
 
     signupMessage.textContent = "Account created";
     signupMessage.style.color = "green";
 
-  
+  } catch (error) {
+    if (error.code === "auth/email-already-in-use") {
+      signupMessage.textContent = "Email already registered. Please log in instead.";
+    } else if (error.code === "auth/invalid-email") {
+      signupMessage.textContent = "Invalid email format.";
+    } else if (error.code === "auth/weak-password") {
+      signupMessage.textContent = "Password must be at least 6 characters.";
+    } else if (error.code === "auth/too-many-requests") {
+      signupMessage.textContent = "Too many attempts. Try again later.";
+    } else {
+      signupMessage.textContent = error.message;
+    }
 
-  }  catch (error) {
-  if (error.code === "auth/email-already-in-use") {
-    signupMessage.textContent = "Email already registered. Please log in instead.";
-  } else if (error.code === "auth/invalid-email") {
-    signupMessage.textContent = "Invalid email format.";
-  } else if (error.code === "auth/weak-password") {
-    signupMessage.textContent = "Password must be at least 6 characters.";
-  } else if (error.code === "auth/too-many-requests") {
-    signupMessage.textContent = "Too many attempts. Try again later.";
-  } else {
-    signupMessage.textContent = error.message;
+    signupMessage.style.color = "red";
   }
-
-  signupMessage.style.color = "red";
-}
-
 });
 
+
+// =========================
 // HELP
+// =========================
 helpBtn.addEventListener("click", () => {
   alert("Enter your email and password. Click Create Account first if you're new.");
 });
+``
