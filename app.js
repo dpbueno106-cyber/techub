@@ -28,6 +28,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 let hasLoaded = false;
+let isSigningUp = false; //  ADD THIS
 
 // UI Elements
 const loginBtn = document.getElementById("loginBtn");
@@ -54,37 +55,29 @@ document.getElementById("showLogin").addEventListener("click", () => {
 // =========================
 onAuthStateChanged(auth, async user => {
 
+
   if (!user) return;
+
+  if (isSigningUp) return; //  BLOCK during signup
 
   if (hasLoaded) return;
   hasLoaded = true;
 
-  let snap = null;
-if (!snap.exists()) {
-  console.warn(" Creating missing user doc...");
 
-  await setDoc(doc(db, "users", user.uid), {
-    email: user.email.toLowerCase(),
-    role: "pending",
-    canTeach: [],
-    capabilities: []
-  });
+  let snap;
 
-  snap = await getDoc(doc(db, "users", user.uid));
-}
-  //  Retry until doc exists (important)
+  // wait briefly for Firestore (small delay only)
   for (let i = 0; i < 5; i++) {
     snap = await getDoc(doc(db, "users", user.uid));
 
     if (snap.exists()) break;
 
-    console.log("Waiting for user document...");
     await new Promise(res => setTimeout(res, 300));
   }
 
-  //  If STILL missing → then fallback
   if (!snap || !snap.exists()) {
-    console.error("User doc never created");
+    console.error("User doc missing - redirecting safely");
+
     window.location.href = "pending.html";
     return;
   }
@@ -99,6 +92,7 @@ if (!snap.exists()) {
     window.location.href = "pending.html";
   }
 });
+``
 
 
 
@@ -110,6 +104,7 @@ const loginPassword = document.getElementById("loginPassword");
 
 loginBtn.addEventListener("click", async () => {
   try {
+    
     await signInWithEmailAndPassword(
       auth,
       loginEmail.value.trim(),
@@ -131,7 +126,7 @@ const signupMessage = document.getElementById("signupMessage");
 signupBtn.addEventListener("click", async () => {
   const inputEmail = signupEmail.value.trim();
   const password = signupPassword.value;
-
+  isSigningUp = true;
   if (!inputEmail || !inputEmail.includes("@")) {
     signupMessage.textContent = "Please enter a valid email address";
     signupMessage.style.color = "red";
@@ -174,9 +169,9 @@ signupBtn.addEventListener("click", async () => {
     canTeach: [],
     capabilities: []
   });
-
+  isSigningUp = false;
   console.log("User doc created successfully");
-
+  
 } catch (err) {
   console.error("Firestore failed:", err);
 }
