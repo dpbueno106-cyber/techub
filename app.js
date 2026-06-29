@@ -45,6 +45,7 @@ const signupMessage = document.getElementById("signupMessage");
 // =========================
 loginBtn.addEventListener("click", async () => {
   try {
+    await(signOut(auth));
     await signInWithEmailAndPassword(
       auth,
       loginEmail.value.trim(),
@@ -85,9 +86,18 @@ onAuthStateChanged(auth, async user => {
   const uid = user.uid;
   const email = user.email.toLowerCase();
 
-  let snap = await getDoc(doc(db, "users", uid));
+console.log(" Logged in user:", user.email);
 
-  // ✅ CREATE USER HERE (SAFE — AUTH READY)
+let snap = await getDoc(doc(db, "users", user.uid));
+
+if (!snap.exists()) {
+  console.error(" No user doc found");
+  return;
+}
+
+const { role } = snap.data();
+console.log(" Role =", role);
+
   if (!snap.exists()) {
     console.log("Creating Firestore user...");
 
