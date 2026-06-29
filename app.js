@@ -8,7 +8,8 @@ import {
 import {
   getFirestore,
   setDoc,
-  doc
+  doc,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -51,12 +52,28 @@ document.getElementById("showLogin").addEventListener("click", () => {
 onAuthStateChanged(auth, async user => {
   if (!user) return;
 
-  const token = await user.getIdTokenResult();
+  let snap = await getDoc(doc(db, "users", user.uid));
 
-  if (token.claims.admin) {
+if (!snap.exists()) {
+  // wait once for Firestore write to land
+  await new Promise(res => setTimeout(res, 300));
+  snap = await getDoc(doc(db, "users", user.uid));
+}
+
+if (!snap.exists()) {
+  console.error("User document missing after retry");
+  return;
+}
+
+  const { role } = snap.data();
+
+  if (role === "admin") {
     window.location.href = "adminDashboard.html";
-  } else {
+  } else if (role === "instructor") {
     window.location.href = "userDashboard.html";
+  } else {
+    // pending
+    window.location.href = "pending.html";
   }
 });
 
@@ -106,20 +123,19 @@ signupBtn.addEventListener("click", async () => {
     );
 
     // Store metadata only (not authorization)
-    await setDoc(doc(db, "users", user.uid), {
+    const user = userCredential.user;
+
+await setDoc(doc(db, "users", user.uid), {
   email: user.email,
-  role: "pending",       // 
-  capabilities: []
+  role: "pending",
+  canTeach: [],
+  createdAt: new Date()
 });
 
     signupMessage.textContent = "Account created";
     signupMessage.style.color = "green";
 
-    setTimeout(() => {
-      signupBox.style.display = "none";
-      signupMessage.textContent = "";
-      loginBox.style.display = "block";
-    }, 3000);
+  
 
   } catch (error) {
     signupMessage.textContent = error.message;
