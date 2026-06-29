@@ -55,29 +55,44 @@ document.getElementById("showLogin").addEventListener("click", () => {
 // =========================
 onAuthStateChanged(auth, async user => {
 
-
   if (!user) return;
-
-  if (isSigningUp) return; //  BLOCK during signup
 
   if (hasLoaded) return;
   hasLoaded = true;
 
+  let snap = await getDoc(doc(db, "users", user.uid));
 
-  let snap;
+  // 🔥 CREATE USER HERE (after auth is stable)
+  if (!snap.exists()) {
+    console.log("✅ Creating user AFTER auth is ready");
 
-  // wait briefly for Firestore (small delay only)
-  for (let i = 0; i < 5; i++) {
+    // Check pre‑approval
+    const email = user.email.toLowerCase();
+    const approvalSnap = await getDoc(
+      doc(db, "preapprovedInstructors", email)
+    );
+
+    const role = approvalSnap.exists()
+      ? "instructor"
+      : "pending";
+
+    await setDoc(doc(db, "users", user.uid), {
+      email,
+      role,
+      canTeach: [],
+      capabilities: []
+    });
+
+    // remove preapproval
+    if (approvalSnap.exists()) {
+      await deleteDoc(doc(db, "preapprovedInstructors", email));
+    }
+
     snap = await getDoc(doc(db, "users", user.uid));
-
-    if (snap.exists()) break;
-
-    await new Promise(res => setTimeout(res, 300));
   }
 
-  if (!snap || !snap.exists()) {
-    console.error("User doc missing - redirecting safely");
-
+  if (!snap.exists()) {
+    console.error("User doc still missing");
     window.location.href = "pending.html";
     return;
   }
@@ -92,7 +107,7 @@ onAuthStateChanged(auth, async user => {
     window.location.href = "pending.html";
   }
 });
-``
+
 
 
 
@@ -163,12 +178,7 @@ signupBtn.addEventListener("click", async () => {
     try {
   console.log("🔥 Starting Firestore write...");
 
-  await setDoc(doc(db, "users", user.uid), {
-    email,
-    role,
-    canTeach: [],
-    capabilities: []
-  });
+  
   isSigningUp = false;
   console.log("User doc created successfully");
   
