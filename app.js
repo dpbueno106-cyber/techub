@@ -140,12 +140,13 @@ const approvalSnap = await getDoc(
 const role = approvalSnap.exists()
   ? "instructor"
   : "pending";
-
+const email = user.email.toLowerCase();
 await setDoc(doc(db, "users", user.uid), {
-  email: user.email,
+  email,
   role,
   canTeach: [],
-  createdAt: new Date()
+  capabilities: []
+  //createdAt: new Date()
 });
 
 //  Optional cleanup
