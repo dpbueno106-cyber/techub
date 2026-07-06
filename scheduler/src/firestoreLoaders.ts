@@ -49,7 +49,14 @@ export async function loadInstructorsFromFirestore(): Promise<Instructor[]> {
 
   const instructors: Instructor[] = snapshot.docs.map(doc => {
     const data = doc.data();
-
+console.log(
+  "Loaded instructors:",
+  instructors.map(i => ({
+    id: i.id,
+    capabilities: i.capabilities,
+    maxClasses: i.maxClasses
+  }))
+);
     return {
       id: doc.id,
       email: data.email ?? "",
@@ -87,6 +94,10 @@ export function attachPossibleInstructors(
     inst.capabilities?.includes(cls.name)
   )
   .map(inst => inst.id);
+  console.log(
+  cls.name,
+  possibleInstructors
+);
     return {
       ...cls,
       possibleInstructors

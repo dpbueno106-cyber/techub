@@ -63,10 +63,7 @@ console.log("SLOT", {
 });
 
     const eligible = instructors.filter(i => {
-      const allowedByClass =
-        !slot.possibleInstructors ||
-        slot.possibleInstructors.includes(i.id);
-
+      const allowedByClass =true
       const canTeach =
         !i.capabilities ||
         i.capabilities.includes(slot.category);
@@ -99,6 +96,24 @@ console.log("SLOT", {
     i.capabilities
   );
 }
+
+console.log("FILTER CHECK", {
+  instructor: i.id,
+  className: slot.className,
+
+  allowedByClass,
+  canTeach,
+  canBeThere,
+  hasConflict,
+  wouldExceed,
+  underMaxClasses
+});
+
+console.log(
+  "ELIGIBLE",
+  slot.className,
+  eligible.map(i => i.id)
+);
       return (
         allowedByClass &&
         canTeach &&
@@ -113,6 +128,11 @@ console.log("SLOT", {
       console.warn(
         `No eligible instructor for ${slot.className} (week ${slot.weekNumber})`
       );
+        console.log(
+  "NO ELIGIBLE",
+  slot.className,
+  slot.possibleInstructors
+);
 
       return slot;
     }
@@ -148,7 +168,12 @@ console.log("SLOT", {
 });
 
     const chosen = scored[0].instructor;
-
+  console.log(
+  "ASSIGNED",
+  slot.className,
+  "=>",
+  chosen.id
+);
     assignmentsByInstructor
       .get(chosen.id)
       ?.push(slot.weekNumber);
