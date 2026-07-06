@@ -258,17 +258,15 @@ button.secondary:hover {
 }
 .location-options {
   display: flex;
-  gap: 20px;
+  gap: 16px;
+  margin-top: 6px;
 }
 
 .checkbox-label {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  background: #f8f9fa;
+  gap: 4px;
+  cursor: pointer;
 }
 
 .checkbox-label input {
