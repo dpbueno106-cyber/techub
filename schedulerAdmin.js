@@ -24,7 +24,7 @@ const API_URL = window.location.hostname.includes("localhost")
 const calendarEl = document.getElementById("calendar");
 const externalEventsEl = document.getElementById("externalEvents");
 const instructorWorkloadEl = document.getElementById("instructorWorkload");
-
+const scheduleAnalyticsEl = document.getElementById("scheduleAnalytics");
 const editEventTitleEl = document.getElementById("editEventTitle");
 const editEventLocationEl = document.getElementById("editEventLocation");
 const editEventInstructorEl = document.getElementById("editEventInstructor");
