@@ -73,13 +73,17 @@ export interface ClassSlot {
 
 export interface Instructor {
   id: string;
+
   name: string;
   email: string;
-  homeLocation: Location;
+
+  homeLocation: string;
   canTravel: boolean;
-  canTeach?: ("Foundational" | "Advanced" | "NTO")[];
-  capabilities?: string[];
-  availability?: string[];
-  maxClasses?: number;
+
+  capabilities: string[];
+
+  availability: string[];
+
+  maxClasses: number;
 }
 

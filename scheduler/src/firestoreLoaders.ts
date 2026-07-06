@@ -45,7 +45,7 @@ export async function loadCatalogFromFirestore(): Promise<ClassDefinition[]> {
 export async function loadInstructorsFromFirestore(): Promise<Instructor[]> {
 
   const userSnapshot = await db
-    .collection("users")
+    .collection("instructors")
     .where("role", "==", "instructor")
     .get();
 
@@ -77,7 +77,7 @@ export async function loadInstructorsFromFirestore(): Promise<Instructor[]> {
   canTravel: instructorData?.canTravel ?? []
 });
   }
-
+  console.log(instructors);
   return instructors;
 }
 
