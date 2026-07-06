@@ -64,9 +64,20 @@ console.log("SLOT", {
 
     const eligible = instructors.filter(i => {
       const allowedByClass =true
-      const canTeach =
-        !i.capabilities ||
-        i.capabilities.includes(slot.category);
+      console.log({
+  className: slot.className,
+  capabilities: i.capabilities,
+  result: i.capabilities.includes(slot.className)
+});
+      const normalizedClass =
+  slot.className.trim().toLowerCase();
+
+const canTeach =
+  i.capabilities?.some(
+    cap =>
+      cap.trim().toLowerCase() ===
+      normalizedClass
+  );
 
       const canBeThere =
         slot.location === i.homeLocation ||
@@ -109,11 +120,7 @@ console.log("FILTER CHECK", {
   underMaxClasses
 });
 
-console.log(
-  "ELIGIBLE",
-  slot.className,
-  eligible.map(i => i.id)
-);
+
       return (
         allowedByClass &&
         canTeach &&
@@ -123,7 +130,11 @@ console.log(
         underMaxClasses
       );
     });
-
+console.log(
+  "ELIGIBLE",
+  slot.className,
+  eligible.map(i => i.id)
+);
     if (eligible.length === 0) {
       console.warn(
         `No eligible instructor for ${slot.className} (week ${slot.weekNumber})`
