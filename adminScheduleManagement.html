@@ -48,29 +48,100 @@
 
   </div>
 
-  <!--  ADD COURSE MODAL -->
-  <div id="addCourseModal" class="modal hidden">
-    <div class="modalContent">
+  <!-- ADD COURSE MODAL -->
+<div id="addCourseModal" class="modal hidden">
+  <div class="modalContent">
 
-      <h2>Add Course</h2>
+    <h2>Add Catalog Course</h2>
 
-<label for="catalogCourse">Course</label>
-<select id="catalogCourse"></select>
+    <label for="courseName">Course Name</label>
+    <input id="courseName" placeholder="Technology 1" />
 
-<label for="courseLocation">Location</label>
-<select id="courseLocation">
-  <option value="IN">IN</option>
-  <option value="MI">MI</option>
-</select>
+    <label for="courseCategory">Category</label>
+    <select id="courseCategory">
+      <option value="NTO">NTO</option>
+      <option value="Foundational">Foundational</option>
+      <option value="Advanced">Advanced</option>
+    </select>
 
-<div class="modalActions">
-  <button onclick="addCourseToSchedule()">Add</button>
-  <button onclick="closeAddCourseModal()" class="secondary">Cancel</button>
-</div>
+    <label for="courseDuration">Duration (Weeks)</label>
+    <input
+      id="courseDuration"
+      type="number"
+      min="1"
+      value="1"
+    />
 
+    <label>Default Locations</label>
 
+    <div>
+      <label>
+        <input
+          type="checkbox"
+          id="locationIN"
+          checked
+        />
+        IN
+      </label>
+
+      <label>
+        <input
+          type="checkbox"
+          id="locationMI"
+        />
+        MI
+      </label>
     </div>
+
+    <label for="frequencyMode">
+      Frequency Mode
+    </label>
+
+    <select id="frequencyMode">
+      <option value="WEIGHT">
+        Weight
+      </option>
+
+      <option value="FIXED">
+        Fixed
+      </option>
+    </select>
+
+    <label for="frequencyWeight">
+      Frequency Weight
+    </label>
+
+    <input
+      id="frequencyWeight"
+      type="number"
+      min="1"
+      value="1"
+    />
+
+    <label>
+      <input
+        type="checkbox"
+        id="courseActive"
+        checked
+      />
+      Active
+    </label>
+
+    <div class="modalActions">
+      <button onclick="saveCatalogClass()">
+        Save
+      </button>
+
+      <button
+        onclick="closeAddCourseModal()"
+        class="secondary"
+      >
+        Cancel
+      </button>
+    </div>
+
   </div>
+</div>
 <!-- EDIT EVENT MODAL -->
 <div id="eventEditMenu" class="modal hidden">
   <div class="modalContent">

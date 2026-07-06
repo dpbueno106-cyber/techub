@@ -32,9 +32,29 @@ const saveEventBtn = document.getElementById("saveEventBtn");
 const deleteEventBtn = document.getElementById("deleteEventBtn");
 const generateScheduleBtn = document.getElementById("generateScheduleBtn");
 
-const catalogCourseEl =
-  document.getElementById("catalogCourse");
+const courseNameEl =
+  document.getElementById("courseName");
 
+const courseCategoryEl =
+  document.getElementById("courseCategory");
+
+const courseDurationEl =
+  document.getElementById("courseDuration");
+
+const locationINEl =
+  document.getElementById("locationIN");
+
+const locationMIEl =
+  document.getElementById("locationMI");
+
+const frequencyModeEl =
+  document.getElementById("frequencyMode");
+
+const frequencyWeightEl =
+  document.getElementById("frequencyWeight");
+
+const courseActiveEl =
+  document.getElementById("courseActive");
 const courseLocationEl =
   document.getElementById("courseLocation");
 const addCourseModalEl = document.getElementById("addCourseModal");
@@ -60,7 +80,7 @@ const firebaseConfig = {
 let catalogCourses = [];
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-let instructorColors = {};
+
 // =========================
 // INSTRUCTOR HELPERS
 // =========================
@@ -74,23 +94,46 @@ async function loadInstructors() {
   console.log("Loaded instructors:", instructors);
 }
 
+async function saveCatalogClass() {
+  const defaultLocations = [];
 
-async function populateCatalogDropdown() {
-  const res = await fetch(`${API_URL}/catalog`);
+  if (locationINEl.checked) {
+    defaultLocations.push("IN");
+  }
 
-  catalogCourses = await res.json();
+  if (locationMIEl.checked) {
+    defaultLocations.push("MI");
+  }
 
-  catalogCourseEl.innerHTML = "";
+  const payload = {
+    name: courseNameEl.value.trim(),
+    category: courseCategoryEl.value,
+    durationWeeks: Number(
+      courseDurationEl.value
+    ),
+    defaultLocations,
+    frequencyMode:
+      frequencyModeEl.value,
+    frequencyWeight: Number(
+      frequencyWeightEl.value
+    ),
+    isActive:
+      courseActiveEl.checked
+  };
 
-  catalogCourses.forEach(course => {
-    const option = document.createElement("option");
-
-    option.value = course.id;
-    option.textContent = course.name;
-
-    catalogCourseEl.appendChild(option);
+  await fetch(`${API_URL}/catalog`, {
+    method: "POST",
+    headers: {
+      "Content-Type":
+        "application/json"
+    },
+    body: JSON.stringify(payload)
   });
+
+  closeAddCourseModal();
+  loadCatalog();
 }
+
 
 function buildInstructorColors() {
   instructorColors = {};
@@ -192,35 +235,7 @@ editEventInstructorEl.onchange = () => {
   eventEditMenuEl.classList.remove("hidden");
 }
 
-function addCourseToSchedule() {
-  const selectedCourse =
-    catalogCourses.find(
-      c => c.id === catalogCourseEl.value
-    );
 
-  if (!selectedCourse) {
-    alert("Please select a course.");
-    return;
-  }
-
-  const today = new Date();
-
-  renderCalendarFromSchedule([
-    {
-      className: selectedCourse.name,
-      category: selectedCourse.category,
-      location: courseLocationEl.value,
-      instructorId: null,
-      durationWeeks: selectedCourse.durationWeeks,
-      weekStartDate:
-        today.toISOString().split("T")[0]
-    }
-  ], false);
-
-  renderInstructorWorkloadFromCalendar();
-
-  closeAddCourseModal();
-}
 
 
 function closeEditModal() {
@@ -228,12 +243,30 @@ function closeEditModal() {
   selectedEvent = null;
 }
 
-async function openAddCourseModal() {
-  await populateCatalogDropdown();
+function openAddCourseModal() {
+  courseNameEl.value = "";
 
-  addCourseModalEl.classList.remove("hidden");
-  document.body.style.overflow = "hidden";
+  courseCategoryEl.value =
+    "Foundational";
+
+  courseDurationEl.value = 1;
+
+  locationINEl.checked = true;
+  locationMIEl.checked = false;
+
+  frequencyModeEl.value = "WEIGHT";
+  frequencyWeightEl.value = 1;
+
+  courseActiveEl.checked = true;
+
+  addCourseModalEl.classList.remove(
+    "hidden"
+  );
+
+  document.body.style.overflow =
+    "hidden";
 }
+
 
 function closeAddCourseModal() {
   addCourseModalEl.classList.add("hidden");
