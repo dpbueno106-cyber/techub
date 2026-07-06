@@ -45,6 +45,22 @@ export function assignInstructors(
     if (slot.instructorId) {
       return slot;
     }
+      console.log(
+  "INSTRUCTORS",
+  instructors.map(i => ({
+    id: i.id,
+    capabilities: i.capabilities,
+    homeLocation: i.homeLocation,
+    canTravel: i.canTravel,
+    maxClasses: i.maxClasses
+  }))
+);
+
+console.log("SLOT", {
+  className: slot.className,
+  category: slot.category,
+  location: slot.location
+});
 
     const eligible = instructors.filter(i => {
       const allowedByClass =

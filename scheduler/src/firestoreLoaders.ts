@@ -77,7 +77,10 @@ export async function loadInstructorsFromFirestore(): Promise<Instructor[]> {
   canTravel: instructorData?.canTravel ?? []
 });
   }
-  console.log(instructors);
+  console.log(
+  "Loaded instructors:",
+  instructors.length
+);
   return instructors;
 }
 
