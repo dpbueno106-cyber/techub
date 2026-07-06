@@ -6,6 +6,7 @@ let adminCalendar = null;
 let draggableInstance = null;
 let selectedEvent = null;
 let instructors = [];
+let instructorColors = {};
 
 /*const defaultInstructorNames = [
   "Aaron", "Jesse", "Marc", "Leon",
