@@ -57,7 +57,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-
+let instructorColors = {};
 // =========================
 // INSTRUCTOR HELPERS
 // =========================
@@ -69,6 +69,17 @@ async function loadInstructors() {
   instructors = snap.docs.map(doc => doc.data());
 
   console.log("Loaded instructors:", instructors);
+}
+
+function buildInstructorColors() {
+  instructorColors = {};
+
+  instructors.forEach((inst, index) => {
+    instructorColors[inst.id] =
+      colorPalette[index % colorPalette.length];
+  });
+
+  console.log("Instructor colors:", instructorColors);
 }
 
 
@@ -191,14 +202,14 @@ async function saveCatalogClass() {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      name: courseNameEl.value.trim(),
-      category: "Foundational",
-      durationWeeks: Number(courseDurationEl.value),
-      defaultLocations: ["IN"],
-      frequencyMode: "WEIGHT",
-      frequencyWeight: 1,
-      isActive: true
-    })
+  name: courseNameEl.value.trim(),
+  category: courseCategoryEl.value,
+  durationWeeks: Number(courseDurationEl.value),
+  defaultLocations: [courseLocationEl.value],
+  frequencyMode: frequencyModeEl.value,
+  frequencyWeight: Number(frequencyWeightEl.value),
+  isActive: activeEl.checked
+})
   });
 
   closeAddCourseModal();
@@ -402,7 +413,11 @@ function renderInstructorLegend() {
     swatch.style.marginRight = "6px";
     swatch.style.borderRadius = "3px";
     swatch.style.backgroundColor =
-      getInstructorColor(instructor.id);
+  colorPalette[
+    instructors.findIndex(
+      i => i.id === instructor.id
+    ) % colorPalette.length
+  ];
 
     const label = document.createElement("span");
     label.textContent =
@@ -454,26 +469,13 @@ const colorPalette = [
   "#90a4ae"
 ];
 
-function hashCode(str = "") {
-  let h = 0;
 
-  for (let i = 0; i < str.length; i++) {
-    h = str.charCodeAt(i) + ((h << 5) - h);
-  }
 
-  return h;
-}
-
-function getInstructorColor(instructorIdentifier) {
-  if (!instructorIdentifier) {
-    return "#9e9e9e";
-  }
-
-  const index =
-    Math.abs(hashCode(instructorIdentifier)) %
-    colorPalette.length;
-
-  return colorPalette[index];
+function getInstructorColor(instructorId) {
+  return (
+    instructorColors[instructorId] ||
+    "#9e9e9e"
+  );
 }
 
 function getContrastTextColor(hex) {
@@ -557,7 +559,9 @@ window.addEventListener("DOMContentLoaded", () => {
       return;
     }
     await loadInstructors();
-    initCalendar();
+buildInstructorColors();
+
+initCalendar();
     loadCatalog();
     renderInstructorLegend();
     const loaded = await loadSavedSchedule();
