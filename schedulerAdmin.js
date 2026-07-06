@@ -619,7 +619,7 @@ async function loadSavedSchedule() {
 
 
 function renderScheduleAnalytics() {
-  if (!scheduleAnalyticsEl) return;
+ 
 
   const events =
     adminCalendar.getEvents();
@@ -776,6 +776,7 @@ Object.assign(window, {
   openAddCourseModal,
   closeAddCourseModal,
   saveCatalogClass,
+  renderScheduleAnalytics,
   goBack: () => window.location.href = "adminDashboard.html",
   openEditModal,
   closeEditModal,
