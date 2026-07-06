@@ -1,32 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Manage Instructors</title>
+
+  <link rel="stylesheet" href="manageInstructors.css">
 </head>
-<link rel="stylesheet" href="manageInstructors.css" />
+
 <body>
-  <h1>Manage Instructors</h1>
-<button class="back-btn" onclick="window.location.href='adminScheduleManagement.html'">
-  Back to Schedule
-</button>
-  <form id="addInstructorForm">
-    <input id="name" placeholder="Name" required />
-    <input id="email" type="email" placeholder="Email" required />
-    <select id="homeLocation">
-      <option value="IN">IN</option>
-      <option value="MI">MI</option>
-    </select>
-    <label>
-      <input type="checkbox" id="canTravel" />
-      Can Travel
-    </label>
-    <button type="submit">Add Instructor</button>
-  </form>
 
-  <h2>Existing Instructors</h2>
-  <ul id="instructorList"></ul>
+  <div class="page-container">
 
-  <script type="module" src="manageInstructors.js"></script>
+    <h1>Manage Instructors</h1>
+
+    <button class="back-btn" onclick="window.location.href='instructors.html'">Back to Schedule</button>
+    <!-- Add Instructor -->
+
+    <div class="section">
+
+      <h2>Add Instructor</h2>
+
+      <form id="addInstructorForm">
+
+        <input
+          id="instructorId"
+          type="text"
+          placeholder="Instructor ID (aaron)"
+          required
+        >
+
+        <input
+          id="name"
+          type="text"
+          placeholder="Instructor Name"
+          required
+        >
+
+        <input
+          id="email"
+          type="email"
+          placeholder="Email"
+        >
+
+        <select id="homeLocation">
+          <option value="IN">Indianapolis (IN)</option>
+          <option value="MI">Michigan (MI)</option>
+        </select>
+
+        <input
+          id="maxClasses"
+          type="number"
+          min="0"
+          value="20"
+          placeholder="Max Classes"
+        >
+
+        <label class="travel-option">
+          <input
+            type="checkbox"
+            id="canTravel"
+            checked
+          >
+          Can Travel
+        </label>
+
+        <button type="submit">
+          Add Instructor
+        </button>
+
+      </form>
+
+    </div>
+
+    <!-- Existing Instructors -->
+
+    <div class="section">
+
+      <h2>Existing Instructors</h2>
+
+      <div id="instructorList"></div>
+
+    </div>
+
+  </div>
+
+  <script
+    type="module"
+    src="manageInstructors.js">
+  </script>
+
 </body>
+
 </html>

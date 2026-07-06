@@ -22,7 +22,23 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+const instructorIdEl =
+  document.getElementById("instructorId");
 
+const nameEl =
+  document.getElementById("name");
+
+const emailEl =
+  document.getElementById("email");
+
+const homeLocationEl =
+  document.getElementById("homeLocation");
+
+const maxClassesEl =
+  document.getElementById("maxClasses");
+
+const canTravelEl =
+  document.getElementById("canTravel");
 const listEl = document.getElementById("instructorList");
 
 // =========================
@@ -39,6 +55,48 @@ async function loadCapabilities() {
 // =========================
 // LOAD INSTRUCTORS
 // =========================
+addInstructorForm.addEventListener(
+  "submit",
+  async e => {
+
+    e.preventDefault();
+
+    await setDoc(
+      doc(
+        db,
+        "instructors",
+        instructorIdEl.value.trim()
+      ),
+      {
+        id: instructorIdEl.value.trim(),
+
+        name: nameEl.value.trim(),
+
+        email: emailEl.value.trim(),
+
+        homeLocation:
+          homeLocationEl.value,
+
+        canTravel:
+          canTravelEl.checked,
+
+        capabilities: [],
+
+        availability: [],
+
+        maxClasses:
+          Number(maxClassesEl.value)
+      }
+    );
+
+    alert("Instructor created");
+
+    loadInstructors();
+  }
+);
+
+
+
 async function loadInstructors() {
   listEl.innerHTML = "Loading instructors...";
 
@@ -67,7 +125,7 @@ async function loadInstructors() {
     const form = document.createElement("div");
     form.className = "capability-form";
 
-    // ✅ Build checkboxes from CATALOG (not categories)
+    //  Build checkboxes from CATALOG (not categories)
     catalogCapabilities.forEach(cap => {
       const label = document.createElement("label");
       label.style.display = "block";

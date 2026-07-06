@@ -263,14 +263,8 @@ async function loadUsers() {
       }, { merge: true });
 
       //  create instructor profile
-      if (newRole === "instructor") {
-        await setDoc(doc(db, "instructors", uid), {
-          email: data.email,
-          capabilities: [],
-          availability: [],
-          maxClasses: 2
-        }, { merge: true });
-      }
+      
+
 
       console.log(`Updated ${data.email} → ${newRole}`);
 

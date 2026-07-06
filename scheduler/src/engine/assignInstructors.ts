@@ -9,13 +9,19 @@ function exceedsConsecutiveLimit(
   const weeks = new Set(assignedWeeks);
   weeks.add(nextWeek);
 
-  let streak = 0;
-  for (let w = nextWeek; weeks.has(w); w--) {
+  let streak = 1;
+
+  // check backward
+  for (let w = nextWeek - 1; weeks.has(w); w--) {
     streak++;
-    if (streak > maxConsecutive) return true;
   }
 
-  return false;
+  // check forward
+  for (let w = nextWeek + 1; weeks.has(w); w++) {
+    streak++;
+  }
+
+  return streak > maxConsecutive;
 }
 
 export function assignInstructors(
@@ -25,7 +31,6 @@ export function assignInstructors(
     maxConsecutiveWeeks: number;
   }
 ): ClassSlot[] {
-
   const assignmentsByInstructor = new Map<string, number[]>();
 
   instructors.forEach(i => {
@@ -36,50 +41,56 @@ export function assignInstructors(
     slots.length / Math.max(instructors.length, 1);
 
   return slots.map(slot => {
-    // Skip manual overrides (future‑safe)
-    if (slot.instructorId) return slot;
+    // Skip manual overrides
+    if (slot.instructorId) {
+      return slot;
+    }
 
     const eligible = instructors.filter(i => {
-  const allowedByClass =
-    !slot.possibleInstructors ||
-    slot.possibleInstructors.includes(i.id);
+      const allowedByClass =
+        !slot.possibleInstructors ||
+        slot.possibleInstructors.includes(i.id);
 
-  const canTeach =
-    !i.canTeach || i.canTeach.includes(slot.category);
+      const canTeach =
+        !i.capabilities ||
+        i.capabilities.includes(slot.category);
 
-  const canBeThere =
-    slot.location === i.homeLocation || i.canTravel;
+      const canBeThere =
+        slot.location === i.homeLocation ||
+        i.canTravel;
 
-  const assignedWeeks =
-    assignmentsByInstructor.get(i.id) ?? [];
+      const assignedWeeks =
+        assignmentsByInstructor.get(i.id) ?? [];
 
-  const hasConflict =
-    assignedWeeks.includes(slot.weekNumber);
+      const hasConflict =
+        assignedWeeks.includes(slot.weekNumber);
 
-  const maxWeeks =
-    generationConfig.maxConsecutiveWeeks ?? 2;
+      const wouldExceed =
+        exceedsConsecutiveLimit(
+          assignedWeeks,
+          slot.weekNumber,
+          generationConfig.maxConsecutiveWeeks ?? 2
+        );
 
-  const wouldExceed =
-    exceedsConsecutiveLimit(
-      assignedWeeks,
-      slot.weekNumber,
-      maxWeeks
-    );
+      const underMaxClasses =
+        assignedWeeks.length <
+        (i.maxClasses ?? Number.MAX_SAFE_INTEGER);
 
-  return (
-    allowedByClass &&
-    canTeach &&
-    canBeThere &&
-    !hasConflict &&
-    !wouldExceed
-  );
-});
-
+      return (
+        allowedByClass &&
+        canTeach &&
+        canBeThere &&
+        !hasConflict &&
+        !wouldExceed &&
+        underMaxClasses
+      );
+    });
 
     if (eligible.length === 0) {
       console.warn(
         `No eligible instructor for ${slot.className} (week ${slot.weekNumber})`
       );
+
       return slot;
     }
 
@@ -98,6 +109,7 @@ export function assignInstructors(
     });
 
     scored.sort((a, b) => a.score - b.score);
+
     const chosen = scored[0].instructor;
 
     assignmentsByInstructor
