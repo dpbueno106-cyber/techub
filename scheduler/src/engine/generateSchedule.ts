@@ -22,7 +22,7 @@ export function generateSchedule(
 
   // 2. Initialize schedule state
   let slots: ClassSlot[] = [];
-  let usedWeeks = new Set<number>();
+  
 
   // 3. Place NTO (additive, optional)
   if (generationConfig.nto.enabled) {
@@ -33,7 +33,7 @@ export function generateSchedule(
     );
 
     slots = ntoResult.slots;
-    usedWeeks = ntoResult.usedWeeks;
+    
   }
 
   // 4. Determine remaining capacity
@@ -43,14 +43,21 @@ export function generateSchedule(
     0
   );
 
-  // 5. Generate remaining classes (config-driven)
-  const nonNTOSlots = classSlotGenerator(
-    weeks,
-    catalog,
-    usedWeeks,
-    reservedForNonNTO,
-    generationConfig
+const weekUsage = new Map<number, number>();
+
+slots.forEach(slot => {
+  weekUsage.set(
+    slot.weekNumber,
+    (weekUsage.get(slot.weekNumber) ?? 0) + 1
   );
+});
+const nonNTOSlots = classSlotGenerator(
+  weeks,
+  catalog,
+  reservedForNonNTO,
+  weekUsage,
+  generationConfig
+);
 
   slots = [...slots, ...nonNTOSlots];
 

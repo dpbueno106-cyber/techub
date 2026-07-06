@@ -20,6 +20,48 @@ app.use((0, cors_1.default)({
 // =========================
 // ROUTES
 // =========================
+app.delete("/catalog/:id", async (req, res) => {
+    const { id } = req.params;
+    try {
+        await firebase_1.db.collection("catalog").doc(id).update({
+            isActive: false
+        });
+        res.json({ success: true });
+    }
+    catch (err) {
+        console.error("Failed to delete catalog item", err);
+        res.status(500).json({ error: "Failed to remove course" });
+    }
+});
+app.post("/config/generation", async (req, res) => {
+    try {
+        await firebase_1.db
+            .collection("config")
+            .doc("generation")
+            .set(req.body, { merge: true });
+        res.json({ success: true });
+    }
+    catch (err) {
+        console.error("Failed to save config:", err);
+        res.status(500).json({
+            error: "Failed to save config"
+        });
+    }
+});
+app.get("/config/generation", async (_req, res) => {
+    try {
+        const config = await (0, firestoreLoaders_1.loadConfigFromFirestore)();
+        res.json(config);
+    }
+    catch (err) {
+        console.error("Failed to load config:", err);
+        res.status(500).json({
+            error: err instanceof Error
+                ? err.message
+                : "Failed to load config"
+        });
+    }
+});
 app.get("/schedule", async (_req, res) => {
     try {
         const config = await (0, firestoreLoaders_1.loadConfigFromFirestore)();
@@ -45,6 +87,23 @@ app.get("/schedule", async (_req, res) => {
             error: err instanceof Error ? err.message : "Failed to fetch schedule"
         });
     }
+});
+app.get("/schedule/load", async (req, res) => {
+    const year = req.query.year;
+    const doc = await firebase_1.db.collection("schedules").doc(String(year)).get();
+    if (!doc.exists) {
+        return res.json({ slots: [] });
+    }
+    res.json(doc.data());
+});
+app.post("/schedule/save", async (req, res) => {
+    const { year, slots } = req.body;
+    await firebase_1.db.collection("schedules").doc(String(year)).set({
+        year,
+        slots,
+        updatedAt: new Date()
+    });
+    res.json({ success: true });
 });
 app.get("/catalog", async (_req, res) => {
     try {

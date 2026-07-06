@@ -23,8 +23,12 @@ app.get("/schedule", async (_req, res) => {
                 error: "Catalog is empty"
             });
         }
-        const schedule = (0, generateSchedule_1.generateSchedule)(config, catalog, instructors ?? []);
-        const instructorById = new Map((instructors ?? []).map((i) => [i.id, i.name]));
+        const catalogWithPossibleInstructors = (0, firestoreLoaders_1.attachPossibleInstructors)(catalog, instructors);
+        const schedule = (0, generateSchedule_1.generateSchedule)(config, catalogWithPossibleInstructors, instructors ?? []);
+        const instructorById = new Map((instructors ?? []).map((i) => [
+            i.id,
+            i.name || i.email || "Unknown"
+        ]));
         const formattedSchedule = schedule.map(slot => ({
             weekStartDate: slot.weekStartDate,
             classId: slot.classId,

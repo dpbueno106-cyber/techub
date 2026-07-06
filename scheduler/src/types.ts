@@ -35,17 +35,17 @@ export interface ClassDefinition {
 export interface GenerationConfig {
   year: number;
   totalClasses: number;
+  maxConsecutiveWeeks: number;
+  maxClassesPerWeek: number;
 
   categoryCaps: {
     Foundational: number;
     Advanced: number;
   };
 
-  maxConsecutiveWeeks: number;
-
   nto: {
     enabled: boolean;
-    locations: ("IN" | "MI")[];
+    locations: Location[];
   };
 }
 export interface RecommendedInstructor {

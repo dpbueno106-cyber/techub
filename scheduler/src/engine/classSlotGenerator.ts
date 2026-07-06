@@ -11,19 +11,21 @@ import type {
  * - WEIGHT distribution within category
  * - MIN_MAX guarantees
  */
+
 export function classSlotGenerator(
   weeks: WeekSlot[],
   catalog: ClassDefinition[],
-  usedWeeks: Set<number>,
   remainingSlots: number,
+  weekUsage: Map<number, number>,
   generationConfig: {
-    categoryCaps: {
-      Foundational: number;
-      Advanced: number;
-    };
-  }
+  categoryCaps: {
+    Foundational: number;
+    Advanced: number;
+  };
+  maxClassesPerWeek: number;
+}
 ): ClassSlot[] {
-
+  
   const slots: ClassSlot[] = [];
   const active = catalog.filter(c => c.isActive);
 
@@ -87,6 +89,26 @@ function instructorPenalty(
 
   return penalty;
 }
+
+function getWeekUsage(
+  weekNumber: number,
+  weekUsage: Map<number, number>
+) {
+  return weekUsage.get(weekNumber) ?? 0;
+}
+function getLeastUsedWeeks(
+  weeks: WeekSlot[],
+  weekUsage: Map<number, number>
+): WeekSlot[] {
+  return [...weeks]
+    .filter(w => !w.blocked)
+    .sort(
+      (a, b) =>
+        (weekUsage.get(a.weekNumber) ?? 0) -
+        (weekUsage.get(b.weekNumber) ?? 0)
+    );
+}
+
 function scoreClass(
   cls: ClassDefinition,
   weekIndex: number
@@ -127,15 +149,20 @@ score -= instructorPenalty(cls, weekIndex);
       const weekIndex = weeks.findIndex(
   (w, idx) =>
     !w.blocked &&
-    !usedWeeks.has(w.weekNumber) &&
+    canPlaceInWeek(
+      w.weekNumber,
+      weekUsage,
+      generationConfig.maxClassesPerWeek ?? 1
+    ) &&
     scoreClass(cls, idx) !== -Infinity
 );
+
 
 const week = weekIndex >= 0 ? weeks[weekIndex] : null;
       if (!week) break;
 
      slots.push(buildSlot(cls, week));
-markUsed(week.weekNumber, cls.durationWeeks, usedWeeks);
+markWeekUsage(week.weekNumber, weekUsage);
 
 classStats[cls.name].lastWeek = weekIndex;
 classStats[cls.name].timesScheduled++;
@@ -179,11 +206,15 @@ cls.possibleInstructors?.forEach(id => {
   let foundationalCount = 0;
 
   
-
+const candidateWeeks =
+  getLeastUsedWeeks(
+    weeks,
+    weekUsage
+  );
 
 for (let i = 0; i < weeks.length && foundationalCount < maxFoundational; i++) {
   if (!foundational.length) break;
-  if (usedWeeks.has(weeks[i].weekNumber)) continue;
+  if (!canPlaceInWeek(weeks[i].weekNumber, weekUsage, generationConfig.maxClassesPerWeek ?? 1)) continue;
 
   const scored = foundational.map(cls => ({
     cls,
@@ -197,10 +228,10 @@ for (let i = 0; i < weeks.length && foundationalCount < maxFoundational; i++) {
       ? foundational[Math.floor(Math.random() * foundational.length)]
       : scored[0].cls;
 
-  const week = weeks[i];
+  const week = candidateWeeks[i];
 
   slots.push(buildSlot(chosen, week));
-  markUsed(week.weekNumber, chosen.durationWeeks, usedWeeks);
+  markWeekUsage(week.weekNumber, weekUsage);
 
   classStats[chosen.name].lastWeek = i;
   classStats[chosen.name].timesScheduled++;
@@ -227,7 +258,7 @@ for (
   let i = 0; i < weeks.length && advancedCount < remainingAfterFoundational; i++
 ) {
   if (!advanced.length) break;
-  if (usedWeeks.has(weeks[i].weekNumber)) continue;
+  if (!canPlaceInWeek(weeks[i].weekNumber, weekUsage, generationConfig.maxClassesPerWeek ?? 1)) continue;
 
   const scored = advanced.map(cls => ({
     cls,
@@ -244,8 +275,11 @@ for (
   const week = weeks[i];
 
   slots.push(buildSlot(chosen, week));
-  markUsed(week.weekNumber, chosen.durationWeeks, usedWeeks);
 
+markWeekUsage(
+  week.weekNumber,
+  weekUsage
+);
   classStats[chosen.name].lastWeek = i;
   classStats[chosen.name].timesScheduled++;
   chosen.possibleInstructors?.forEach(id => {
@@ -273,14 +307,25 @@ for (
    Helpers
 ========================= */
 
-function markUsed(
-  startWeek: number,
-  duration: number,
-  used: Set<number>
+function canPlaceInWeek(
+  weekNumber: number,
+  weekUsage: Map<number, number>,
+  maxClassesPerWeek: number
+): boolean {
+  return (
+    (weekUsage.get(weekNumber) ?? 0) <
+    maxClassesPerWeek
+  );
+}
+
+function markWeekUsage(
+  weekNumber: number,
+  weekUsage: Map<number, number>
 ) {
-  for (let i = 0; i < duration; i++) {
-    used.add(startWeek + i);
-  }
+  weekUsage.set(
+    weekNumber,
+    (weekUsage.get(weekNumber) ?? 0) + 1
+  );
 }
 
 function buildSlot(

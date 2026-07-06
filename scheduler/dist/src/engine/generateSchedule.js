@@ -11,18 +11,19 @@ function generateSchedule(generationConfig, catalog, instructors) {
     const weeks = (0, buildWeeks_1.buildWeeks)(generationConfig.year);
     // 2. Initialize schedule state
     let slots = [];
-    let usedWeeks = new Set();
     // 3. Place NTO (additive, optional)
     if (generationConfig.nto.enabled) {
         const ntoResult = (0, placeNTO_1.placeNTO)(slots, weeks, generationConfig.nto.locations);
         slots = ntoResult.slots;
-        usedWeeks = ntoResult.usedWeeks;
     }
     // 4. Determine remaining capacity
     const ntoCount = slots.length;
     const reservedForNonNTO = Math.max(generationConfig.totalClasses - ntoCount, 0);
-    // 5. Generate remaining classes (config-driven)
-    const nonNTOSlots = (0, classSlotGenerator_1.classSlotGenerator)(weeks, catalog, usedWeeks, reservedForNonNTO, generationConfig);
+    const weekUsage = new Map();
+    slots.forEach(slot => {
+        weekUsage.set(slot.weekNumber, (weekUsage.get(slot.weekNumber) ?? 0) + 1);
+    });
+    const nonNTOSlots = (0, classSlotGenerator_1.classSlotGenerator)(weeks, catalog, reservedForNonNTO, weekUsage, generationConfig);
     slots = [...slots, ...nonNTOSlots];
     // Debug visibility (keep this)
     console.log("Slots by category:", slots.reduce((acc, s) => {
