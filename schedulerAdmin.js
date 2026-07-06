@@ -77,7 +77,7 @@ const firebaseConfig = {
   authDomain: "techub-login-system.firebaseapp.com",
   projectId: "techub-login-system"
 };
-let catalogCourses = [];
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
@@ -392,7 +392,6 @@ function renderCalendarFromSchedule(schedule, clearFirst = true) {
   schedule.forEach(slot => {
     const instructorKey =
       slot.instructorId ||
-      slot.instructorName ||
       "";
 
     const bg = getInstructorColor(instructorKey);
@@ -475,11 +474,7 @@ function renderInstructorLegend() {
     swatch.style.marginRight = "6px";
     swatch.style.borderRadius = "3px";
     swatch.style.backgroundColor =
-  colorPalette[
-    instructors.findIndex(
-      i => i.id === instructor.id
-    ) % colorPalette.length
-  ];
+  getInstructorColor(instructor.id);
 
     const label = document.createElement("span");
     label.textContent =
@@ -667,7 +662,7 @@ Object.assign(window, {
   saveSchedule,
   openAddCourseModal,
   closeAddCourseModal,
-  addCourseToSchedule,
+  saveCatalogClass,
   goBack: () => window.location.href = "adminDashboard.html",
   openEditModal,
   closeEditModal,
