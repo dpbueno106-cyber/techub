@@ -310,6 +310,7 @@ function initCalendar() {
       e.remove();
       renderCalendarFromSchedule([slot], false);
       renderInstructorWorkloadFromCalendar();
+      renderScheduleAnalytics();
     }
   });
 
@@ -568,6 +569,7 @@ renderCalendarFromSchedule(data, true);
     console.log("Generated schedule:", data);
     
     renderInstructorWorkloadFromCalendar();
+    renderScheduleAnalytics();
   } finally {
     if (generateScheduleBtn) {
       generateScheduleBtn.disabled = false;
@@ -611,9 +613,105 @@ async function loadSavedSchedule() {
 
   renderCalendarFromSchedule(data.slots, true);
   renderInstructorWorkloadFromCalendar();
+  renderScheduleAnalytics();
   return true;
 }
 
+
+function renderScheduleAnalytics() {
+  if (!scheduleAnalyticsEl) return;
+
+  const events =
+    adminCalendar.getEvents();
+
+  const instructorCounts = {};
+  const locationCounts = {};
+  const categoryCounts = {};
+  const weekCounts = {};
+
+  events.forEach(event => {
+    const instructor =
+      event.extendedProps.instructorId ||
+      "Unassigned";
+
+    const location =
+      event.extendedProps.location ||
+      "Unknown";
+
+    const category =
+      event.extendedProps.category ||
+      "Unknown";
+
+    const week =
+      event.extendedProps.weekNumber;
+
+    instructorCounts[instructor] =
+      (instructorCounts[instructor] || 0) + 1;
+
+    locationCounts[location] =
+      (locationCounts[location] || 0) + 1;
+
+    categoryCounts[category] =
+      (categoryCounts[category] || 0) + 1;
+
+    if (week) {
+      weekCounts[week] =
+        (weekCounts[week] || 0) + 1;
+    }
+  });
+
+  const maxClassesInWeek =
+    Math.max(
+      0,
+      ...Object.values(weekCounts)
+    );
+
+  const unassigned =
+    instructorCounts.Unassigned || 0;
+
+  scheduleAnalyticsEl.innerHTML = `
+    <div>
+      <strong>Total Classes:</strong>
+      ${events.length}
+    </div>
+
+    <div>
+      <strong>Unassigned:</strong>
+      ${unassigned}
+    </div>
+
+    <div>
+      <strong>Max Classes In A Week:</strong>
+      ${maxClassesInWeek}
+    </div>
+
+    <hr>
+
+    <div>
+      <strong>By Location</strong>
+      <ul>
+        ${Object.entries(locationCounts)
+          .map(
+            ([loc, count]) =>
+              `<li>${loc}: ${count}</li>`
+          )
+          .join("")}
+      </ul>
+    </div>
+
+    <div>
+      <strong>By Category</strong>
+      <ul>
+        ${Object.entries(categoryCounts)
+          .map(
+            ([cat, count]) =>
+              `<li>${cat}: ${count}</li>`
+          )
+          .join("")}
+      </ul>
+    </div>
+  `;
+}
 // =========================
 // PAGE INIT
 // =========================
@@ -635,7 +733,10 @@ initCalendar();
 
     saveEventBtn.onclick = () => {
   if (!selectedEvent) return;
-
+  const scheduleAnalyticsEl =
+  document.getElementById(
+    "scheduleAnalytics"
+  );
   const instructor = editEventInstructorEl.value;
   const location = editEventLocationEl.value;
 
@@ -651,6 +752,8 @@ initCalendar();
 
   closeEditModal();
   renderInstructorWorkloadFromCalendar();
+  renderScheduleAnalytics();
+  
 };
 
     deleteEventBtn.onclick = () => {
@@ -658,6 +761,7 @@ initCalendar();
       selectedEvent.remove();
       closeEditModal();
       renderInstructorWorkloadFromCalendar();
+      renderScheduleAnalytics();
     };
   });
 });
@@ -679,6 +783,7 @@ Object.assign(window, {
     if (confirm("Are you sure you want to clear the schedule?")) {
       adminCalendar.removeAllEvents();
       renderInstructorWorkloadFromCalendar();
+      renderScheduleAnalytics();
     }
   }
 });
