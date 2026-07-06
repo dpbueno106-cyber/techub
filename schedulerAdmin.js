@@ -634,7 +634,7 @@ Object.assign(window, {
   saveSchedule,
   openAddCourseModal,
   closeAddCourseModal,
-  saveCatalogClass,
+  addCourseToSchedule,
   goBack: () => window.location.href = "adminDashboard.html",
   openEditModal,
   closeEditModal,
@@ -643,4 +643,5 @@ Object.assign(window, {
       adminCalendar.removeAllEvents();
       renderInstructorWorkloadFromCalendar();
     }
-} });
+  }
+});
