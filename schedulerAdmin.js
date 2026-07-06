@@ -315,55 +315,34 @@ function makeExternalEventsDraggable() {
 // RENDERING
 // =========================
 
-function renderCalendarFromSchedule(schedule, clearFirst = true) {
-  if (clearFirst) adminCalendar.removeAllEvents();
+function renderInstructorLegend() {
+  const legend = document.getElementById("instructorLegend");
+  if (!legend) return;
 
-  schedule.forEach(slot => {
-    const instructorKey =
-  slot.instructorId ||
-  slot.instructorName ||
-  "";
+  legend.innerHTML = "";
 
-const bg =
-  getInstructorColor(instructorKey);
-    const tc = getContrastTextColor(bg);
+  instructors.forEach(instructor => {
+    const row = document.createElement("div");
+    row.style.display = "flex";
+    row.style.alignItems = "center";
+    row.style.marginBottom = "6px";
 
-    if (slot.category === "NTO") {
-      for (let w = 0; w < slot.durationWeeks; w++) {
-        const start = new Date(slot.weekStartDate + "T00:00:00");
-        start.setDate(start.getDate() + w * 7);
-        if (w === 0) start.setDate(start.getDate() + 1);
+    const swatch = document.createElement("span");
+    swatch.style.width = "12px";
+    swatch.style.height = "12px";
+    swatch.style.display = "inline-block";
+    swatch.style.marginRight = "6px";
+    swatch.style.borderRadius = "3px";
+    swatch.style.backgroundColor =
+      getInstructorColor(instructor.id);
 
-        const end = new Date(start);
-        end.setDate(end.getDate() + (w === 0 ? 4 : 5));
+    const label = document.createElement("span");
+    label.textContent =
+      instructor.name || instructor.id;
 
-        adminCalendar.addEvent({
-          title: `${slot.className} (${slot.location})`,
-          start: start.toLocaleDateString("en-CA"),
-          end: end.toLocaleDateString("en-CA"),
-          allDay: true,
-          backgroundColor: bg,
-          borderColor: bg,
-          textColor: tc,
-          extendedProps: { ...slot }
-        });
-      }
-    } else {
-      const start = new Date(slot.weekStartDate + "T00:00:00");
-      const end = new Date(start);
-      end.setDate(end.getDate() + 5);
-
-      adminCalendar.addEvent({
-        title: `${slot.className} (${slot.location})`,
-        start: start.toLocaleDateString("en-CA"),
-        end: end.toLocaleDateString("en-CA"),
-        allDay: true,
-        backgroundColor: bg,
-        borderColor: bg,
-        textColor: tc,
-        extendedProps: { ...slot }
-      });
-    }
+    row.appendChild(swatch);
+    row.appendChild(label);
+    legend.appendChild(row);
   });
 }
 

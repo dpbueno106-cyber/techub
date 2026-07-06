@@ -43,44 +43,32 @@ export async function loadCatalogFromFirestore(): Promise<ClassDefinition[]> {
 // =========================
 
 export async function loadInstructorsFromFirestore(): Promise<Instructor[]> {
-
-  const userSnapshot = await db
+  const snapshot = await db
     .collection("instructors")
-    .where("role", "==", "instructor")
     .get();
 
-  const instructors: Instructor[] = [];
+  const instructors: Instructor[] = snapshot.docs.map(doc => {
+    const data = doc.data();
 
-  for (const userDoc of userSnapshot.docs) {
+    return {
+      id: doc.id,
+      email: data.email ?? "",
+      name: data.name ?? data.email ?? doc.id,
 
-    const userData = userDoc.data();
+      capabilities: data.capabilities ?? [],
+      availability: data.availability ?? [],
+      maxClasses: data.maxClasses ?? 20,
 
-    const instructorDoc = await db
-      .collection("instructors")
-      .doc(userDoc.id)
-      .get();
+      homeLocation: data.homeLocation ?? "IN",
+      canTravel: data.canTravel ?? false
+    };
+  });
 
-    const instructorData = instructorDoc.exists
-      ? instructorDoc.data()
-      : {};
-
-    instructors.push({
-  id: userDoc.id,
-  email: userData.email,
-  name: userData.name ?? userData.email,
-
-  capabilities: instructorData?.capabilities ?? [],
-  availability: instructorData?.availability ?? [],
-  maxClasses: instructorData?.maxClasses ?? 2,
-
-  homeLocation: instructorData?.homeLocation ?? "IN",
-  canTravel: instructorData?.canTravel ?? []
-});
-  }
   console.log(
-  "Loaded instructors:",
-  instructors.length
-);
+    "Loaded instructors:",
+    instructors.length
+  );
+
   return instructors;
 }
 
@@ -95,11 +83,10 @@ export function attachPossibleInstructors(
   return catalog.map(cls => {
 
     const possibleInstructors = instructors
-      .filter(inst =>
-        inst.capabilities?.includes(cls.category)
-      )
-      .map(inst => inst.id);
-
+  .filter(inst =>
+    inst.capabilities?.includes(cls.name)
+  )
+  .map(inst => inst.id);
     return {
       ...cls,
       possibleInstructors
