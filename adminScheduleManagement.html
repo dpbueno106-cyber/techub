@@ -54,22 +54,20 @@
 
       <h2>Add Course</h2>
 
-      <input id="courseName" placeholder="Course Name" />
+<label for="catalogCourse">Course</label>
+<select id="catalogCourse"></select>
 
-      <select id="courseLocation">
-        <option value="IN">IN</option>
-        <option value="MI">MI</option>
-      </select>
+<label for="courseLocation">Location</label>
+<select id="courseLocation">
+  <option value="IN">IN</option>
+  <option value="MI">MI</option>
+</select>
 
-      <input id="courseDuration" type="number" placeholder="Duration (weeks)" />
+<div class="modalActions">
+  <button onclick="addCourseToSchedule()">Add</button>
+  <button onclick="closeAddCourseModal()" class="secondary">Cancel</button>
+</div>
 
-     <!--- <label for="courseInstructor">Instructor</label>
-<select id="courseInstructor"></select> -->
-
-      <div class="modalActions">
-        <button onclick="saveCatalogClass()">Add</button>
-        <button onclick="closeAddCourseModal()" class="secondary">Cancel</button>
-      </div>
 
     </div>
   </div>

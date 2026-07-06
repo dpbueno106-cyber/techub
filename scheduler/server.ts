@@ -38,6 +38,40 @@ app.delete("/catalog/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to remove course" });
   }
 });
+
+app.post("/config/generation", async (req, res) => {
+  try {
+    await db
+      .collection("config")
+      .doc("generation")
+      .set(req.body, { merge: true });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Failed to save config:", err);
+
+    res.status(500).json({
+      error: "Failed to save config"
+    });
+  }
+});
+
+app.get("/config/generation", async (_req, res) => {
+  try {
+    const config = await loadConfigFromFirestore();
+
+    res.json(config);
+  } catch (err) {
+    console.error("Failed to load config:", err);
+
+    res.status(500).json({
+      error: err instanceof Error
+        ? err.message
+        : "Failed to load config"
+    });
+  }
+});
+
 app.get("/schedule", async (_req, res) => {
   try {
     const config = await loadConfigFromFirestore();

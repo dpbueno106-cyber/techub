@@ -32,8 +32,11 @@ const saveEventBtn = document.getElementById("saveEventBtn");
 const deleteEventBtn = document.getElementById("deleteEventBtn");
 const generateScheduleBtn = document.getElementById("generateScheduleBtn");
 
-const courseNameEl = document.getElementById("courseName");
-const courseDurationEl = document.getElementById("courseDuration");
+const catalogCourseEl =
+  document.getElementById("catalogCourse");
+
+const courseLocationEl =
+  document.getElementById("courseLocation");
 const addCourseModalEl = document.getElementById("addCourseModal");
 const eventEditMenuEl = document.getElementById("eventEditMenu");
 
@@ -54,7 +57,7 @@ const firebaseConfig = {
   authDomain: "techub-login-system.firebaseapp.com",
   projectId: "techub-login-system"
 };
-
+let catalogCourses = [];
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 let instructorColors = {};
@@ -69,6 +72,24 @@ async function loadInstructors() {
   instructors = snap.docs.map(doc => doc.data());
 
   console.log("Loaded instructors:", instructors);
+}
+
+
+async function populateCatalogDropdown() {
+  const res = await fetch(`${API_URL}/catalog`);
+
+  catalogCourses = await res.json();
+
+  catalogCourseEl.innerHTML = "";
+
+  catalogCourses.forEach(course => {
+    const option = document.createElement("option");
+
+    option.value = course.id;
+    option.textContent = course.name;
+
+    catalogCourseEl.appendChild(option);
+  });
 }
 
 function buildInstructorColors() {
@@ -171,14 +192,45 @@ editEventInstructorEl.onchange = () => {
   eventEditMenuEl.classList.remove("hidden");
 }
 
+function addCourseToSchedule() {
+  const selectedCourse =
+    catalogCourses.find(
+      c => c.id === catalogCourseEl.value
+    );
+
+  if (!selectedCourse) {
+    alert("Please select a course.");
+    return;
+  }
+
+  const today = new Date();
+
+  renderCalendarFromSchedule([
+    {
+      className: selectedCourse.name,
+      category: selectedCourse.category,
+      location: courseLocationEl.value,
+      instructorId: null,
+      durationWeeks: selectedCourse.durationWeeks,
+      weekStartDate:
+        today.toISOString().split("T")[0]
+    }
+  ], false);
+
+  renderInstructorWorkloadFromCalendar();
+
+  closeAddCourseModal();
+}
+
+
 function closeEditModal() {
   eventEditMenuEl.classList.add("hidden");
   selectedEvent = null;
 }
 
-function openAddCourseModal() {
-  courseNameEl.value = "";
-  courseDurationEl.value = 1;
+async function openAddCourseModal() {
+  await populateCatalogDropdown();
+
   addCourseModalEl.classList.remove("hidden");
   document.body.style.overflow = "hidden";
 }
@@ -192,29 +244,6 @@ function closeAddCourseModal() {
 // CATALOG
 // =========================
 
-async function saveCatalogClass() {
-  if (!courseNameEl.value || !courseDurationEl.value) {
-    alert("Course name and duration are required");
-    return;
-  }
-
-  await fetch(`${API_URL}/catalog`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-  name: courseNameEl.value.trim(),
-  category: courseCategoryEl.value,
-  durationWeeks: Number(courseDurationEl.value),
-  defaultLocations: [courseLocationEl.value],
-  frequencyMode: frequencyModeEl.value,
-  frequencyWeight: Number(frequencyWeightEl.value),
-  isActive: activeEl.checked
-})
-  });
-
-  closeAddCourseModal();
-  loadCatalog();
-}
 
 // =========================
 // CALENDAR INIT
