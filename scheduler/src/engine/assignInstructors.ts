@@ -73,7 +73,7 @@ console.log("SLOT", {
   slot.className.trim().toLowerCase();
 
 const canTeach =
-  i.capabilities?.some(
+  (i.capabilities ?? []).some(
     cap =>
       cap.trim().toLowerCase() ===
       normalizedClass

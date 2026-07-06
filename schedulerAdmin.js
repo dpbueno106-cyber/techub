@@ -557,8 +557,16 @@ async function generateSchedule() {
   try {
     const res = await fetch(`${API_URL}/schedule`);
     const data = await res.json();
+
+if (!Array.isArray(data)) {
+  console.error("Schedule API error", data);
+  alert(data.error || "Failed to generate schedule.");
+  return;
+}
+
+renderCalendarFromSchedule(data, true);
     console.log("Generated schedule:", data);
-    renderCalendarFromSchedule(data, true);
+    
     renderInstructorWorkloadFromCalendar();
   } finally {
     if (generateScheduleBtn) {

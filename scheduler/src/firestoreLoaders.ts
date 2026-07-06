@@ -48,7 +48,22 @@ export async function loadInstructorsFromFirestore(): Promise<Instructor[]> {
     .get();
 
   const instructors: Instructor[] = snapshot.docs.map(doc => {
-    const data = doc.data();
+  const data = doc.data();
+
+  return {
+    id: doc.id,
+    email: data.email ?? "",
+    name: data.name ?? data.email ?? doc.id,
+
+    capabilities: data.capabilities ?? [],
+    availability: data.availability ?? [],
+    maxClasses: data.maxClasses ?? 20,
+
+    homeLocation: data.homeLocation ?? "IN",
+    canTravel: data.canTravel ?? false
+  };
+});
+
 console.log(
   "Loaded instructors:",
   instructors.map(i => ({
@@ -57,24 +72,7 @@ console.log(
     maxClasses: i.maxClasses
   }))
 );
-    return {
-      id: doc.id,
-      email: data.email ?? "",
-      name: data.name ?? data.email ?? doc.id,
 
-      capabilities: data.capabilities ?? [],
-      availability: data.availability ?? [],
-      maxClasses: data.maxClasses ?? 20,
-
-      homeLocation: data.homeLocation ?? "IN",
-      canTravel: data.canTravel ?? false
-    };
-  });
-
-  console.log(
-    "Loaded instructors:",
-    instructors.length
-  );
 
   return instructors;
 }
