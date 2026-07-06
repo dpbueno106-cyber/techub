@@ -100,27 +100,23 @@ addInstructorForm.addEventListener(
 async function loadInstructors() {
   listEl.innerHTML = "Loading instructors...";
 
-  const [catalogCapabilities, instructorSnap] = await Promise.all([
+  const [catalogCapabilities, instructorSnap] =
+  await Promise.all([
     loadCapabilities(),
-    getDocs(
-      query(
-        collection(db, "users"),
-        where("role", "==", "instructor")
-      )
-    )
+    getDocs(collection(db, "instructors"))
   ]);
 
   listEl.innerHTML = "";
 
   instructorSnap.forEach(docSnap => {
-    const uid = docSnap.id;
+   const instructorId = docSnap.id;
     const data = docSnap.data();
 
     const card = document.createElement("div");
     card.className = "instructor-card";
 
     const title = document.createElement("h3");
-    title.textContent = data.email ?? uid;
+    title.textContent = data.name || data.email || instructorId;
 
     const form = document.createElement("div");
     form.className = "capability-form";
@@ -133,7 +129,7 @@ async function loadInstructors() {
       const cb = document.createElement("input");
       cb.type = "checkbox";
       cb.value = cap;
-      cb.checked = data.canTeach?.includes(cap) ?? false;
+      cb.checked = data.capabilities?.includes(cap) ?? false;
 
       label.appendChild(cb);
       label.append(` ${cap}`);
@@ -148,8 +144,8 @@ async function loadInstructors() {
       ].map(cb => cb.value);
 
       await setDoc(
-        doc(db, "users", uid),
-        { canTeach: selected },
+        doc(db, "instructors", instructorId),
+        { capabilities: selected },
         { merge: true }
       );
 

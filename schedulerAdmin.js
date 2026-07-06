@@ -80,8 +80,8 @@ function populateInstructorDropdown(selectId) {
 
   instructors.forEach(inst => {
     const opt = document.createElement("option");
-    opt.value = inst.email;   // key change
-    opt.textContent = inst.email;
+    opt.value = inst.id;
+opt.textContent = inst.name;
     select.appendChild(opt);
   });
 }
@@ -96,13 +96,22 @@ function serializeCalendarToSlots() {
 
   adminCalendar.getEvents().forEach(event => {
     const {
-      className,
-      category,
-      location,
-      instructorName,
-      durationWeeks,
-      weekStartDate
-    } = event.extendedProps;
+  className,
+  category,
+  location,
+  instructorId,
+  durationWeeks,
+  weekStartDate
+} = event.extendedProps;
+
+slots.push({
+  className,
+  category,
+  location,
+  instructorId,
+  weekStartDate,
+  durationWeeks
+});
 
     const key = `${className}-${location}-${weekStartDate}`;
     if (slots.some(s => `${s.className}-${s.location}-${s.weekStartDate}` === key)) {
@@ -134,8 +143,8 @@ function openEditModal(event) {
 
   populateInstructorDropdown("editEventInstructor");
 
-  if (event.extendedProps.instructorName) {
-    editEventInstructorEl.value = event.extendedProps.instructorName;
+  if (event.extendedProps.instructorId) {
+    editEventInstructorEl.value = event.extendedProps.instructorId;
   }
   
 editEventInstructorEl.onchange = () => {
@@ -145,7 +154,7 @@ editEventInstructorEl.onchange = () => {
     const bg = getInstructorColor(instructor);
     const text = getContrastTextColor(bg);
 
-    selectedEvent.setExtendedProp("instructorName", instructor);
+    selectedEvent.setExtendedProp("instructorId", instructor);
     selectedEvent.setProp("backgroundColor", bg);
     selectedEvent.setProp("borderColor", bg);
     selectedEvent.setProp("textColor", text);
@@ -310,7 +319,13 @@ function renderCalendarFromSchedule(schedule, clearFirst = true) {
   if (clearFirst) adminCalendar.removeAllEvents();
 
   schedule.forEach(slot => {
-    const bg = getInstructorColor(slot.instructorName);
+    const instructorKey =
+  slot.instructorId ||
+  slot.instructorName ||
+  "";
+
+const bg =
+  getInstructorColor(instructorKey);
     const tc = getContrastTextColor(bg);
 
     if (slot.category === "NTO") {
@@ -388,7 +403,10 @@ function renderInstructorWorkloadFromCalendar() {
   const counts = {};
 
   adminCalendar.getEvents().forEach(e => {
-    const inst = e.extendedProps.instructorName || "TBD";
+    const inst =
+  e.extendedProps.instructorId ||
+  e.extendedProps.instructorName ||
+  "TBD";
     counts[inst] = (counts[inst] || 0) + 1;
   });
 
@@ -401,28 +419,43 @@ function renderInstructorWorkloadFromCalendar() {
 // COLORS
 // =========================
 
-const predefinedColors = {
-  Aaron: "#4fc3f7",
-  Jesse: "#f06292",
-  Marc: "#ffca28",
-  Leon: "#81c784",
-  Mike: "#ba68c8",
-  Brandon: "#ff8a65",
-  Brad: "#4db6ac",
-  Graham: "#9575cd",
-  Kalob: "#e57373"
-};
-function hashCode(str) {
+const colorPalette = [
+  "#4fc3f7",
+  "#f06292",
+  "#ffca28",
+  "#81c784",
+  "#ba68c8",
+  "#ff8a65",
+  "#4db6ac",
+  "#9575cd",
+  "#e57373",
+  "#64b5f6",
+  "#aed581",
+  "#ffd54f",
+  "#a1887f",
+  "#90a4ae"
+];
+
+function hashCode(str = "") {
   let h = 0;
+
   for (let i = 0; i < str.length; i++) {
     h = str.charCodeAt(i) + ((h << 5) - h);
   }
+
   return h;
 }
-function getInstructorColor(name) {
-  const keys = Object.keys(predefinedColors);
-  const index = Math.abs(hashCode(name)) % keys.length;
-  return predefinedColors[keys[index]];
+
+function getInstructorColor(instructorIdentifier) {
+  if (!instructorIdentifier) {
+    return "#9e9e9e";
+  }
+
+  const index =
+    Math.abs(hashCode(instructorIdentifier)) %
+    colorPalette.length;
+
+  return colorPalette[index];
 }
 
 function getContrastTextColor(hex) {
@@ -446,6 +479,7 @@ async function generateSchedule() {
   try {
     const res = await fetch(`${API_URL}/schedule`);
     const data = await res.json();
+    console.log("Generated schedule:", data);
     renderCalendarFromSchedule(data, true);
     renderInstructorWorkloadFromCalendar();
   } finally {
@@ -476,7 +510,7 @@ editEventInstructorEl.onchange = () => {
   const bg = getInstructorColor(instructor);
   const text = getContrastTextColor(bg);
 
-  selectedEvent.setExtendedProp("instructorName", instructor);
+  selectedEvent.setExtendedProp("instructorId", instructor);
   selectedEvent.setProp("backgroundColor", bg);
   selectedEvent.setProp("borderColor", bg);
   selectedEvent.setProp("textColor", text);
@@ -517,7 +551,7 @@ window.addEventListener("DOMContentLoaded", () => {
   const instructor = editEventInstructorEl.value;
   const location = editEventLocationEl.value;
 
-  selectedEvent.setExtendedProp("instructorName", instructor);
+  selectedEvent.setExtendedProp("instructorId", instructor);
   selectedEvent.setExtendedProp("location", location);
 
   const bg = getInstructorColor(instructor);

@@ -108,7 +108,21 @@ export function assignInstructors(
       };
     });
 
-    scored.sort((a, b) => a.score - b.score);
+    scored.sort((a, b) => {
+  const scoreDiff = a.score - b.score;
+
+  if (scoreDiff !== 0) {
+    return scoreDiff;
+  }
+
+  const aAssignments =
+    assignmentsByInstructor.get(a.instructor.id)?.length ?? 0;
+
+  const bAssignments =
+    assignmentsByInstructor.get(b.instructor.id)?.length ?? 0;
+
+  return aAssignments - bAssignments;
+});
 
     const chosen = scored[0].instructor;
 
