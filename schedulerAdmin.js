@@ -5,11 +5,12 @@
 let adminCalendar = null;
 let draggableInstance = null;
 let selectedEvent = null;
+let instructors = [];
 
-const defaultInstructorNames = [
+/*const defaultInstructorNames = [
   "Aaron", "Jesse", "Marc", "Leon",
   "Mike", "Brandon", "Brad", "Graham", "Kalob"
-];
+];*/
 
 const API_URL = window.location.hostname.includes("localhost")
   ? "http://localhost:3000"
@@ -39,6 +40,11 @@ const eventEditMenuEl = document.getElementById("eventEditMenu");
 // =========================
 // FIREBASE AUTH (ADMIN ONLY)
 // =========================
+import {
+  getFirestore,
+  collection,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
@@ -55,19 +61,31 @@ const auth = getAuth(app);
 // =========================
 // INSTRUCTOR HELPERS
 // =========================
+async function loadInstructors() {
+  const db = getFirestore();
+
+  const snap = await getDocs(collection(db, "instructors"));
+
+  instructors = snap.docs.map(doc => doc.data());
+
+  console.log("Loaded instructors:", instructors);
+}
+
 
 function populateInstructorDropdown(selectId) {
   const select = document.getElementById(selectId);
   if (!select) return;
 
   select.innerHTML = "";
-  defaultInstructorNames.forEach(name => {
+
+  instructors.forEach(inst => {
     const opt = document.createElement("option");
-    opt.value = name;
-    opt.textContent = name;
+    opt.value = inst.email;   // key change
+    opt.textContent = inst.email;
     select.appendChild(opt);
   });
 }
+
 
 // =========================
 // SERIALIZATION (PERSISTENCE)
@@ -186,6 +204,7 @@ async function saveCatalogClass() {
 // =========================
 
 function initCalendar() {
+  
   adminCalendar = new FullCalendar.Calendar(calendarEl, {
     initialView: "dayGridMonth",
     height: 600,
@@ -393,9 +412,17 @@ const predefinedColors = {
   Graham: "#9575cd",
   Kalob: "#e57373"
 };
-
+function hashCode(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = str.charCodeAt(i) + ((h << 5) - h);
+  }
+  return h;
+}
 function getInstructorColor(name) {
-  return predefinedColors[name] || "#888";
+  const keys = Object.keys(predefinedColors);
+  const index = Math.abs(hashCode(name)) % keys.length;
+  return predefinedColors[keys[index]];
 }
 
 function getContrastTextColor(hex) {
@@ -477,7 +504,7 @@ window.addEventListener("DOMContentLoaded", () => {
       window.location.href = "index.html";
       return;
     }
-
+    await loadInstructors();
     initCalendar();
     loadCatalog();
     renderInstructorLegend();

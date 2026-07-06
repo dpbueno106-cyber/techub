@@ -1,3 +1,4 @@
+
 import express, { Request, Response } from "express";
 import { generateSchedule } from "./engine/generateSchedule";
 import {
@@ -39,8 +40,11 @@ const catalogWithPossibleInstructors =
     );
 
     const instructorById = new Map<string, string>(
-      (instructors ?? []).map((i: Instructor) => [i.id, i.name])
-    );
+  (instructors ?? []).map((i: Instructor) => [
+    i.id,
+    i.name || i.email || "Unknown"
+  ])
+);
 
     const formattedSchedule = schedule.map(slot => ({
       weekStartDate: slot.weekStartDate,

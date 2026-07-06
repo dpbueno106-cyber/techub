@@ -43,15 +43,42 @@ export async function loadCatalogFromFirestore(): Promise<ClassDefinition[]> {
 // =========================
 
 export async function loadInstructorsFromFirestore(): Promise<Instructor[]> {
-  const snapshot = await db
+
+  const userSnapshot = await db
     .collection("users")
     .where("role", "==", "instructor")
     .get();
 
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...(doc.data() as Omit<Instructor, "id">)
-  }));
+  const instructors: Instructor[] = [];
+
+  for (const userDoc of userSnapshot.docs) {
+
+    const userData = userDoc.data();
+
+    const instructorDoc = await db
+      .collection("instructors")
+      .doc(userDoc.id)
+      .get();
+
+    const instructorData = instructorDoc.exists
+      ? instructorDoc.data()
+      : {};
+
+    instructors.push({
+  id: userDoc.id,
+  email: userData.email,
+  name: userData.name ?? userData.email,
+
+  capabilities: instructorData?.capabilities ?? [],
+  availability: instructorData?.availability ?? [],
+  maxClasses: instructorData?.maxClasses ?? 2,
+
+  homeLocation: instructorData?.homeLocation ?? "IN",
+  canTravel: instructorData?.canTravel ?? []
+});
+  }
+
+  return instructors;
 }
 
 
@@ -61,17 +88,18 @@ export function attachPossibleInstructors(
   catalog: ClassDefinition[],
   instructors: Instructor[]
 ): ClassDefinition[] {
+
   return catalog.map(cls => {
-    // Match by level OR category (choose one)
-    const possible = instructors
-      .filter(i =>
-        i.canTeach?.includes(cls.category)
+
+    const possibleInstructors = instructors
+      .filter(inst =>
+        inst.capabilities?.includes(cls.category)
       )
-      .map(i => i.id);
+      .map(inst => inst.id);
 
     return {
       ...cls,
-      possibleInstructors: possible.length ? possible : undefined
+      possibleInstructors
     };
   });
 }
