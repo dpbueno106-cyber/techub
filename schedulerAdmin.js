@@ -96,25 +96,22 @@ function serializeCalendarToSlots() {
 
   adminCalendar.getEvents().forEach(event => {
     const {
-  className,
-  category,
-  location,
-  instructorId,
-  durationWeeks,
-  weekStartDate
-} = event.extendedProps;
-
-slots.push({
-  className,
-  category,
-  location,
-  instructorId,
-  weekStartDate,
-  durationWeeks
-});
+      className,
+      category,
+      location,
+      instructorId,
+      durationWeeks,
+      weekStartDate
+    } = event.extendedProps;
 
     const key = `${className}-${location}-${weekStartDate}`;
-    if (slots.some(s => `${s.className}-${s.location}-${s.weekStartDate}` === key)) {
+
+    if (
+      slots.some(
+        s =>
+          `${s.className}-${s.location}-${s.weekStartDate}` === key
+      )
+    ) {
       return;
     }
 
@@ -122,7 +119,7 @@ slots.push({
       className,
       category,
       location,
-      instructorName,
+      instructorId,
       weekStartDate,
       durationWeeks
     });
@@ -228,13 +225,13 @@ function initCalendar() {
       const e = info.event;
 
       const slot = {
-        className: e.extendedProps.className,
-        category: e.extendedProps.category,
-        location: e.extendedProps.location ?? "IN",
-        instructorName: e.extendedProps.instructorName,
-        durationWeeks: e.extendedProps.durationWeeks ?? 1,
-        weekStartDate: e.startStr.split("T")[0]
-      };
+  className: e.extendedProps.className,
+  category: e.extendedProps.category,
+  location: e.extendedProps.location ?? "IN",
+  instructorId: e.extendedProps.instructorId,
+  durationWeeks: e.extendedProps.durationWeeks ?? 1,
+  weekStartDate: e.startStr.split("T")[0]
+};
 
       e.remove();
       renderCalendarFromSchedule([slot], false);
@@ -300,12 +297,12 @@ function makeExternalEventsDraggable() {
         allDay: true,
         backgroundColor: "#888",
         extendedProps: {
-          className: el.innerText,
-          category: el.dataset.category,
-          location: null,
-          instructorName: null,
-          durationWeeks: Number(el.dataset.durationWeeks)
-        }
+  className: el.innerText,
+  category: el.dataset.category,
+  location: null,
+  instructorId: null,
+  durationWeeks: Number(el.dataset.durationWeeks)
+}
       };
     }
   });
@@ -314,7 +311,78 @@ function makeExternalEventsDraggable() {
 // =========================
 // RENDERING
 // =========================
+function renderCalendarFromSchedule(schedule, clearFirst = true) {
+  if (clearFirst) {
+    adminCalendar.removeAllEvents();
+  }
 
+  schedule.forEach(slot => {
+    const instructorKey =
+      slot.instructorId ||
+      slot.instructorName ||
+      "";
+
+    const bg = getInstructorColor(instructorKey);
+    const tc = getContrastTextColor(bg);
+
+    if (slot.category === "NTO") {
+      for (let w = 0; w < slot.durationWeeks; w++) {
+        const start = new Date(
+          slot.weekStartDate + "T00:00:00"
+        );
+
+        start.setDate(start.getDate() + w * 7);
+
+        if (w === 0) {
+          start.setDate(start.getDate() + 1);
+        }
+
+        const end = new Date(start);
+
+        end.setDate(
+          end.getDate() + (w === 0 ? 4 : 5)
+        );
+
+        adminCalendar.addEvent({
+          title: `${slot.className} (${slot.location})`,
+          start: start.toLocaleDateString("en-CA"),
+          end: end.toLocaleDateString("en-CA"),
+          allDay: true,
+
+          backgroundColor: bg,
+          borderColor: bg,
+          textColor: tc,
+
+          extendedProps: {
+            ...slot
+          }
+        });
+      }
+    } else {
+      const start = new Date(
+        slot.weekStartDate + "T00:00:00"
+      );
+
+      const end = new Date(start);
+      end.setDate(end.getDate() + 5);
+
+      adminCalendar.addEvent({
+        title: `${slot.className} (${slot.location})`,
+        start: start.toLocaleDateString("en-CA"),
+        end: end.toLocaleDateString("en-CA"),
+        allDay: true,
+
+        backgroundColor: bg,
+        borderColor: bg,
+        textColor: tc,
+
+        extendedProps: {
+          ...slot
+        }
+      });
+    }
+  });
+}
 function renderInstructorLegend() {
   const legend = document.getElementById("instructorLegend");
   if (!legend) return;
@@ -349,34 +417,6 @@ function renderInstructorLegend() {
 // =========================
 // WORKLOAD
 // =========================
-function renderInstructorLegend() {
-  const legend = document.getElementById("instructorLegend");
-  if (!legend) return;
-
-  legend.innerHTML = "";
-
-  Object.entries(predefinedColors).forEach(([name, color]) => {
-    const row = document.createElement("div");
-    row.style.display = "flex";
-    row.style.alignItems = "center";
-    row.style.marginBottom = "6px";
-
-    const swatch = document.createElement("span");
-    swatch.style.width = "12px";
-    swatch.style.height = "12px";
-    swatch.style.backgroundColor = color;
-    swatch.style.display = "inline-block";
-    swatch.style.marginRight = "6px";
-    swatch.style.borderRadius = "3px";
-
-    const label = document.createElement("span");
-    label.textContent = name;
-
-    row.appendChild(swatch);
-    row.appendChild(label);
-    legend.appendChild(row);
-  });
-}
 function renderInstructorWorkloadFromCalendar() {
   instructorWorkloadEl.innerHTML = "";
   const counts = {};
@@ -384,7 +424,6 @@ function renderInstructorWorkloadFromCalendar() {
   adminCalendar.getEvents().forEach(e => {
     const inst =
   e.extendedProps.instructorId ||
-  e.extendedProps.instructorName ||
   "TBD";
     counts[inst] = (counts[inst] || 0) + 1;
   });
