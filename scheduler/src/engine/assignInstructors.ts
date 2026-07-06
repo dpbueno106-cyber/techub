@@ -91,7 +91,14 @@ console.log("SLOT", {
       const underMaxClasses =
         assignedWeeks.length <
         (i.maxClasses ?? Number.MAX_SAFE_INTEGER);
-
+          if (!canTeach) {
+  console.log(
+    "Cannot teach",
+    i.id,
+    slot.className,
+    i.capabilities
+  );
+}
       return (
         allowedByClass &&
         canTeach &&
