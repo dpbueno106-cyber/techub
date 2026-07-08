@@ -23,7 +23,15 @@ function exceedsConsecutiveLimit(
 
   return streak > maxConsecutive;
 }
-
+function getCoveredWeeks(
+  slot: ClassSlot
+): number[] {
+  return Array.from(
+    { length: slot.durationWeeks },
+    (_, index) =>
+      slot.weekNumber + index
+  );
+}
 export function assignInstructors(
   slots: ClassSlot[],
   instructors: Instructor[],
@@ -86,15 +94,27 @@ const canTeach =
       const assignedWeeks =
         assignmentsByInstructor.get(i.id) ?? [];
 
-      const hasConflict =
-        assignedWeeks.includes(slot.weekNumber);
+      const occupiedWeeks =
+  assignmentsByInstructor.get(i.id) ?? [];
 
-      const wouldExceed =
-        exceedsConsecutiveLimit(
-          assignedWeeks,
-          slot.weekNumber,
-          generationConfig.maxConsecutiveWeeks ?? 2
-        );
+const coveredWeeks =
+  getCoveredWeeks(slot);
+
+const hasConflict =
+  coveredWeeks.some(week =>
+    occupiedWeeks.includes(week)
+  );
+
+      
+const wouldExceed =
+  coveredWeeks.some(week =>
+    exceedsConsecutiveLimit(
+      assignedWeeks,
+      week,
+      generationConfig.maxConsecutiveWeeks ?? 2
+    )
+  );
+
 
       const underMaxClasses =
         assignedWeeks.length <
@@ -185,9 +205,12 @@ console.log(
   "=>",
   chosen.id
 );
-    assignmentsByInstructor
-      .get(chosen.id)
-      ?.push(slot.weekNumber);
+    const coveredWeeks =
+  getCoveredWeeks(slot);
+
+assignmentsByInstructor
+  .get(chosen.id)
+  ?.push(...coveredWeeks);
 
     return {
       ...slot,

@@ -28,7 +28,7 @@ const scheduleAnalyticsEl = document.getElementById("scheduleAnalytics");
 const editEventTitleEl = document.getElementById("editEventTitle");
 const editEventLocationEl = document.getElementById("editEventLocation");
 const editEventInstructorEl = document.getElementById("editEventInstructor");
-
+const showAllInstructorsEl = document.getElementById("showAllInstructors");
 const saveEventBtn = document.getElementById("saveEventBtn");
 const deleteEventBtn = document.getElementById("deleteEventBtn");
 const generateScheduleBtn = document.getElementById("generateScheduleBtn");
@@ -148,16 +148,50 @@ function buildInstructorColors() {
 }
 
 
-function populateInstructorDropdown(selectId) {
+function populateInstructorDropdown(
+  selectId,
+  className = null,
+  showAll = false
+) {
   const select = document.getElementById(selectId);
   if (!select) return;
 
   select.innerHTML = "";
+  const blank = document.createElement("option");
+blank.value = "";
+blank.textContent = "-- Select Instructor --";
+select.appendChild(blank);
+  let availableInstructors = instructors;
 
-  instructors.forEach(inst => {
+if (
+  className &&
+  !showAll
+) {
+    const normalizedClass =
+      className.trim().toLowerCase();
+
+    availableInstructors = instructors.filter(
+      inst =>
+        (inst.capabilities ?? []).some(
+          cap =>
+            cap.trim().toLowerCase() ===
+            normalizedClass
+        )
+    );
+  }
+
+  availableInstructors
+  .sort((a, b) =>
+    (a.name || a.id)
+      .localeCompare(b.name || b.id)
+  )
+  .forEach(inst => {
     const opt = document.createElement("option");
+
     opt.value = inst.id;
-opt.textContent = inst.name;
+    opt.textContent =
+      inst.name || inst.id;
+
     select.appendChild(opt);
   });
 }
@@ -210,15 +244,36 @@ function serializeCalendarToSlots() {
 
 function openEditModal(event) {
   selectedEvent = event;
+  if (showAllInstructorsEl) {
+  showAllInstructorsEl.onchange = () => {
+    populateInstructorDropdown(
+      "editEventInstructor",
+      selectedEvent?.extendedProps
+        ?.className,
+      showAllInstructorsEl.checked
+    );
+
+    if (
+      selectedEvent?.extendedProps
+        ?.instructorId
+    ) {
+      editEventInstructorEl.value =
+        selectedEvent.extendedProps
+          .instructorId;
+    }
+  };
+}
 
   editEventTitleEl.value = event.extendedProps.className || "";
   editEventLocationEl.value = event.extendedProps.location || "IN";
 
-  populateInstructorDropdown("editEventInstructor");
+  populateInstructorDropdown("editEventInstructor" , event.extendedProps.className,showAllInstructorsEl?.checked);
 
   if (event.extendedProps.instructorId) {
     editEventInstructorEl.value = event.extendedProps.instructorId;
-  }
+  }else {
+  editEventInstructorEl.value = "";
+}
   
 editEventInstructorEl.onchange = () => {
     if (!selectedEvent) return;
@@ -745,10 +800,7 @@ initCalendar();
 
     saveEventBtn.onclick = () => {
   if (!selectedEvent) return;
-  const scheduleAnalyticsEl =
-  document.getElementById(
-    "scheduleAnalytics"
-  );
+  
   const instructor = editEventInstructorEl.value;
   const location = editEventLocationEl.value;
 
@@ -787,6 +839,7 @@ Object.assign(window, {
   saveSchedule,
   openAddCourseModal,
   closeAddCourseModal,
+  showAllInstructorsEl,
   saveCatalogClass,
   renderScheduleAnalytics,
   goBack: () => window.location.href = "adminDashboard.html",
