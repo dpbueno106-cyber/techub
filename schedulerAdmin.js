@@ -628,6 +628,7 @@ function renderScheduleAnalytics() {
   const locationCounts = {};
   const categoryCounts = {};
   const weekCounts = {};
+const uniqueClasses = new Set();
 
   events.forEach(event => {
     const instructor =
@@ -655,9 +656,20 @@ function renderScheduleAnalytics() {
       (categoryCounts[category] || 0) + 1;
 
     if (week) {
-      weekCounts[week] =
-        (weekCounts[week] || 0) + 1;
-    }
+  const key = [
+    week,
+    event.extendedProps.className,
+    event.extendedProps.location
+  ].join("|");
+
+  if (!uniqueClasses.has(key)) {
+    uniqueClasses.add(key);
+
+    weekCounts[week] =
+      (weekCounts[week] || 0) + 1;
+  }
+}
+
   });
 
   const maxClassesInWeek =
