@@ -1,7 +1,7 @@
 // =========================
 // GLOBAL STATE
 // =========================
-
+let hiddenInstructors = new Set();
 let adminCalendar = null;
 let draggableInstance = null;
 let selectedEvent = null;
@@ -364,6 +364,7 @@ function initCalendar() {
 
       e.remove();
       renderCalendarFromSchedule([slot], false);
+      applyInstructorFilter();
       renderInstructorWorkloadFromCalendar();
       renderScheduleAnalytics();
     }
@@ -535,17 +536,54 @@ function renderInstructorLegend() {
 
     const label = document.createElement("span");
     label.textContent =
-      instructor.name || instructor.id;
+  ` ${
+    instructor.name || instructor.id
+  }`;
 
     row.appendChild(swatch);
-    row.appendChild(label);
-    legend.appendChild(row);
+row.appendChild(label);
+
+row.style.cursor = "pointer";
+
+row.onclick = () => {
+  if (hiddenInstructors.has(instructor.id)) {
+    hiddenInstructors.delete(instructor.id);
+  } else {
+    hiddenInstructors.add(instructor.id);
+  }
+
+  renderInstructorLegend();
+  applyInstructorFilter();
+};
+
+if (hiddenInstructors.has(instructor.id)) {
+  row.style.opacity = "0.4";
+}
+
+legend.appendChild(row);
   });
 }
 
 // =========================
 // WORKLOAD
 // =========================
+
+function applyInstructorFilter() {
+  adminCalendar.getEvents().forEach(event => {
+    const instructorId =
+      event.extendedProps.instructorId;
+
+    if (
+      instructorId &&
+      hiddenInstructors.has(instructorId)
+    ) {
+      event.setProp("display", "none");
+    } else {
+      event.setProp("display", "auto");
+    }
+  });
+}
+
 function renderInstructorWorkloadFromCalendar() {
   instructorWorkloadEl.innerHTML = "";
   const counts = {};
@@ -621,6 +659,7 @@ if (!Array.isArray(data)) {
 }
 
 renderCalendarFromSchedule(data, true);
+applyInstructorFilter();
     console.log("Generated schedule:", data);
     
     renderInstructorWorkloadFromCalendar();
@@ -667,6 +706,7 @@ async function loadSavedSchedule() {
   if (!data.slots?.length) return false;
 
   renderCalendarFromSchedule(data.slots, true);
+  applyInstructorFilter();
   renderInstructorWorkloadFromCalendar();
   renderScheduleAnalytics();
   return true;
