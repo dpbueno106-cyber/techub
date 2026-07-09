@@ -42,7 +42,10 @@ app.post(
   "/fixedPlacements/import",
   
   async (req, res) => {
-    
+    console.log(
+  "IMPORT BODY:",
+  JSON.stringify(req.body, null, 2)
+);
     try {
       console.log("IMPORT REQUEST BODY:",req.body);
       const rows = req.body;
