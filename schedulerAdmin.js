@@ -60,7 +60,13 @@ const courseLocationEl =
   document.getElementById("courseLocation");
 const addCourseModalEl = document.getElementById("addCourseModal");
 const eventEditMenuEl = document.getElementById("eventEditMenu");
+const fixedPlacementImportEl =
+  document.getElementById("fixedPlacementImport");
 
+fixedPlacementImportEl?.addEventListener(
+  "change",
+  importFixedPlacements
+);
 // =========================
 // FIREBASE AUTH (ADMIN ONLY)
 // =========================
@@ -85,6 +91,60 @@ const auth = getAuth(app);
 // =========================
 // INSTRUCTOR HELPERS
 // =========================
+
+async function importFixedPlacements(
+  event
+) {
+  const file =
+    event.target.files[0];
+
+  if (!file) return;
+
+  const data =
+    await file.arrayBuffer();
+
+  const workbook =
+    XLSX.read(data);
+
+  const sheet =
+    workbook.Sheets[
+      workbook.SheetNames[0]
+    ];
+
+  const rows =
+    XLSX.utils.sheet_to_json(
+      sheet
+    );
+console.log("Excel rows:", rows);
+ const res = await fetch(
+  `${API_URL}/fixedPlacements/import`,
+  {
+    method: "POST",
+    headers: {
+      "Content-Type":
+        "application/json"
+    },
+    body: JSON.stringify(rows)
+  }
+);
+
+if (!res.ok) {
+  const error = await res.json();
+
+  alert(
+    error.error ||
+    "Import failed"
+  );
+
+  return;
+}
+
+  alert(
+    "Fixed courses imported"
+  );
+  await generateSchedule();
+}
+
 async function loadInstructors() {
   const db = getFirestore();
 
@@ -478,11 +538,10 @@ function renderCalendarFromSchedule(schedule, clearFirst = true) {
           start: start.toLocaleDateString("en-CA"),
           end: end.toLocaleDateString("en-CA"),
           allDay: true,
-
+          classNames:slot.locked? ["fixed-course"]: [],
+          borderColor:slot.locked? "#000": bg,
           backgroundColor: bg,
-          borderColor: bg,
           textColor: tc,
-
           extendedProps: {
             ...slot
           }
@@ -503,7 +562,8 @@ function renderCalendarFromSchedule(schedule, clearFirst = true) {
         allDay: true,
 
         backgroundColor: bg,
-        borderColor: bg,
+        borderColor: slot.locked? "#000": bg,
+        classNames: slot.locked? ["fixed-course"]: [],
         textColor: tc,
 
         extendedProps: {
@@ -691,6 +751,10 @@ async function generateSchedule() {
 
   try {
     const res = await fetch(`${API_URL}/schedule`);
+    console.log(
+  "Sending to backend:",
+  JSON.stringify(rows, null, 2)
+);
     const data = await res.json();
 
 if (!Array.isArray(data)) {
@@ -699,8 +763,9 @@ if (!Array.isArray(data)) {
   return;
 }
 
-renderCalendarFromSchedule(data, true);
-applyInstructorFilter();
+    renderCalendarFromSchedule(data, true);
+    applyInstructorFilter();
+  
     console.log("Generated schedule:", data);
     
     renderInstructorWorkloadFromCalendar();
@@ -938,7 +1003,7 @@ initCalendar();
   
   const instructor = editEventInstructorEl.value;
   const location = editEventLocationEl.value;
-
+  
   selectedEvent.setExtendedProp("instructorId", instructor);
   selectedEvent.setExtendedProp("location", location);
 

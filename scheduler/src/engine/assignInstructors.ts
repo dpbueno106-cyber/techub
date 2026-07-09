@@ -50,9 +50,12 @@ export function assignInstructors(
 
   return slots.map(slot => {
     // Skip manual overrides
-    if (slot.instructorId) {
-      return slot;
-    }
+    if (
+  slot.locked &&
+  slot.instructorId
+) {
+  return slot;
+}
       console.log(
   "INSTRUCTORS",
   instructors.map(i => ({

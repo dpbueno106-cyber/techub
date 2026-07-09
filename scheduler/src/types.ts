@@ -69,6 +69,7 @@ export interface ClassSlot {
   possibleInstructors?: string[];
   instructorName?: string | null;
   recommendedInstructors?: RecommendedInstructor[];
+  locked?: boolean;
 }
 
 export interface Instructor {

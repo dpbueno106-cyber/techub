@@ -18,17 +18,33 @@ export function classSlotGenerator(
   remainingSlots: number,
   weekUsage: Map<number, number>,
   generationConfig: {
-  categoryCaps: {
-    Foundational: number;
-    Advanced: number;
-  };
-  maxClassesPerWeek: number;
-}
+    categoryCaps: {
+      Foundational: number;
+      Advanced: number;
+    };
+    maxClassesPerWeek: number;
+  },
+  existingSlots: ClassSlot[] = []
 ): ClassSlot[] {
   
-  const slots: ClassSlot[] = [];
-  const active = catalog.filter(c => c.isActive);
 
+  
+  const slots: ClassSlot[] = [];
+  const reservedKeys = new Set<string>();
+  const active = catalog.filter(c => c.isActive);
+  existingSlots.forEach(slot => {
+
+  for (
+    let w = 0;
+    w < slot.durationWeeks;
+    w++
+  ) {
+    reservedKeys.add(
+      `${slot.weekNumber + w}-${slot.location}`
+    );
+  }
+
+});
   // -------------------------
   // Split by frequency mode
   // -------------------------
@@ -161,7 +177,33 @@ score -= instructorPenalty(cls, weekIndex);
 const week = weekIndex >= 0 ? weeks[weekIndex] : null;
       if (!week) break;
 
-     slots.push(buildSlot(cls, week));
+     const location =
+  cls.defaultLocations[0];
+
+if (
+  isLocationReserved(
+    week.weekNumber,
+    location,
+    reservedKeys
+  )
+) {
+  continue;
+}
+
+const slot =
+  buildSlot(cls, week);
+
+slots.push(slot);
+
+for (
+  let w = 0;
+  w < slot.durationWeeks;
+  w++
+) {
+  reservedKeys.add(
+    `${slot.weekNumber + w}-${location}`
+  );
+}
 markWeekUsage(week.weekNumber, weekUsage);
 
 classStats[cls.name].lastWeek = weekIndex;
@@ -229,8 +271,34 @@ for (let i = 0; i < weeks.length && foundationalCount < maxFoundational; i++) {
       : scored[0].cls;
 
   const week = candidateWeeks[i];
+  if (!week) continue;
+  const location =
+  chosen.defaultLocations[0];
 
-  slots.push(buildSlot(chosen, week));
+if (
+  isLocationReserved(
+    week.weekNumber,
+    location,
+    reservedKeys
+  )
+) {
+  continue;
+}
+
+const slot =
+  buildSlot(chosen, week);
+
+slots.push(slot);
+
+for (
+  let w = 0;
+  w < slot.durationWeeks;
+  w++
+) {
+  reservedKeys.add(
+    `${slot.weekNumber + w}-${location}`
+  );
+}
   markWeekUsage(week.weekNumber, weekUsage);
 
   classStats[chosen.name].lastWeek = i;
@@ -274,7 +342,33 @@ for (
 
   const week = weeks[i];
 
-  slots.push(buildSlot(chosen, week));
+  const location =
+  chosen.defaultLocations[0];
+
+if (
+  isLocationReserved(
+    week.weekNumber,
+    location,
+    reservedKeys
+  )
+) {
+  continue;
+}
+
+const slot =
+  buildSlot(chosen, week);
+
+slots.push(slot);
+
+for (
+  let w = 0;
+  w < slot.durationWeeks;
+  w++
+) {
+  reservedKeys.add(
+    `${slot.weekNumber + w}-${location}`
+  );
+}
 
 markWeekUsage(
   week.weekNumber,
@@ -317,7 +411,17 @@ function canPlaceInWeek(
     maxClassesPerWeek
   );
 }
+function isLocationReserved(
+  weekNumber: number,
+  location: string,
+  reservedKeys: Set<string>
+): boolean {
 
+  return reservedKeys.has(
+    `${weekNumber}-${location}`
+  );
+
+}
 function markWeekUsage(
   weekNumber: number,
   weekUsage: Map<number, number>

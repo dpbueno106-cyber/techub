@@ -14,7 +14,8 @@ import { assignInstructors } from "./assignInstructors";
 export function generateSchedule(
   generationConfig: GenerationConfig,
   catalog: ClassDefinition[],
-  instructors: Instructor[]
+  instructors: Instructor[],
+  fixedPlacements: any[] = []
 ): ClassSlot[] {
 
   // 1. Build calendar weeks
@@ -22,7 +23,65 @@ export function generateSchedule(
 
   // 2. Initialize schedule state
   let slots: ClassSlot[] = [];
-  
+  fixedPlacements.forEach(fp => {
+
+  const course =
+    catalog.find(
+      c => c.name === fp.className
+    );
+
+  if (!course) return;
+
+  const startDate =
+    new Date(fp.weekStartDate);
+
+  const yearStart =
+    new Date(
+      generationConfig.year,
+      0,
+      1
+    );
+
+  const weekNumber =
+    Math.ceil(
+      (
+        (
+          startDate.getTime() -
+          yearStart.getTime()
+        ) /
+        86400000 +
+        yearStart.getDay() +
+        1
+      ) / 7
+    );
+
+  slots.push({
+  classId: course.id,
+  className: course.name,
+  category: course.category,
+
+  location: fp.location,
+
+  instructorId:
+    fp.instructorName || null,
+
+  weekStartDate:
+    fp.weekStartDate,
+
+  weekEndDate:
+    fp.weekStartDate,
+
+  durationWeeks:
+    course.durationWeeks,
+
+  possibleInstructors:
+    course.possibleInstructors,
+
+  weekNumber,
+
+  locked: true
+});
+  });
 
   // 3. Place NTO (additive, optional)
   if (generationConfig.nto.enabled) {
@@ -46,18 +105,34 @@ export function generateSchedule(
 const weekUsage = new Map<number, number>();
 
 slots.forEach(slot => {
-  weekUsage.set(
-    slot.weekNumber,
-    (weekUsage.get(slot.weekNumber) ?? 0) + 1
-  );
+
+  for (
+    let w = 0;
+    w < slot.durationWeeks;
+    w++
+  ) {
+
+    weekUsage.set(
+      slot.weekNumber + w,
+      (
+        weekUsage.get(
+          slot.weekNumber + w
+        ) ?? 0
+      ) + 1
+    );
+
+  }
+
 });
 const nonNTOSlots = classSlotGenerator(
   weeks,
   catalog,
   reservedForNonNTO,
   weekUsage,
-  generationConfig
+  generationConfig,
+  slots
 );
+
 
   slots = [...slots, ...nonNTOSlots];
 

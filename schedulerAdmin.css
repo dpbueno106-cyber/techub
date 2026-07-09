@@ -345,3 +345,16 @@ button.secondary:hover {
   border-left: 5px solid #FFCD11;
   margin-bottom: 10px;
 }
+
+.fixed-course {
+  border-width: 3px !important;
+  box-shadow: inset 0 0 0 2px #000;
+}
+
+.fixed-course .fc-event-main {
+  font-weight: 700;
+}
+.fixed-course {
+  box-shadow:
+    inset 0 0 0 2px #000;
+}
