@@ -586,18 +586,59 @@ function applyInstructorFilter() {
 
 function renderInstructorWorkloadFromCalendar() {
   instructorWorkloadEl.innerHTML = "";
+
   const counts = {};
 
-  adminCalendar.getEvents().forEach(e => {
-    const inst =
-  e.extendedProps.instructorId ||
-  "TBD";
-    counts[inst] = (counts[inst] || 0) + 1;
+  adminCalendar.getEvents().forEach(event => {
+    const instructorId =
+      event.extendedProps.instructorId;
+
+    if (!instructorId) return;
+
+    counts[instructorId] =
+      (counts[instructorId] || 0) + 1;
   });
 
-  Object.entries(counts).forEach(([n, w]) => {
-    instructorWorkloadEl.innerHTML += `<div>${n}: ${w} Classes</div>`;
-  });
+  const max =
+    Math.max(
+      1,
+      ...Object.values(counts)
+    );
+
+  Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .forEach(([id, count]) => {
+
+      const instructor =
+        instructors.find(
+          i => i.id === id
+        );
+
+      const color =
+        getInstructorColor(id);
+
+      const percent =
+        (count / max) * 100;
+
+      instructorWorkloadEl.innerHTML += `
+        <div class="workload-card">
+          <div class="workload-header">
+            <span>${instructor?.name || id}</span>
+            <strong>${count}</strong>
+          </div>
+
+          <div class="workload-bar">
+            <div
+              class="workload-fill"
+              style="
+                width:${percent}%;
+                background:${color};
+              "
+            ></div>
+          </div>
+        </div>
+      `;
+    });
 }
 
 // =========================
@@ -738,8 +779,23 @@ const uniqueClasses = new Set();
       event.extendedProps.category ||
       "Unknown";
 
-    const week =
-      event.extendedProps.weekNumber;
+     const date = event.start;
+
+const yearStart = new Date(
+  date.getFullYear(),
+  0,
+  1
+);
+
+const week =
+  Math.ceil(
+    (
+      (date - yearStart) /
+      86400000 +
+      yearStart.getDay() +
+      1
+    ) / 7
+  );
 
     instructorCounts[instructor] =
       (instructorCounts[instructor] || 0) + 1;
@@ -766,7 +822,17 @@ const uniqueClasses = new Set();
 }
 
   });
+  const topInstructor =
+  Object.entries(instructorCounts)
+    .sort((a,b) => b[1] - a[1])[0];
 
+const topLocation =
+  Object.entries(locationCounts)
+    .sort((a,b) => b[1] - a[1])[0];
+
+const topCategory =
+  Object.entries(categoryCounts)
+    .sort((a,b) => b[1] - a[1])[0];
   const maxClassesInWeek =
     Math.max(
       0,
@@ -777,47 +843,76 @@ const uniqueClasses = new Set();
     instructorCounts.Unassigned || 0;
 
   scheduleAnalyticsEl.innerHTML = `
-    <div>
-      <strong>Total Classes:</strong>
+<div class="analytics-grid">
+
+  <div class="analytics-card">
+    <div class="analytics-value">
       ${events.length}
     </div>
+    <div class="analytics-label">
+      Total Classes
+    </div>
+  </div>
 
-    <div>
-      <strong>Unassigned:</strong>
+  <div class="analytics-card">
+    <div class="analytics-value">
       ${unassigned}
     </div>
+    <div class="analytics-label">
+      Unassigned
+    </div>
+  </div>
 
-    <div>
-      <strong>Max Classes In A Week:</strong>
+  <div class="analytics-card">
+    <div class="analytics-value">
       ${maxClassesInWeek}
     </div>
-
-    <hr>
-
-    <div>
-      <strong>By Location</strong>
-      <ul>
-        ${Object.entries(locationCounts)
-          .map(
-            ([loc, count]) =>
-              `<li>${loc}: ${count}</li>`
-          )
-          .join("")}
-      </ul>
+    <div class="analytics-label">
+      Peak Week
     </div>
+  </div>
 
-    <div>
-      <strong>By Category</strong>
-      <ul>
-        ${Object.entries(categoryCounts)
-          .map(
-            ([cat, count]) =>
-              `<li>${cat}: ${count}</li>`
-          )
-          .join("")}
-      </ul>
+  <div class="analytics-card">
+    <div class="analytics-value">
+      ${topInstructor?.[1] ?? 0}
     </div>
-  `;
+    <div class="analytics-label">
+      Top Instructor
+      <br>
+      ${
+  instructors.find(
+    i => i.id === topInstructor?.[0]
+  )?.name ||
+  topInstructor?.[0] ||
+  "-"
+}
+    </div>
+  </div>
+
+  <div class="analytics-card">
+    <div class="analytics-value">
+      ${topLocation?.[1] ?? 0}
+    </div>
+    <div class="analytics-label">
+      Top Location
+      <br>
+      ${topLocation?.[0] ?? "-"}
+    </div>
+  </div>
+
+  <div class="analytics-card">
+    <div class="analytics-value">
+      ${topCategory?.[1] ?? 0}
+    </div>
+    <div class="analytics-label">
+      Top Category
+      <br>
+      ${topCategory?.[0] ?? "-"}
+    </div>
+  </div>
+
+</div>
+`;
 }
 // =========================
 // PAGE INIT

@@ -116,6 +116,7 @@ button.secondary:hover {
   padding: 10px;
   border-radius: 10px;
   box-shadow: 0 0 0 1px #2a2a2a;
+  
 }
 
 /* =========================
@@ -271,4 +272,76 @@ button.secondary:hover {
 
 .checkbox-label input {
   margin: 0;
+}
+
+.workload-card {
+  background: #222222;
+  border-left: 4px solid #FFCD11;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+}
+
+.workload-header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.workload-bar {
+  background: #d9d9d9;
+  height: 14px;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.workload-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.analytics-card {
+  background: #222222;
+  border-left: 5px solid #FFCD11;
+  padding: 14px;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: transform .15s ease;
+}
+
+.analytics-card:hover {
+  transform: translateY(-2px);
+}
+
+.analytics-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #FFCD11;
+}
+
+.analytics-label {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.analytics-section-title {
+  background: #222222;
+  color: #FFCD11;
+  padding: 8px 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-left: 5px solid #FFCD11;
+  margin-bottom: 10px;
 }
