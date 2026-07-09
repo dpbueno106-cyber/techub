@@ -84,12 +84,27 @@ app.post(
           locked: true
         });
       }
+console.log(
+  "PLACEMENTS TO SAVE:",
+  placements
+);
 
-      for (const placement of placements) {
+for (const placement of placements) {
+
+  console.log(
+    "SAVING DOCUMENT:",
+    placement
+  );
+
   await db
     .collection("fixedPlacements")
     .add(placement);
+
+  console.log(
+    "DOCUMENT SAVED"
+  );
 }
+      
 
       res.json({
         success: true
