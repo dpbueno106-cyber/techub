@@ -57,12 +57,22 @@ app.post(
 
       for (const row of rows) {
         console.log("Processing row:",row);
-        const course =
-          catalog.find(
-            c =>
-              c.name ===
-              row["Course Name"]
-          );
+       
+          const excelName =
+      String(
+        row["Course Name"] ?? ""
+      )
+        .trim()
+        .toLowerCase();
+
+    const course =
+      catalog.find(
+        c =>
+         c.name
+        ?.trim()
+        .toLowerCase() ===
+      excelName
+  );
           console.log("Matched course:",course);
         if (!course) {
           continue;
