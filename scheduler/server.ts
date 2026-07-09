@@ -73,7 +73,21 @@ app.post(
         .toLowerCase() ===
       excelName
   );
-          console.log("Matched course:",course);
+  
+          console.log(
+  "Excel course:",
+  row["Course Name"]
+);
+
+console.log(
+  "Catalog names:",
+  catalog.map(c => c.name)
+);
+
+console.log(
+  "Matched course:",
+  course
+);
         if (!course) {
           continue;
         }
