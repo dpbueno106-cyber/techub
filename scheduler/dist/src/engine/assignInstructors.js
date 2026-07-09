@@ -16,6 +16,9 @@ function exceedsConsecutiveLimit(assignedWeeks, nextWeek, maxConsecutive) {
     }
     return streak > maxConsecutive;
 }
+function getCoveredWeeks(slot) {
+    return Array.from({ length: slot.durationWeeks }, (_, index) => slot.weekNumber + index);
+}
 function assignInstructors(slots, instructors, generationConfig) {
     const assignmentsByInstructor = new Map();
     instructors.forEach(i => {
@@ -24,7 +27,8 @@ function assignInstructors(slots, instructors, generationConfig) {
     const avgAssignments = slots.length / Math.max(instructors.length, 1);
     return slots.map(slot => {
         // Skip manual overrides
-        if (slot.instructorId) {
+        if (slot.locked &&
+            slot.instructorId) {
             return slot;
         }
         console.log("INSTRUCTORS", instructors.map(i => ({
@@ -52,8 +56,10 @@ function assignInstructors(slots, instructors, generationConfig) {
             const canBeThere = slot.location === i.homeLocation ||
                 i.canTravel;
             const assignedWeeks = assignmentsByInstructor.get(i.id) ?? [];
-            const hasConflict = assignedWeeks.includes(slot.weekNumber);
-            const wouldExceed = exceedsConsecutiveLimit(assignedWeeks, slot.weekNumber, generationConfig.maxConsecutiveWeeks ?? 2);
+            const occupiedWeeks = assignmentsByInstructor.get(i.id) ?? [];
+            const coveredWeeks = getCoveredWeeks(slot);
+            const hasConflict = coveredWeeks.some(week => occupiedWeeks.includes(week));
+            const wouldExceed = coveredWeeks.some(week => exceedsConsecutiveLimit(assignedWeeks, week, generationConfig.maxConsecutiveWeeks ?? 2));
             const underMaxClasses = assignedWeeks.length <
                 (i.maxClasses ?? Number.MAX_SAFE_INTEGER);
             if (!canTeach) {
@@ -104,9 +110,10 @@ function assignInstructors(slots, instructors, generationConfig) {
         });
         const chosen = scored[0].instructor;
         console.log("ASSIGNED", slot.className, "=>", chosen.id);
+        const coveredWeeks = getCoveredWeeks(slot);
         assignmentsByInstructor
             .get(chosen.id)
-            ?.push(slot.weekNumber);
+            ?.push(...coveredWeeks);
         return {
             ...slot,
             instructorId: chosen.id

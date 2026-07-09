@@ -5,20 +5,23 @@ function balanceLocations(slots) {
     let inCount = 0;
     let miCount = 0;
     return slots.map(slot => {
-        if (slot.classId === "NTO") {
-            if (slot.location === "IN")
+        if (slot.locked ||
+            slot.classId === "NTO") {
+            if (slot.location === "IN") {
                 inCount++;
-            else
+            }
+            else {
                 miCount++;
+            }
             return slot;
         }
-        let newLocation;
-        if (inCount <= miCount) {
-            newLocation = "IN";
+        const newLocation = inCount <= miCount
+            ? "IN"
+            : "MI";
+        if (newLocation === "IN") {
             inCount++;
         }
         else {
-            newLocation = "MI";
             miCount++;
         }
         return {

@@ -6,11 +6,36 @@ const buildWeeks_1 = require("./buildWeeks");
 const placeNTO_1 = require("./placeNTO");
 const classSlotGenerator_1 = require("./classSlotGenerator");
 const assignInstructors_1 = require("./assignInstructors");
-function generateSchedule(generationConfig, catalog, instructors) {
+function generateSchedule(generationConfig, catalog, instructors, fixedPlacements = []) {
     // 1. Build calendar weeks
     const weeks = (0, buildWeeks_1.buildWeeks)(generationConfig.year);
     // 2. Initialize schedule state
     let slots = [];
+    fixedPlacements.forEach(fp => {
+        const course = catalog.find(c => c.name === fp.className);
+        if (!course)
+            return;
+        const startDate = new Date(fp.weekStartDate);
+        const yearStart = new Date(generationConfig.year, 0, 1);
+        const weekNumber = Math.ceil(((startDate.getTime() -
+            yearStart.getTime()) /
+            86400000 +
+            yearStart.getDay() +
+            1) / 7);
+        slots.push({
+            classId: course.id,
+            className: course.name,
+            category: course.category,
+            location: fp.location,
+            instructorId: fp.instructorName || null,
+            weekStartDate: fp.weekStartDate,
+            weekEndDate: fp.weekStartDate,
+            durationWeeks: course.durationWeeks,
+            possibleInstructors: course.possibleInstructors,
+            weekNumber,
+            locked: true
+        });
+    });
     // 3. Place NTO (additive, optional)
     if (generationConfig.nto.enabled) {
         const ntoResult = (0, placeNTO_1.placeNTO)(slots, weeks, generationConfig.nto.locations);
@@ -21,9 +46,11 @@ function generateSchedule(generationConfig, catalog, instructors) {
     const reservedForNonNTO = Math.max(generationConfig.totalClasses - ntoCount, 0);
     const weekUsage = new Map();
     slots.forEach(slot => {
-        weekUsage.set(slot.weekNumber, (weekUsage.get(slot.weekNumber) ?? 0) + 1);
+        for (let w = 0; w < slot.durationWeeks; w++) {
+            weekUsage.set(slot.weekNumber + w, (weekUsage.get(slot.weekNumber + w) ?? 0) + 1);
+        }
     });
-    const nonNTOSlots = (0, classSlotGenerator_1.classSlotGenerator)(weeks, catalog, reservedForNonNTO, weekUsage, generationConfig);
+    const nonNTOSlots = (0, classSlotGenerator_1.classSlotGenerator)(weeks, catalog, reservedForNonNTO, weekUsage, generationConfig, slots);
     slots = [...slots, ...nonNTOSlots];
     // Debug visibility (keep this)
     console.log("Slots by category:", slots.reduce((acc, s) => {

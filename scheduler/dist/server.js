@@ -20,6 +20,55 @@ app.use((0, cors_1.default)({
 // =========================
 // ROUTES
 // =========================
+async function loadFixedPlacements() {
+    const snap = await firebase_1.db
+        .collection("fixedPlacements")
+        .get();
+    return snap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    }));
+}
+app.post("/fixedPlacements/import", async (req, res) => {
+    console.log("IMPORT REQUEST BODY:", req.body);
+    try {
+        const rows = req.body;
+        const catalog = await (0, firestoreLoaders_1.loadCatalogFromFirestore)();
+        const placements = [];
+        for (const row of rows) {
+            console.log("Processing row:", row);
+            const course = catalog.find(c => c.name ===
+                row["Course Name"]);
+            console.log("Matched course:", course);
+            if (!course) {
+                continue;
+            }
+            placements.push({
+                className: course.name,
+                weekStartDate: row["Week Start"],
+                location: row["Location"],
+                instructorName: row["Instructor"] || null,
+                locked: true
+            });
+        }
+        for (const placement of placements) {
+            await firebase_1.db
+                .collection("fixedPlacements")
+                .add(placement);
+        }
+        res.json({
+            success: true
+        });
+    }
+    catch (err) {
+        console.error(err);
+        res
+            .status(500)
+            .json({
+            error: "Import failed"
+        });
+    }
+});
 app.delete("/catalog/:id", async (req, res) => {
     const { id } = req.params;
     try {
@@ -67,6 +116,8 @@ app.get("/schedule", async (_req, res) => {
         const config = await (0, firestoreLoaders_1.loadConfigFromFirestore)();
         const catalog = await (0, firestoreLoaders_1.loadCatalogFromFirestore)();
         const instructors = await (0, firestoreLoaders_1.loadInstructorsFromFirestore)();
+        const fixedPlacements = await loadFixedPlacements();
+        console.log("Loaded fixed placements:", fixedPlacements);
         if (!config) {
             return res.status(404).json({
                 error: "Generation config not found"
@@ -78,7 +129,7 @@ app.get("/schedule", async (_req, res) => {
             });
         }
         //  Instructors may be empty — engine can handle this
-        const schedule = (0, generateSchedule_1.generateSchedule)(config, catalog, instructors ?? []);
+        const schedule = (0, generateSchedule_1.generateSchedule)(config, catalog, instructors ?? [], fixedPlacements);
         res.json(schedule);
     }
     catch (err) {
@@ -87,6 +138,9 @@ app.get("/schedule", async (_req, res) => {
             error: err instanceof Error ? err.message : "Failed to fetch schedule"
         });
     }
+});
+app.get("/fixedPlacements", async (req, res) => {
+    res.json(await loadFixedPlacements());
 });
 app.get("/schedule/load", async (req, res) => {
     const year = req.query.year;

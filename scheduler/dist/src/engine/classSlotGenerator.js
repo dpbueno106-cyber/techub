@@ -8,9 +8,15 @@ exports.classSlotGenerator = classSlotGenerator;
  * - WEIGHT distribution within category
  * - MIN_MAX guarantees
  */
-function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generationConfig) {
+function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generationConfig, existingSlots = []) {
     const slots = [];
+    const reservedKeys = new Set();
     const active = catalog.filter(c => c.isActive);
+    existingSlots.forEach(slot => {
+        for (let w = 0; w < slot.durationWeeks; w++) {
+            reservedKeys.add(`${slot.weekNumber + w}-${slot.location}`);
+        }
+    });
     // -------------------------
     // Split by frequency mode
     // -------------------------
@@ -96,7 +102,15 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
             const week = weekIndex >= 0 ? weeks[weekIndex] : null;
             if (!week)
                 break;
-            slots.push(buildSlot(cls, week));
+            const location = cls.defaultLocations[0];
+            if (isLocationReserved(week.weekNumber, location, reservedKeys)) {
+                continue;
+            }
+            const slot = buildSlot(cls, week);
+            slots.push(slot);
+            for (let w = 0; w < slot.durationWeeks; w++) {
+                reservedKeys.add(`${slot.weekNumber + w}-${location}`);
+            }
             markWeekUsage(week.weekNumber, weekUsage);
             classStats[cls.name].lastWeek = weekIndex;
             classStats[cls.name].timesScheduled++;
@@ -138,7 +152,17 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
             ? foundational[Math.floor(Math.random() * foundational.length)]
             : scored[0].cls;
         const week = candidateWeeks[i];
-        slots.push(buildSlot(chosen, week));
+        if (!week)
+            continue;
+        const location = chosen.defaultLocations[0];
+        if (isLocationReserved(week.weekNumber, location, reservedKeys)) {
+            continue;
+        }
+        const slot = buildSlot(chosen, week);
+        slots.push(slot);
+        for (let w = 0; w < slot.durationWeeks; w++) {
+            reservedKeys.add(`${slot.weekNumber + w}-${location}`);
+        }
         markWeekUsage(week.weekNumber, weekUsage);
         classStats[chosen.name].lastWeek = i;
         classStats[chosen.name].timesScheduled++;
@@ -167,7 +191,15 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
             ? advanced[Math.floor(Math.random() * advanced.length)]
             : scored[0].cls;
         const week = weeks[i];
-        slots.push(buildSlot(chosen, week));
+        const location = chosen.defaultLocations[0];
+        if (isLocationReserved(week.weekNumber, location, reservedKeys)) {
+            continue;
+        }
+        const slot = buildSlot(chosen, week);
+        slots.push(slot);
+        for (let w = 0; w < slot.durationWeeks; w++) {
+            reservedKeys.add(`${slot.weekNumber + w}-${location}`);
+        }
         markWeekUsage(week.weekNumber, weekUsage);
         classStats[chosen.name].lastWeek = i;
         classStats[chosen.name].timesScheduled++;
@@ -192,6 +224,9 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
 function canPlaceInWeek(weekNumber, weekUsage, maxClassesPerWeek) {
     return ((weekUsage.get(weekNumber) ?? 0) <
         maxClassesPerWeek);
+}
+function isLocationReserved(weekNumber, location, reservedKeys) {
+    return reservedKeys.has(`${weekNumber}-${location}`);
 }
 function markWeekUsage(weekNumber, weekUsage) {
     weekUsage.set(weekNumber, (weekUsage.get(weekNumber) ?? 0) + 1);
