@@ -30,8 +30,8 @@ async function loadFixedPlacements() {
     }));
 }
 app.post("/fixedPlacements/import", async (req, res) => {
-    console.log("IMPORT REQUEST BODY:", req.body);
     try {
+        console.log("IMPORT REQUEST BODY:", req.body);
         const rows = req.body;
         const catalog = await (0, firestoreLoaders_1.loadCatalogFromFirestore)();
         const placements = [];
