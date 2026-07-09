@@ -751,10 +751,8 @@ async function generateSchedule() {
 
   try {
     const res = await fetch(`${API_URL}/schedule`);
-    console.log(
-  "Sending to backend:",
-  JSON.stringify(rows, null, 2)
-);
+    
+
     const data = await res.json();
 
 if (!Array.isArray(data)) {
