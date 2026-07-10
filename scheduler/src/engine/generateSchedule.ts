@@ -54,7 +54,12 @@ export function generateSchedule(
         1
       ) / 7
     );
-
+ const instructor =
+  instructors.find(
+    i =>
+      i.id?.toLowerCase() ===
+      fp.instructorName?.toLowerCase()
+  );
   slots.push({
   classId: course.id,
   className: course.name,
@@ -62,8 +67,13 @@ export function generateSchedule(
 
   location: fp.location,
 
+ 
+
+
   instructorId:
-    fp.instructorName || null,
+    instructor?.id ?? null,
+  
+
 
   weekStartDate:
     fp.weekStartDate,
