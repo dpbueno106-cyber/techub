@@ -22,12 +22,14 @@ function generateSchedule(generationConfig, catalog, instructors, fixedPlacement
             86400000 +
             yearStart.getDay() +
             1) / 7);
+        const instructor = instructors.find(i => i.id.toLowerCase() ===
+            fp.instructorName?.toLowerCase());
         slots.push({
             classId: course.id,
             className: course.name,
             category: course.category,
             location: fp.location,
-            instructorId: fp.instructorName || null,
+            instructorId: instructor?.id ?? null,
             weekStartDate: fp.weekStartDate,
             weekEndDate: fp.weekStartDate,
             durationWeeks: course.durationWeeks,
@@ -42,14 +44,19 @@ function generateSchedule(generationConfig, catalog, instructors, fixedPlacement
         slots = ntoResult.slots;
     }
     // 4. Determine remaining capacity
-    const ntoCount = slots.length;
-    const reservedForNonNTO = Math.max(generationConfig.totalClasses - ntoCount, 0);
+    const ntoCount = slots.filter(s => s.category === "NTO" &&
+        !s.locked).length;
+    const reservedForNonNTO = generationConfig.totalClasses - ntoCount;
     const weekUsage = new Map();
     slots.forEach(slot => {
         for (let w = 0; w < slot.durationWeeks; w++) {
             weekUsage.set(slot.weekNumber + w, (weekUsage.get(slot.weekNumber + w) ?? 0) + 1);
         }
     });
+    console.log("TOTAL CLASSES TARGET:", generationConfig.totalClasses);
+    console.log("FIXED PLACEMENTS:", fixedPlacements.length);
+    console.log("CURRENT SLOT COUNT:", slots.length);
+    console.log("RESERVED FOR NON NTO:", reservedForNonNTO);
     const nonNTOSlots = (0, classSlotGenerator_1.classSlotGenerator)(weeks, catalog, reservedForNonNTO, weekUsage, generationConfig, slots);
     slots = [...slots, ...nonNTOSlots];
     // Debug visibility (keep this)

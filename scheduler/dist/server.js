@@ -30,6 +30,7 @@ async function loadFixedPlacements() {
     }));
 }
 app.post("/fixedPlacements/import", async (req, res) => {
+    console.log("IMPORT BODY:", JSON.stringify(req.body, null, 2));
     try {
         console.log("IMPORT REQUEST BODY:", req.body);
         const rows = req.body;
@@ -37,8 +38,15 @@ app.post("/fixedPlacements/import", async (req, res) => {
         const placements = [];
         for (const row of rows) {
             console.log("Processing row:", row);
-            const course = catalog.find(c => c.name ===
-                row["Course Name"]);
+            const excelName = String(row["Course Name"] ?? "")
+                .trim()
+                .toLowerCase();
+            const course = catalog.find(c => c.name
+                ?.trim()
+                .toLowerCase() ===
+                excelName);
+            console.log("Excel course:", row["Course Name"]);
+            console.log("Catalog names:", catalog.map(c => c.name));
             console.log("Matched course:", course);
             if (!course) {
                 continue;
@@ -51,10 +59,13 @@ app.post("/fixedPlacements/import", async (req, res) => {
                 locked: true
             });
         }
+        console.log("PLACEMENTS TO SAVE:", placements);
         for (const placement of placements) {
+            console.log("ADDING PLACEMENT:", placement);
             await firebase_1.db
                 .collection("fixedPlacements")
                 .add(placement);
+            console.log("PLACEMENT SAVED");
         }
         res.json({
             success: true
@@ -80,6 +91,37 @@ app.delete("/catalog/:id", async (req, res) => {
     catch (err) {
         console.error("Failed to delete catalog item", err);
         res.status(500).json({ error: "Failed to remove course" });
+    }
+});
+//this is for clearing all fixed placements from the database
+app.delete("/fixedPlacements", async (_req, res) => {
+    const snap = await firebase_1.db
+        .collection("fixedPlacements")
+        .get();
+    const batch = firebase_1.db.batch();
+    snap.docs.forEach(doc => {
+        batch.delete(doc.ref);
+    });
+    await batch.commit();
+    res.json({
+        success: true
+    });
+});
+app.delete("/fixedPlacements/:id", async (req, res) => {
+    try {
+        await firebase_1.db
+            .collection("fixedPlacements")
+            .doc(req.params.id)
+            .delete();
+        res.json({
+            success: true
+        });
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({
+            error: "Failed to delete placement"
+        });
     }
 });
 app.post("/config/generation", async (req, res) => {
@@ -117,6 +159,7 @@ app.get("/schedule", async (_req, res) => {
         const catalog = await (0, firestoreLoaders_1.loadCatalogFromFirestore)();
         const instructors = await (0, firestoreLoaders_1.loadInstructorsFromFirestore)();
         const fixedPlacements = await loadFixedPlacements();
+        console.log("FIXED PLACEMENTS LOADED:", fixedPlacements);
         console.log("Loaded fixed placements:", fixedPlacements);
         if (!config) {
             return res.status(404).json({
