@@ -115,19 +115,50 @@ console.log(
 
 for (const placement of placements) {
 
-  console.log(
-    "ADDING PLACEMENT:",
-    placement
-  );
-
+  const existing =
   await db
     .collection("fixedPlacements")
-    .add(placement);
+    .where(
+      "className",
+      "==",
+      placement.className
+    )
+    .where(
+      "weekStartDate",
+      "==",
+      placement.weekStartDate
+    )
+    .where(
+      "location",
+      "==",
+      placement.location
+    )
+    .where(
+      "instructorName",
+      "==",
+      placement.instructorName
+    )
+    .get();
 
-  console.log(
-    "PLACEMENT SAVED"
-  );
-}
+    if (!existing.empty) {
+
+      console.log(
+  "Skipping existing placement:",placement);
+  continue;
+      }
+
+      console.log(
+  "Saving new placement:",
+  placement
+);
+await db.collection("fixedPlacements").add(placement);
+ console.log(
+  "Placement saved:",
+  placement
+);
+
+    }
+
       
 
       res.json({

@@ -96,7 +96,7 @@ async function clearFixedPlacements() {
   }
 
   const res = await fetch(
-    `${API_URL}/fixedPlacements`,
+    `${API_URL}/fixedPlacements/`,
     {
       method: "DELETE"
     }

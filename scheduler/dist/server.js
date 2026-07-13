@@ -61,11 +61,20 @@ app.post("/fixedPlacements/import", async (req, res) => {
         }
         console.log("PLACEMENTS TO SAVE:", placements);
         for (const placement of placements) {
-            console.log("ADDING PLACEMENT:", placement);
-            await firebase_1.db
+            const existing = await firebase_1.db
                 .collection("fixedPlacements")
-                .add(placement);
-            console.log("PLACEMENT SAVED");
+                .where("className", "==", placement.className)
+                .where("weekStartDate", "==", placement.weekStartDate)
+                .where("location", "==", placement.location)
+                .where("instructorName", "==", placement.instructorName)
+                .get();
+            if (!existing.empty) {
+                console.log("Skipping existing placement:", placement);
+                continue;
+            }
+            console.log("Saving new placement:", placement);
+            await firebase_1.db.collection("fixedPlacements").add(placement);
+            console.log("Placement saved:", placement);
         }
         res.json({
             success: true
