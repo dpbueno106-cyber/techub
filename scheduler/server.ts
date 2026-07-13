@@ -115,18 +115,33 @@ console.log(
 
 for (const placement of placements) {
 
-  console.log(
-    "SAVING DOCUMENT:",
-    placement
-  );
+  const existing =
+    await db
+      .collection("fixedPlacements")
+      .where(
+        "className",
+        "==",
+        placement.className
+      )
+      .where(
+        "weekStartDate",
+        "==",
+        placement.weekStartDate
+      )
+      .where(
+        "location",
+        "==",
+        placement.location
+      )
+      .get();
+
+  if (!existing.empty) {
+    continue;
+  }
 
   await db
     .collection("fixedPlacements")
     .add(placement);
-
-  console.log(
-    "DOCUMENT SAVED"
-  );
 }
       
 
