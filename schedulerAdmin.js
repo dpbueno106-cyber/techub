@@ -640,7 +640,10 @@ function renderInstructorWorkloadFromCalendar() {
     .sort((a, b) => b[1] - a[1])
     .forEach(([id, count]) => {
 
-      const instructor = instructors.find(i =>i.id.toLowerCase() === fp.instructorName?.toLowerCase());instructorId:instructor?.id ?? null
+      const instructor =
+        instructors.find(
+          i => i.id === id
+        );
 
       const color =
         getInstructorColor(id);
