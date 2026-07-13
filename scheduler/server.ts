@@ -59,17 +59,20 @@ app.post(
         console.log("Processing row:",row);
        
           const excelName =
-      String(
-        row["Course Name"] ?? ""
-      )
-        .trim()
-        .toLowerCase();
+  String(
+    row["Course Name"] ?? ""
+  )
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
 
-    const course =
-      catalog.find(
-        c =>
-         c.name
-        ?.trim()
+
+   const course =
+  catalog.find(
+    c =>
+      c.name
+        ?.replace(/\s+/g, " ")
+        .trim()
         .toLowerCase() ===
       excelName
   );
@@ -88,9 +91,16 @@ console.log(
   "Matched course:",
   course
 );
-        if (!course) {
-          continue;
-        }
+if (!course) {
+
+  console.log(
+    "NO MATCH FOUND FOR:",
+    excelName
+  );
+
+  continue;
+}
+        
 
         placements.push({
           className:
@@ -107,11 +117,18 @@ console.log(
 
           locked: true
         });
-      }
-console.log(
-  "PLACEMENTS TO SAVE:",
-  placements
+        console.log(
+  "ADDED TO PLACEMENTS ARRAY:",
+  {
+    className: course.name,
+    weekStartDate: row["Week Start"],
+    location: row["Location"],
+    instructorName: row["Instructor"] || null
+  }
 );
+
+      }
+
 
 for (const placement of placements) {
 

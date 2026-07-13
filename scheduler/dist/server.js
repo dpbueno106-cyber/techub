@@ -39,16 +39,19 @@ app.post("/fixedPlacements/import", async (req, res) => {
         for (const row of rows) {
             console.log("Processing row:", row);
             const excelName = String(row["Course Name"] ?? "")
+                .replace(/\s+/g, " ")
                 .trim()
                 .toLowerCase();
             const course = catalog.find(c => c.name
-                ?.trim()
+                ?.replace(/\s+/g, " ")
+                .trim()
                 .toLowerCase() ===
                 excelName);
             console.log("Excel course:", row["Course Name"]);
             console.log("Catalog names:", catalog.map(c => c.name));
             console.log("Matched course:", course);
             if (!course) {
+                console.log("NO MATCH FOUND FOR:", excelName);
                 continue;
             }
             placements.push({
@@ -58,8 +61,13 @@ app.post("/fixedPlacements/import", async (req, res) => {
                 instructorName: row["Instructor"] || null,
                 locked: true
             });
+            console.log("ADDED TO PLACEMENTS ARRAY:", {
+                className: course.name,
+                weekStartDate: row["Week Start"],
+                location: row["Location"],
+                instructorName: row["Instructor"] || null
+            });
         }
-        console.log("PLACEMENTS TO SAVE:", placements);
         for (const placement of placements) {
             const existing = await firebase_1.db
                 .collection("fixedPlacements")
