@@ -264,7 +264,9 @@ app.get("/schedule", async (_req, res) => {
     const catalog = await loadCatalogFromFirestore();
     const instructors = await loadInstructorsFromFirestore();
     const fixedPlacements = await loadFixedPlacements();
+    console.log("FIXED PLACEMENTS LOADED:",fixedPlacements);
     console.log("Loaded fixed placements:",fixedPlacements);
+    
     if (!config) {
       return res.status(404).json({
         error: "Generation config not found"
