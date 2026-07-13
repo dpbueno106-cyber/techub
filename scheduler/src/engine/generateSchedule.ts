@@ -107,11 +107,15 @@ export function generateSchedule(
   }
 
   // 4. Determine remaining capacity
-  const ntoCount = slots.length;
-  const reservedForNonNTO = Math.max(
-    generationConfig.totalClasses - ntoCount,
-    0
-  );
+  const ntoCount =
+  slots.filter(
+    s =>
+      s.category === "NTO" &&
+      !s.locked
+  ).length;
+
+const reservedForNonNTO =
+  generationConfig.totalClasses - ntoCount;
 
 const weekUsage = new Map<number, number>();
 
@@ -135,6 +139,27 @@ slots.forEach(slot => {
   }
 
 });
+
+console.log(
+  "TOTAL CLASSES TARGET:",
+  generationConfig.totalClasses
+);
+
+console.log(
+  "FIXED PLACEMENTS:",
+  fixedPlacements.length
+);
+
+console.log(
+  "CURRENT SLOT COUNT:",
+  slots.length
+);
+
+console.log(
+  "RESERVED FOR NON NTO:",
+  reservedForNonNTO
+);
+
 const nonNTOSlots = classSlotGenerator(
   weeks,
   catalog,

@@ -115,33 +115,18 @@ console.log(
 
 for (const placement of placements) {
 
-  const existing =
-    await db
-      .collection("fixedPlacements")
-      .where(
-        "className",
-        "==",
-        placement.className
-      )
-      .where(
-        "weekStartDate",
-        "==",
-        placement.weekStartDate
-      )
-      .where(
-        "location",
-        "==",
-        placement.location
-      )
-      .get();
-
-  if (!existing.empty) {
-    continue;
-  }
+  console.log(
+    "ADDING PLACEMENT:",
+    placement
+  );
 
   await db
     .collection("fixedPlacements")
     .add(placement);
+
+  console.log(
+    "PLACEMENT SAVED"
+  );
 }
       
 
