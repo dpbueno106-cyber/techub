@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Fixed Placements</title>
+
+  <link
+   href="adminFixedPlacements.css" rel="stylesheet"
+>
+</head>
+
+<body>
+
+  <div class="pageHeader">
+    <h1>Fixed Placements</h1>
+  </div>
+
+  <div class="tableContainer">
+
+    <table id="fixedPlacementTable">
+      <thead>
+        <tr>
+          <th>Class</th>
+          <th>Week Start</th>
+          <th>Location</th>
+          <th>Instructor</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+      </tbody>
+    </table>
+
+    <div
+      id="emptyMessage"
+      class="emptyMessage"
+      style="display:none;"
+    >
+      No fixed placements have been imported.
+    </div>
+
+  </div>
+
+  <div class="actionBar">
+
+    <button
+      class="clearBtn"
+      onclick="deleteAllFixedPlacements()"
+    >
+      Delete All
+    </button>
+
+    <button
+      class="backBtn"
+      onclick="goBack()"
+    >
+      Back
+    </button>
+
+  </div>
+
+  <script src="adminFixedPlacements.js"></script>
+
+</body>
+</html>

@@ -162,6 +162,53 @@ app.delete("/catalog/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to remove course" });
   }
 });
+//this is for clearing all fixed placements from the database
+
+
+app.delete(
+  "/fixedPlacements",
+  async (_req, res) => {
+
+    const snap =
+      await db
+        .collection("fixedPlacements")
+        .get();
+
+    const batch = db.batch();
+
+    snap.docs.forEach(doc => {
+      batch.delete(doc.ref);
+    });
+
+    await batch.commit();
+
+    res.json({
+      success: true
+    });
+  }
+);
+
+app.delete("/fixedPlacements/:id", async (req, res) => {
+  try {
+
+    await db
+      .collection("fixedPlacements")
+      .doc(req.params.id)
+      .delete();
+
+    res.json({
+      success: true
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      error: "Failed to delete placement"
+    });
+  }
+});
 
 app.post("/config/generation", async (req, res) => {
   try {

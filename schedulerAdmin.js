@@ -60,13 +60,6 @@ const courseLocationEl =
   document.getElementById("courseLocation");
 const addCourseModalEl = document.getElementById("addCourseModal");
 const eventEditMenuEl = document.getElementById("eventEditMenu");
-const fixedPlacementImportEl =
-  document.getElementById("fixedPlacementImport");
-
-fixedPlacementImportEl?.addEventListener(
-  "change",
-  importFixedPlacements
-);
 // =========================
 // FIREBASE AUTH (ADMIN ONLY)
 // =========================
@@ -92,56 +85,34 @@ const auth = getAuth(app);
 // INSTRUCTOR HELPERS
 // =========================
 
-async function importFixedPlacements(
-  event
-) {
-  const file =
-    event.target.files[0];
+async function clearFixedPlacements() {
 
-  if (!file) return;
-
-  const data =
-    await file.arrayBuffer();
-
-  const workbook =
-    XLSX.read(data);
-
-  const sheet =
-    workbook.Sheets[
-      workbook.SheetNames[0]
-    ];
-
-  const rows =
-    XLSX.utils.sheet_to_json(
-      sheet
-    );
-console.log("Excel rows:", rows);
- const res = await fetch(
-  `${API_URL}/fixedPlacements/import`,
-  {
-    method: "POST",
-    headers: {
-      "Content-Type":
-        "application/json"
-    },
-    body: JSON.stringify(rows)
+  if (
+    !confirm(
+      "Delete all imported courses?"
+    )
+  ) {
+    return;
   }
-);
 
-if (!res.ok) {
-  const error = await res.json();
-
-  alert(
-    error.error ||
-    "Import failed"
+  const res = await fetch(
+    `${API_URL}/fixedPlacements`,
+    {
+      method: "DELETE"
+    }
   );
 
-  return;
-}
+  if (!res.ok) {
+    alert(
+      "Failed to clear imported courses"
+    );
+    return;
+  }
 
   alert(
-    "Fixed courses imported"
+    "Imported courses deleted"
   );
+
   await generateSchedule();
 }
 
@@ -669,10 +640,7 @@ function renderInstructorWorkloadFromCalendar() {
     .sort((a, b) => b[1] - a[1])
     .forEach(([id, count]) => {
 
-      const instructor =
-        instructors.find(
-          i => i.id === id
-        );
+      const instructor = instructors.find(i =>i.id.toLowerCase() === fp.instructorName?.toLowerCase());instructorId:instructor?.id ?? null
 
       const color =
         getInstructorColor(id);
@@ -1043,6 +1011,7 @@ Object.assign(window, {
   goBack: () => window.location.href = "adminDashboard.html",
   openEditModal,
   closeEditModal,
+  clearFixedPlacements,
   clearSchedule: () => {
     if (confirm("Are you sure you want to clear the schedule?")) {
       adminCalendar.removeAllEvents();

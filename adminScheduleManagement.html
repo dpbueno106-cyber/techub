@@ -26,6 +26,9 @@
     <button class = "secondary" onclick="openAddCourseModal()">+ Add Course</button>
     <input type="file" id="fixedPlacementImport" accept=".xlsx" hidden/>
     <button class="secondary" onclick="document.getElementById('fixedPlacementImport').click()">Import Fixed Course</button>
+    <button class="danger" onclick="clearFixedPlacements()">Clear Imported Courses</button>
+    <button id="manageFixedPlacementsBtn">Manage Fixed Placements</button>
+    <span id="fixedPlacementCount"></span>
   </div>
 
   <!--  MAIN LAYOUT -->
@@ -167,6 +170,7 @@
     </div>
   </div>
 </div>
+<script>document.getElementById("manageFixedPlacementsBtn").addEventListener("click", () => {window.location.href ="adminFixedPlacements.html";});</script>
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
   <script type="module" src="schedulerAdmin.js"></script>
