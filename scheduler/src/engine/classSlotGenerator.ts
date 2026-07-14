@@ -255,11 +255,14 @@ const candidateWeeks =
   );
 
 let i = 0;
-
+let attempts = 0;
+3
+const maxAttempts = weeks.length * 20;
 while (
   foundationalCount < maxFoundational &&
-  slots.length < remainingSlots
-) {
+  slots.length < remainingSlots &&
+  attempts < maxAttempts
+)  {
 
   const week =
     candidateWeeks[
@@ -338,6 +341,7 @@ while (
 
   foundationalCount++;
   i++;
+  attempts++;
 }
 
   // -------------------------
@@ -353,11 +357,16 @@ while (
   let advancedCount = 0;
 
 let advancedIndex = 0;
-
+let advancedAttempts = 0;
+const maxAdvancedAttempts =
+  weeks.length * 20;
 while (
-  advancedCount < remainingAfterFoundational &&
-  slots.length < remainingSlots
-) {
+  advancedCount <
+    remainingAfterFoundational &&
+  slots.length < remainingSlots &&
+  advancedAttempts <
+    maxAdvancedAttempts
+)  {
 
   const week =
     weeks[
@@ -451,6 +460,7 @@ while (
 
   advancedCount++;
   advancedIndex++;
+  advancedAttempts++;
 }
 
   // -------------------------

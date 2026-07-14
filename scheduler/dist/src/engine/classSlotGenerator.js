@@ -139,8 +139,12 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
     let foundationalCount = 0;
     const candidateWeeks = getLeastUsedWeeks(weeks, weekUsage);
     let i = 0;
+    let attempts = 0;
+    3;
+    const maxAttempts = weeks.length * 20;
     while (foundationalCount < maxFoundational &&
-        slots.length < remainingSlots) {
+        slots.length < remainingSlots &&
+        attempts < maxAttempts) {
         const week = candidateWeeks[i % candidateWeeks.length];
         if (!canPlaceInWeek(week.weekNumber, weekUsage, generationConfig.maxClassesPerWeek ?? 1)) {
             i++;
@@ -174,6 +178,7 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
         });
         foundationalCount++;
         i++;
+        attempts++;
     }
     // -------------------------
     // Advanced fills remainder
@@ -181,8 +186,13 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
     const remainingAfterFoundational = remaining - foundationalCount;
     let advancedCount = 0;
     let advancedIndex = 0;
-    while (advancedCount < remainingAfterFoundational &&
-        slots.length < remainingSlots) {
+    let advancedAttempts = 0;
+    const maxAdvancedAttempts = weeks.length * 20;
+    while (advancedCount <
+        remainingAfterFoundational &&
+        slots.length < remainingSlots &&
+        advancedAttempts <
+            maxAdvancedAttempts) {
         const week = weeks[advancedIndex % weeks.length];
         if (!canPlaceInWeek(week.weekNumber, weekUsage, generationConfig.maxClassesPerWeek ?? 1)) {
             advancedIndex++;
@@ -218,6 +228,7 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
         });
         advancedCount++;
         advancedIndex++;
+        advancedAttempts++;
     }
     // -------------------------
     // Debug summary (keep this)
