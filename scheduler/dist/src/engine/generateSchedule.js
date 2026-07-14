@@ -57,6 +57,9 @@ function generateSchedule(generationConfig, catalog, instructors, fixedPlacement
     console.log("FIXED PLACEMENTS:", fixedPlacements.length);
     console.log("CURRENT SLOT COUNT:", slots.length);
     console.log("RESERVED FOR NON NTO:", reservedForNonNTO);
+    console.log("TOTAL CLASSES CONFIG:", generationConfig.totalClasses);
+    console.log("FIXED PLACEMENTS:", fixedPlacements.length);
+    console.log("RESERVED FOR NON-NTO:", reservedForNonNTO);
     const nonNTOSlots = (0, classSlotGenerator_1.classSlotGenerator)(weeks, catalog, reservedForNonNTO, weekUsage, generationConfig, slots);
     slots = [...slots, ...nonNTOSlots];
     // Debug visibility (keep this)

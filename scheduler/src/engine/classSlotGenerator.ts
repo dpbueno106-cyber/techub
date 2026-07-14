@@ -28,7 +28,21 @@ export function classSlotGenerator(
 ): ClassSlot[] {
   
 
-  
+  console.log("========== SLOT GENERATOR ==========");
+console.log("remainingSlots:", remainingSlots);
+console.log("weeks:", weeks.length);
+console.log(
+  "maxClassesPerWeek:",
+  generationConfig.maxClassesPerWeek
+);
+console.log(
+  "categoryCaps:",
+  generationConfig.categoryCaps
+);
+console.log(
+  "existingSlots:",
+  existingSlots.length
+);
   const slots: ClassSlot[] = [];
   const reservedKeys = new Set<string>();
   const active = catalog.filter(c => c.isActive);
@@ -218,8 +232,19 @@ cls.possibleInstructors?.forEach(id => {
 
   // Remaining capacity after MIN_MAX
   let remaining = remainingSlots - slots.length;
+  console.log(
+  "MIN_MAX generated:",
+  slots.length
+);
+
+console.log(
+  "Remaining after MIN_MAX:",
+  remaining
+);
+
   if (remaining <= 0) {
     console.warn("No remaining capacity after MIN_MAX placement");
+    
     return slots;
   }
 
@@ -477,7 +502,25 @@ while (
       return acc;
     }, {} as Record<string, number>)
   );
+  console.log(
+  "Foundational generated:",
+  foundationalCount
+);
 
+console.log(
+  "Advanced generated:",
+  advancedCount
+);
+
+console.log(
+  "Total generated:",
+  slots.length
+);
+
+console.log(
+  "Requested:",
+  remainingSlots
+);
   return slots;
 }
 

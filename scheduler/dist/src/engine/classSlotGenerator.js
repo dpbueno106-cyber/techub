@@ -9,6 +9,12 @@ exports.classSlotGenerator = classSlotGenerator;
  * - MIN_MAX guarantees
  */
 function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generationConfig, existingSlots = []) {
+    console.log("========== SLOT GENERATOR ==========");
+    console.log("remainingSlots:", remainingSlots);
+    console.log("weeks:", weeks.length);
+    console.log("maxClassesPerWeek:", generationConfig.maxClassesPerWeek);
+    console.log("categoryCaps:", generationConfig.categoryCaps);
+    console.log("existingSlots:", existingSlots.length);
     const slots = [];
     const reservedKeys = new Set();
     const active = catalog.filter(c => c.isActive);
@@ -122,6 +128,8 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
     }
     // Remaining capacity after MIN_MAX
     let remaining = remainingSlots - slots.length;
+    console.log("MIN_MAX generated:", slots.length);
+    console.log("Remaining after MIN_MAX:", remaining);
     if (remaining <= 0) {
         console.warn("No remaining capacity after MIN_MAX placement");
         return slots;
@@ -240,6 +248,10 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
         acc[s.category] = (acc[s.category] || 0) + 1;
         return acc;
     }, {}));
+    console.log("Foundational generated:", foundationalCount);
+    console.log("Advanced generated:", advancedCount);
+    console.log("Total generated:", slots.length);
+    console.log("Requested:", remainingSlots);
     return slots;
 }
 /* =========================
