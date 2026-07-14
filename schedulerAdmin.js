@@ -714,6 +714,73 @@ function getContrastTextColor(hex) {
 // GENERATE / PERSIST
 // =========================
 
+document
+  .getElementById("fixedPlacementImport")
+  ?.addEventListener(
+    "change",
+    async event => {
+
+      const file =
+        event.target.files?.[0];
+
+      if (!file) return;
+
+      const data =
+        await file.arrayBuffer();
+
+      const workbook =
+        XLSX.read(data);
+
+      const sheet =
+        workbook.Sheets[
+          workbook.SheetNames[0]
+        ];
+
+      const rows =
+        XLSX.utils.sheet_to_json(
+          sheet
+        );
+
+      console.log(
+        "ROWS TO IMPORT:",
+        rows
+      );
+
+      const res =
+        await fetch(
+          `${API_URL}/fixedPlacements/import`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+            body: JSON.stringify(
+              rows
+            )
+          }
+        );
+
+      console.log(
+        "IMPORT STATUS:",
+        res.status
+      );
+
+      if (!res.ok) {
+        alert(
+          "Import failed"
+        );
+        return;
+      }
+
+      alert(
+        "Import complete"
+      );
+
+      await generateSchedule();
+    }
+  );
+
 async function generateSchedule() {
   if (generateScheduleBtn) {
     generateScheduleBtn.disabled = true;
@@ -969,7 +1036,10 @@ initCalendar();
 
     saveEventBtn.onclick = () => {
   if (!selectedEvent) return;
-  
+  const fixedPlacementImportEl =
+  document.getElementById(
+    "fixedPlacementImport"
+  );
   const instructor = editEventInstructorEl.value;
   const location = editEventLocationEl.value;
   
