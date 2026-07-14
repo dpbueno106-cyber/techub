@@ -114,8 +114,10 @@ export function generateSchedule(
       !s.locked
   ).length;
 
-const reservedForNonNTO =
-  generationConfig.totalClasses - ntoCount;
+const reservedForNonNTO = Math.max(
+  generationConfig.totalClasses - ntoCount,
+  0
+);
 
 const weekUsage = new Map<number, number>();
 

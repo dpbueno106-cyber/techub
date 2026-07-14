@@ -46,7 +46,7 @@ function generateSchedule(generationConfig, catalog, instructors, fixedPlacement
     // 4. Determine remaining capacity
     const ntoCount = slots.filter(s => s.category === "NTO" &&
         !s.locked).length;
-    const reservedForNonNTO = generationConfig.totalClasses - ntoCount;
+    const reservedForNonNTO = Math.max(generationConfig.totalClasses - ntoCount, 0);
     const weekUsage = new Map();
     slots.forEach(slot => {
         for (let w = 0; w < slot.durationWeeks; w++) {
