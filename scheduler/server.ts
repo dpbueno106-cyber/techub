@@ -130,54 +130,99 @@ if (!course) {
       }
 
 
+console.log(
+  "PLACEMENTS TO SAVE:",
+  placements
+);
+
 for (const placement of placements) {
 
-  const existing =
-  await db
-    .collection("fixedPlacements")
-    .where(
-      "className",
-      "==",
-      placement.className
-    )
-    .where(
-      "weekStartDate",
-      "==",
-      placement.weekStartDate
-    )
-    .where(
-      "location",
-      "==",
-      placement.location
-    )
-    .where(
-      "instructorName",
-      "==",
-      placement.instructorName
-    )
-    .get();
+  try {
+
+    console.log(
+      "CHECKING:",
+      placement
+    );
+
+    const existing =
+      await db
+        .collection("fixedPlacements")
+        .where(
+          "className",
+          "==",
+          placement.className
+        )
+        .where(
+          "weekStartDate",
+          "==",
+          placement.weekStartDate
+        )
+        .where(
+          "location",
+          "==",
+          placement.location
+        )
+        .where(
+          "instructorName",
+          "==",
+          placement.instructorName
+        )
+        .get();
+
+    console.log(
+      "MATCHES FOUND:",
+      existing.size
+    );
 
     if (!existing.empty) {
 
       console.log(
-  "Skipping existing placement:",placement);
-  continue;
-      }
+        "SKIPPING DUPLICATE:",
+        placement
+      );
 
-      console.log(
-  "Saving new placement:",
-  placement
-);
-await db.collection("fixedPlacements").add(placement);
- console.log(
-  "Placement saved:",
-  placement
-);
-
+      continue;
     }
 
-      
+    console.log(
+      "SAVING:",
+      placement
+    );
 
+    const docRef =
+      await db
+        .collection("fixedPlacements")
+        .add(placement);
+
+    console.log(
+      "SAVED DOC ID:",
+      docRef.id
+    );
+
+  } catch (err) {
+
+    console.error(
+      "SAVE FAILED:",
+      err
+    );
+  }
+}
+
+const verify =
+  await db
+    .collection("fixedPlacements")
+    .get();
+
+console.log(
+  "TOTAL DOCS AFTER IMPORT:",
+  verify.size
+);
+
+      
+console.log(
+  "FINAL PLACEMENTS COUNT:",
+  placements.length
+);
       res.json({
         success: true
       });

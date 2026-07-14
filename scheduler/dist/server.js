@@ -68,22 +68,37 @@ app.post("/fixedPlacements/import", async (req, res) => {
                 instructorName: row["Instructor"] || null
             });
         }
+        console.log("PLACEMENTS TO SAVE:", placements);
         for (const placement of placements) {
-            const existing = await firebase_1.db
-                .collection("fixedPlacements")
-                .where("className", "==", placement.className)
-                .where("weekStartDate", "==", placement.weekStartDate)
-                .where("location", "==", placement.location)
-                .where("instructorName", "==", placement.instructorName)
-                .get();
-            if (!existing.empty) {
-                console.log("Skipping existing placement:", placement);
-                continue;
+            try {
+                console.log("CHECKING:", placement);
+                const existing = await firebase_1.db
+                    .collection("fixedPlacements")
+                    .where("className", "==", placement.className)
+                    .where("weekStartDate", "==", placement.weekStartDate)
+                    .where("location", "==", placement.location)
+                    .where("instructorName", "==", placement.instructorName)
+                    .get();
+                console.log("MATCHES FOUND:", existing.size);
+                if (!existing.empty) {
+                    console.log("SKIPPING DUPLICATE:", placement);
+                    continue;
+                }
+                console.log("SAVING:", placement);
+                const docRef = await firebase_1.db
+                    .collection("fixedPlacements")
+                    .add(placement);
+                console.log("SAVED DOC ID:", docRef.id);
             }
-            console.log("Saving new placement:", placement);
-            await firebase_1.db.collection("fixedPlacements").add(placement);
-            console.log("Placement saved:", placement);
+            catch (err) {
+                console.error("SAVE FAILED:", err);
+            }
         }
+        const verify = await firebase_1.db
+            .collection("fixedPlacements")
+            .get();
+        console.log("TOTAL DOCS AFTER IMPORT:", verify.size);
+        console.log("FINAL PLACEMENTS COUNT:", placements.length);
         res.json({
             success: true
         });
