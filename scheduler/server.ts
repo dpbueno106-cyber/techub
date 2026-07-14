@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import type {FixedPlacement} from "./src/types";
 import { generateSchedule } from "./src/engine/generateSchedule";
 import {
   loadConfigFromFirestore,
@@ -24,16 +25,31 @@ app.use(
 // ROUTES
 // =========================
 
-async function loadFixedPlacements() {
-  const snap =
-    await db
-      .collection("fixedPlacements")
-      .get();
+async function loadFixedPlacements(): Promise<FixedPlacement[]> {
+  const snapshot = await db
+    .collection("fixedPlacements")
+    .get();
 
-  return snap.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  }));
+  return snapshot.docs.map(doc => {
+    const data = doc.data();
+
+    return {
+      id: doc.id,
+      className: String(
+        data.className ?? ""
+      ),
+      weekStartDate: String(
+        data.weekStartDate ?? ""
+      ),
+      location: data.location,
+      instructorName:
+        data.instructorName == null
+          ? null
+          : String(data.instructorName),
+      locked:
+        data.locked !== false
+    } as FixedPlacement;
+  });
 }
 
 

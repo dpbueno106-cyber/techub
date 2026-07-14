@@ -48,15 +48,7 @@ console.log(
   const active = catalog.filter(c => c.isActive);
   existingSlots.forEach(slot => {
 
-  for (
-    let w = 0;
-    w < slot.durationWeeks;
-    w++
-  ) {
-    reservedKeys.add(
-      `${slot.weekNumber + w}-${slot.location}`
-    );
-  }
+ 
 
 });
   // -------------------------
@@ -209,16 +201,11 @@ const slot =
 
 slots.push(slot);
 
-for (
-  let w = 0;
-  w < slot.durationWeeks;
-  w++
-) {
-  reservedKeys.add(
-    `${slot.weekNumber + w}-${location}`
-  );
-}
-markWeekUsage(week.weekNumber, weekUsage);
+
+markSlotUsage(
+  slot,
+  weekUsage
+);
 
 classStats[cls.name].lastWeek = weekIndex;
 classStats[cls.name].timesScheduled++;
@@ -343,20 +330,12 @@ while (
 
   slots.push(slot);
 
-  for (
-    let w = 0;
-    w < slot.durationWeeks;
-    w++
-  ) {
-    reservedKeys.add(
-      `${slot.weekNumber + w}-${location}`
-    );
-  }
+  
 
-  markWeekUsage(
-    week.weekNumber,
-    weekUsage
-  );
+  markSlotUsage(
+  slot,
+  weekUsage
+);
 
   classStats[chosen.name].lastWeek = i;
   classStats[chosen.name].timesScheduled++;
@@ -468,10 +447,10 @@ while (
     );
   }
 
-  markWeekUsage(
-    week.weekNumber,
-    weekUsage
-  );
+ markSlotUsage(
+  slot,
+  weekUsage
+);
 
   classStats[chosen.name].lastWeek =
     advancedIndex;
@@ -549,14 +528,27 @@ function isLocationReserved(
   );
 
 }
-function markWeekUsage(
-  weekNumber: number,
+function markSlotUsage(
+  slot: ClassSlot,
   weekUsage: Map<number, number>
-) {
-  weekUsage.set(
-    weekNumber,
-    (weekUsage.get(weekNumber) ?? 0) + 1
-  );
+): void {
+  for (
+    let offset = 0;
+    offset < slot.durationWeeks;
+    offset++
+  ) {
+    const weekNumber =
+      slot.weekNumber + offset;
+
+    weekUsage.set(
+      weekNumber,
+      (
+        weekUsage.get(
+          weekNumber
+        ) ?? 0
+      ) + 1
+    );
+  }
 }
 
 function buildSlot(

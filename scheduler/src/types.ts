@@ -14,6 +14,14 @@ export interface WeekSlot {
   endDate: string;
   blocked: boolean;
 }
+export interface FixedPlacement {
+  id?: string;
+  className: string;
+  weekStartDate: string;
+  location: Location;
+  instructorName?: string | null;
+  locked?: boolean;
+}
 
 export interface ClassDefinition {
   id: string;

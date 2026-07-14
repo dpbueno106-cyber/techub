@@ -7,72 +7,176 @@ const placeNTO_1 = require("./placeNTO");
 const classSlotGenerator_1 = require("./classSlotGenerator");
 const assignInstructors_1 = require("./assignInstructors");
 function generateSchedule(generationConfig, catalog, instructors, fixedPlacements = []) {
-    // 1. Build calendar weeks
+    // 1. Build the configured calendar weeks.
     const weeks = (0, buildWeeks_1.buildWeeks)(generationConfig.year);
-    // 2. Initialize schedule state
-    let slots = [];
-    fixedPlacements.forEach(fp => {
-        const course = catalog.find(c => c.name === fp.className);
-        if (!course)
-            return;
-        const startDate = new Date(fp.weekStartDate);
-        const yearStart = new Date(generationConfig.year, 0, 1);
-        const weekNumber = Math.ceil(((startDate.getTime() -
-            yearStart.getTime()) /
-            86400000 +
-            yearStart.getDay() +
-            1) / 7);
-        const instructor = instructors.find(i => i.id.toLowerCase() ===
-            fp.instructorName?.toLowerCase());
-        slots.push({
-            classId: course.id,
-            className: course.name,
-            category: course.category,
-            location: fp.location,
-            instructorId: instructor?.id ?? null,
-            weekStartDate: fp.weekStartDate,
-            weekEndDate: fp.weekStartDate,
-            durationWeeks: course.durationWeeks,
-            possibleInstructors: course.possibleInstructors,
-            weekNumber,
-            locked: true
-        });
-    });
-    // 3. Place NTO (additive, optional)
+    // 2. Convert imported fixed placements into schedule slots.
+    let slots = buildFixedPlacementSlots(fixedPlacements, catalog, instructors, weeks, generationConfig.year);
+    console.log("Valid fixed placements:", slots.length);
+    // 3. Generate NTO courses around existing fixed placements.
     if (generationConfig.nto.enabled) {
         const ntoResult = (0, placeNTO_1.placeNTO)(slots, weeks, generationConfig.nto.locations);
         slots = ntoResult.slots;
     }
-    // 4. Determine remaining capacity
-    const ntoCount = slots.filter(s => s.category === "NTO" &&
-        !s.locked).length;
-    const reservedForNonNTO = Math.max(generationConfig.totalClasses - ntoCount, 0);
-    const weekUsage = new Map();
-    slots.forEach(slot => {
-        for (let w = 0; w < slot.durationWeeks; w++) {
-            weekUsage.set(slot.weekNumber + w, (weekUsage.get(slot.weekNumber + w) ?? 0) + 1);
-        }
-    });
-    console.log("TOTAL CLASSES TARGET:", generationConfig.totalClasses);
-    console.log("FIXED PLACEMENTS:", fixedPlacements.length);
-    console.log("CURRENT SLOT COUNT:", slots.length);
-    console.log("RESERVED FOR NON NTO:", reservedForNonNTO);
-    console.log("TOTAL CLASSES CONFIG:", generationConfig.totalClasses);
-    console.log("FIXED PLACEMENTS:", fixedPlacements.length);
-    console.log("RESERVED FOR NON-NTO:", reservedForNonNTO);
+    /*
+     * Count only generated NTO slots.
+     *
+     * Locked imported courses are additive and therefore do not
+     * reduce the requested normal schedule size.
+     */
+    const generatedNTOCount = slots.filter(slot => slot.category === "NTO" &&
+        !slot.locked).length;
+    const reservedForNonNTO = Math.max(generationConfig.totalClasses -
+        generatedNTOCount, 0);
+    // 4. Build weekly usage from fixed and generated NTO slots.
+    const weekUsage = buildInitialWeekUsage(slots);
+    console.log("========== SCHEDULE GENERATION ==========");
+    console.log("Total classes configured:", generationConfig.totalClasses);
+    console.log("Imported fixed placements:", fixedPlacements.length);
+    console.log("Valid fixed slots:", slots.filter(slot => slot.locked).length);
+    console.log("Generated NTO slots:", generatedNTOCount);
+    console.log("Existing slots before non-NTO generation:", slots.length);
+    console.log("Requested non-NTO slots:", reservedForNonNTO);
+    console.log("Maximum classes per week:", generationConfig.maxClassesPerWeek);
+    // 5. Generate normal classes around fixed placements and NTO.
     const nonNTOSlots = (0, classSlotGenerator_1.classSlotGenerator)(weeks, catalog, reservedForNonNTO, weekUsage, generationConfig, slots);
-    slots = [...slots, ...nonNTOSlots];
-    // Debug visibility (keep this)
-    console.log("Slots by category:", slots.reduce((acc, s) => {
-        acc[s.category] = (acc[s.category] || 0) + 1;
-        return acc;
+    console.log("Generated non-NTO slots:", nonNTOSlots.length);
+    slots = [
+        ...slots,
+        ...nonNTOSlots
+    ];
+    console.log("Slots before location balancing:", slots.length);
+    console.log("Slots by category:", slots.reduce((summary, slot) => {
+        summary[slot.category] =
+            (summary[slot.category] ?? 0) + 1;
+        return summary;
     }, {}));
-    // 6. Balance locations
+    // 6. Balance only unlocked locations.
     const balanced = (0, balanceLocations_1.balanceLocations)(slots);
-    // 7. Assign instructors
+    // 7. Assign instructors while preserving locked assignments.
     const assigned = (0, assignInstructors_1.assignInstructors)(balanced, instructors, generationConfig);
-    // 8. Final sort
-    return assigned.sort((a, b) => a.weekNumber === b.weekNumber
-        ? a.location.localeCompare(b.location)
-        : a.weekNumber - b.weekNumber);
+    // 8. Sort the completed schedule.
+    return assigned.sort((first, second) => {
+        if (first.weekNumber ===
+            second.weekNumber) {
+            return first.location.localeCompare(second.location);
+        }
+        return (first.weekNumber -
+            second.weekNumber);
+    });
+}
+function buildFixedPlacementSlots(fixedPlacements, catalog, instructors, weeks, configuredYear) {
+    const fixedSlots = [];
+    for (const placement of fixedPlacements) {
+        const normalizedClassName = normalizeText(placement.className);
+        const course = catalog.find(catalogCourse => normalizeText(catalogCourse.name) === normalizedClassName);
+        if (!course) {
+            console.warn("Skipping fixed placement because the course was not found:", placement);
+            continue;
+        }
+        const dateText = normalizeDateText(placement.weekStartDate);
+        if (!dateText) {
+            console.warn("Skipping fixed placement because the date is invalid:", placement);
+            continue;
+        }
+        const placementYear = Number(dateText.slice(0, 4));
+        if (placementYear !== configuredYear) {
+            console.warn("Skipping fixed placement outside the configured year:", {
+                configuredYear,
+                placement
+            });
+            continue;
+        }
+        /*
+         * Use the exact WeekSlot produced by buildWeeks().
+         * This avoids discrepancies between different week-number
+         * algorithms.
+         */
+        const weekIndex = weeks.findIndex(week => normalizeDateText(week.startDate) === dateText);
+        if (weekIndex < 0) {
+            console.warn("Skipping fixed placement because its start date does not match a schedule week:", placement);
+            continue;
+        }
+        const startWeek = weeks[weekIndex];
+        if (startWeek.blocked) {
+            console.warn("Skipping fixed placement because its week is blocked:", placement);
+            continue;
+        }
+        const normalizedLocation = normalizeText(String(placement.location)).toUpperCase();
+        if (normalizedLocation !== "IN" &&
+            normalizedLocation !== "MI") {
+            console.warn("Skipping fixed placement because its location is invalid:", placement);
+            continue;
+        }
+        const location = normalizedLocation;
+        const instructor = findInstructor(instructors, placement.instructorName);
+        const durationWeeks = Math.max(1, course.durationWeeks ?? 1);
+        const endingWeekIndex = weekIndex + durationWeeks - 1;
+        const endingWeek = weeks[Math.min(endingWeekIndex, weeks.length - 1)];
+        fixedSlots.push({
+            classId: course.id,
+            className: course.name,
+            category: course.category,
+            location,
+            instructorId: instructor?.id ?? null,
+            weekNumber: startWeek.weekNumber,
+            weekStartDate: startWeek.startDate,
+            weekEndDate: endingWeek.endDate,
+            durationWeeks,
+            possibleInstructors: course.possibleInstructors,
+            locked: true
+        });
+    }
+    return fixedSlots;
+}
+function buildInitialWeekUsage(slots) {
+    const weekUsage = new Map();
+    for (const slot of slots) {
+        for (let offset = 0; offset < slot.durationWeeks; offset++) {
+            const coveredWeek = slot.weekNumber + offset;
+            weekUsage.set(coveredWeek, (weekUsage.get(coveredWeek) ?? 0) + 1);
+        }
+    }
+    return weekUsage;
+}
+function findInstructor(instructors, instructorName) {
+    const normalizedInstructor = normalizeText(instructorName ?? "");
+    if (!normalizedInstructor) {
+        return undefined;
+    }
+    return instructors.find(instructor => normalizeText(instructor.id) === normalizedInstructor ||
+        normalizeText(getInstructorName(instructor)) === normalizedInstructor);
+}
+function getInstructorName(instructor) {
+    /*
+     * Some instructor types may only declare id while the
+     * Firestore data also contains name. This safely supports both.
+     */
+    const instructorWithName = instructor;
+    return (instructorWithName.name ??
+        instructor.id);
+}
+function normalizeText(value) {
+    return value
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase();
+}
+function normalizeDateText(value) {
+    if (!value) {
+        return null;
+    }
+    /*
+     * Preserve ISO date strings without allowing timezone
+     * conversion to move the date backward or forward.
+     */
+    const isoMatch = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!isoMatch) {
+        return null;
+    }
+    const normalized = `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+    const date = new Date(`${normalized}T00:00:00`);
+    if (Number.isNaN(date.getTime())) {
+        return null;
+    }
+    return normalized;
 }

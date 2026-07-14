@@ -21,13 +21,22 @@ app.use((0, cors_1.default)({
 // ROUTES
 // =========================
 async function loadFixedPlacements() {
-    const snap = await firebase_1.db
+    const snapshot = await firebase_1.db
         .collection("fixedPlacements")
         .get();
-    return snap.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-    }));
+    return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            className: String(data.className ?? ""),
+            weekStartDate: String(data.weekStartDate ?? ""),
+            location: data.location,
+            instructorName: data.instructorName == null
+                ? null
+                : String(data.instructorName),
+            locked: data.locked !== false
+        };
+    });
 }
 app.post("/fixedPlacements/import", async (req, res) => {
     console.log("IMPORT BODY:", JSON.stringify(req.body, null, 2));

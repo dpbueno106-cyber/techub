@@ -235,7 +235,7 @@ if (
 function serializeCalendarToSlots() {
   const slots = [];
 
-  adminCalendar.getEvents().forEach(event => {
+  getLogicalScheduleEvents().forEach(event => {
     const {
       className,
       category,
@@ -781,6 +781,24 @@ document
     }
   );
 
+async function getConfiguredYear() {
+  const response = await fetch(
+    `${API_URL}/config/generation`
+  );
+
+  if (!response.ok) {
+    return new Date().getFullYear();
+  }
+
+  const config =
+    await response.json();
+
+  return Number(
+    config.year ||
+    new Date().getFullYear()
+  );
+}
+
 async function generateSchedule() {
   if (generateScheduleBtn) {
     generateScheduleBtn.disabled = true;
@@ -788,41 +806,118 @@ async function generateSchedule() {
   }
 
   try {
-    const res = await fetch(`${API_URL}/schedule`);
-    
+    const res = await fetch(
+      `${API_URL}/schedule`,
+      {
+        cache: "no-store"
+      }
+    );
 
     const data = await res.json();
 
-if (!Array.isArray(data)) {
-  console.error("Schedule API error", data);
-  alert(data.error || "Failed to generate schedule.");
-  return;
-}
+    console.log(
+      "Schedule API response:",
+      data
+    );
 
-    renderCalendarFromSchedule(data, true);
+    console.log(
+      "Is schedule an array?",
+      Array.isArray(data)
+    );
+
+    console.log(
+      "Logical slots returned by API:",
+      Array.isArray(data)
+        ? data.length
+        : "Not an array"
+    );
+
+    if (!res.ok) {
+      console.error(
+        "Schedule request failed:",
+        res.status,
+        data
+      );
+
+      alert(
+        data?.error ||
+        "Failed to generate schedule."
+      );
+
+      return;
+    }
+
+    if (!Array.isArray(data)) {
+      console.error(
+        "Schedule API returned an invalid response:",
+        data
+      );
+
+      alert(
+        data?.error ||
+        "The schedule API did not return an array."
+      );
+
+      return;
+    }
+
+    renderCalendarFromSchedule(
+      data,
+      true
+    );
+
+    console.log(
+      "FullCalendar events rendered:",
+      adminCalendar
+        .getEvents()
+        .length
+    );
+
     applyInstructorFilter();
-  
-    console.log("Generated schedule:", data);
-    
     renderInstructorWorkloadFromCalendar();
     renderScheduleAnalytics();
+
+    console.log(
+      "Generated schedule:",
+      data
+    );
+  } catch (error) {
+    console.error(
+      "Generate schedule failed:",
+      error
+    );
+
+    alert(
+      "Failed to generate schedule."
+    );
   } finally {
     if (generateScheduleBtn) {
       generateScheduleBtn.disabled = false;
-      generateScheduleBtn.textContent = "Generate Schedule";
+      generateScheduleBtn.textContent =
+        "Generate Schedule";
     }
   }
 }
 
 async function saveSchedule() {
-  await fetch(`${API_URL}/schedule/save`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      year: new Date().getFullYear(),
-      slots: serializeCalendarToSlots()
-    })
-  });
+  const year =
+    await getConfiguredYear();
+
+  await fetch(
+    `${API_URL}/schedule/save`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type":
+          "application/json"
+      },
+      body: JSON.stringify({
+        year,
+        slots:
+          serializeCalendarToSlots()
+      })
+    }
+  );
 
   alert("Schedule saved");
 }
@@ -841,25 +936,66 @@ editEventInstructorEl.onchange = () => {
 };
 
 async function loadSavedSchedule() {
-  const year = new Date().getFullYear();
-  const res = await fetch(`${API_URL}/schedule/load?year=${year}`);
-  const data = await res.json();
+  const year =
+    await getConfiguredYear();
 
-  if (!data.slots?.length) return false;
+  const res = await fetch(
+    `${API_URL}/schedule/load?year=${year}`
+  );
 
-  renderCalendarFromSchedule(data.slots, true);
+  const data =
+    await res.json();
+
+  if (!data.slots?.length) {
+    return false;
+  }
+
+  renderCalendarFromSchedule(
+    data.slots,
+    true
+  );
+
   applyInstructorFilter();
   renderInstructorWorkloadFromCalendar();
   renderScheduleAnalytics();
+
   return true;
 }
+function getLogicalScheduleEvents() {
+  const uniqueEvents = new Map();
 
+  adminCalendar
+    .getEvents()
+    .forEach(event => {
+      const props =
+        event.extendedProps;
+
+      const key = [
+        props.classId ||
+          props.className,
+        props.location,
+        props.weekStartDate,
+        props.instructorId || ""
+      ].join("|");
+
+      if (!uniqueEvents.has(key)) {
+        uniqueEvents.set(
+          key,
+          event
+        );
+      }
+    });
+
+  return [
+    ...uniqueEvents.values()
+  ];
+}
 
 function renderScheduleAnalytics() {
  
 
   const events =
-    adminCalendar.getEvents();
+  getLogicalScheduleEvents();
 
   const instructorCounts = {};
   const locationCounts = {};
