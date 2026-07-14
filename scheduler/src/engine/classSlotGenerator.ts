@@ -254,9 +254,28 @@ const candidateWeeks =
     weekUsage
   );
 
-for (let i = 0; i < weeks.length && foundationalCount < maxFoundational; i++) {
-  if (!foundational.length) break;
-  if (!canPlaceInWeek(weeks[i].weekNumber, weekUsage, generationConfig.maxClassesPerWeek ?? 1)) continue;
+let i = 0;
+
+while (
+  foundationalCount < maxFoundational &&
+  slots.length < remainingSlots
+) {
+
+  const week =
+    candidateWeeks[
+      i % candidateWeeks.length
+    ];
+
+  if (
+    !canPlaceInWeek(
+      week.weekNumber,
+      weekUsage,
+      generationConfig.maxClassesPerWeek ?? 1
+    )
+  ) {
+    i++;
+    continue;
+  }
 
   const scored = foundational.map(cls => ({
     cls,
@@ -267,47 +286,58 @@ for (let i = 0; i < weeks.length && foundationalCount < maxFoundational; i++) {
 
   const chosen =
     scored[0].score === -Infinity
-      ? foundational[Math.floor(Math.random() * foundational.length)]
+      ? foundational[
+          Math.floor(
+            Math.random() *
+            foundational.length
+          )
+        ]
       : scored[0].cls;
 
-  const week = candidateWeeks[i];
-  if (!week) continue;
   const location =
-  chosen.defaultLocations[0];
+    chosen.defaultLocations[0];
 
-if (
-  isLocationReserved(
+  if (
+    isLocationReserved(
+      week.weekNumber,
+      location,
+      reservedKeys
+    )
+  ) {
+    i++;
+    continue;
+  }
+
+  const slot =
+    buildSlot(chosen, week);
+
+  slots.push(slot);
+
+  for (
+    let w = 0;
+    w < slot.durationWeeks;
+    w++
+  ) {
+    reservedKeys.add(
+      `${slot.weekNumber + w}-${location}`
+    );
+  }
+
+  markWeekUsage(
     week.weekNumber,
-    location,
-    reservedKeys
-  )
-) {
-  continue;
-}
-
-const slot =
-  buildSlot(chosen, week);
-
-slots.push(slot);
-
-for (
-  let w = 0;
-  w < slot.durationWeeks;
-  w++
-) {
-  reservedKeys.add(
-    `${slot.weekNumber + w}-${location}`
+    weekUsage
   );
-}
-  markWeekUsage(week.weekNumber, weekUsage);
 
   classStats[chosen.name].lastWeek = i;
   classStats[chosen.name].timesScheduled++;
+
   chosen.possibleInstructors?.forEach(id => {
-  instructorStats[id].lastWeek = i;
-  instructorStats[id].timesScheduled++;
-});
+    instructorStats[id].lastWeek = i;
+    instructorStats[id].timesScheduled++;
+  });
+
   foundationalCount++;
+  i++;
 }
 
   // -------------------------
@@ -322,65 +352,105 @@ for (
 
   let advancedCount = 0;
 
-for (
-  let i = 0; i < weeks.length && advancedCount < remainingAfterFoundational; i++
+let advancedIndex = 0;
+
+while (
+  advancedCount < remainingAfterFoundational &&
+  slots.length < remainingSlots
 ) {
-  if (!advanced.length) break;
-  if (!canPlaceInWeek(weeks[i].weekNumber, weekUsage, generationConfig.maxClassesPerWeek ?? 1)) continue;
+
+  const week =
+    weeks[
+      advancedIndex % weeks.length
+    ];
+
+  if (
+    !canPlaceInWeek(
+      week.weekNumber,
+      weekUsage,
+      generationConfig.maxClassesPerWeek ?? 1
+    )
+  ) {
+    advancedIndex++;
+    continue;
+  }
 
   const scored = advanced.map(cls => ({
     cls,
-    score: scoreClass(cls, i)
+    score: scoreClass(
+      cls,
+      advancedIndex
+    )
   }));
 
-  scored.sort((a, b) => b.score - a.score);
+  scored.sort(
+    (a, b) =>
+      b.score - a.score
+  );
 
   const chosen =
     scored[0].score === -Infinity
-      ? advanced[Math.floor(Math.random() * advanced.length)]
+      ? advanced[
+          Math.floor(
+            Math.random() *
+            advanced.length
+          )
+        ]
       : scored[0].cls;
 
-  const week = weeks[i];
-
   const location =
-  chosen.defaultLocations[0];
+    chosen.defaultLocations[0];
 
-if (
-  isLocationReserved(
+  if (
+    isLocationReserved(
+      week.weekNumber,
+      location,
+      reservedKeys
+    )
+  ) {
+    advancedIndex++;
+    continue;
+  }
+
+  const slot =
+    buildSlot(
+      chosen,
+      week
+    );
+
+  slots.push(slot);
+
+  for (
+    let w = 0;
+    w < slot.durationWeeks;
+    w++
+  ) {
+    reservedKeys.add(
+      `${slot.weekNumber + w}-${location}`
+    );
+  }
+
+  markWeekUsage(
     week.weekNumber,
-    location,
-    reservedKeys
-  )
-) {
-  continue;
-}
-
-const slot =
-  buildSlot(chosen, week);
-
-slots.push(slot);
-
-for (
-  let w = 0;
-  w < slot.durationWeeks;
-  w++
-) {
-  reservedKeys.add(
-    `${slot.weekNumber + w}-${location}`
+    weekUsage
   );
-}
 
-markWeekUsage(
-  week.weekNumber,
-  weekUsage
-);
-  classStats[chosen.name].lastWeek = i;
+  classStats[chosen.name].lastWeek =
+    advancedIndex;
+
   classStats[chosen.name].timesScheduled++;
-  chosen.possibleInstructors?.forEach(id => {
-  instructorStats[id].lastWeek = i;
-  instructorStats[id].timesScheduled++;
-});
+
+  chosen.possibleInstructors?.forEach(
+    id => {
+      instructorStats[id].lastWeek =
+        advancedIndex;
+
+      instructorStats[id].timesScheduled++;
+    }
+  );
+
   advancedCount++;
+  advancedIndex++;
 }
 
   // -------------------------
