@@ -256,7 +256,7 @@ const candidateWeeks =
 
 let i = 0;
 let attempts = 0;
-3
+
 const maxAttempts = weeks.length * 20;
 while (
   foundationalCount < maxFoundational &&
@@ -277,6 +277,7 @@ while (
     )
   ) {
     i++;
+    attempts++;
     continue;
   }
 
@@ -308,6 +309,7 @@ while (
     )
   ) {
     i++;
+    attempts++;
     continue;
   }
 
@@ -381,6 +383,7 @@ while (
     )
   ) {
     advancedIndex++;
+    advancedAttempts++;
     continue;
   }
 
@@ -418,6 +421,7 @@ while (
     )
   ) {
     advancedIndex++;
+    advancedAttempts++;
     continue;
   }
 

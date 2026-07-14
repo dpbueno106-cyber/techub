@@ -140,7 +140,6 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
     const candidateWeeks = getLeastUsedWeeks(weeks, weekUsage);
     let i = 0;
     let attempts = 0;
-    3;
     const maxAttempts = weeks.length * 20;
     while (foundationalCount < maxFoundational &&
         slots.length < remainingSlots &&
@@ -148,6 +147,7 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
         const week = candidateWeeks[i % candidateWeeks.length];
         if (!canPlaceInWeek(week.weekNumber, weekUsage, generationConfig.maxClassesPerWeek ?? 1)) {
             i++;
+            attempts++;
             continue;
         }
         const scored = foundational.map(cls => ({
@@ -162,6 +162,7 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
         const location = chosen.defaultLocations[0];
         if (isLocationReserved(week.weekNumber, location, reservedKeys)) {
             i++;
+            attempts++;
             continue;
         }
         const slot = buildSlot(chosen, week);
@@ -196,6 +197,7 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
         const week = weeks[advancedIndex % weeks.length];
         if (!canPlaceInWeek(week.weekNumber, weekUsage, generationConfig.maxClassesPerWeek ?? 1)) {
             advancedIndex++;
+            advancedAttempts++;
             continue;
         }
         const scored = advanced.map(cls => ({
@@ -210,6 +212,7 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
         const location = chosen.defaultLocations[0];
         if (isLocationReserved(week.weekNumber, location, reservedKeys)) {
             advancedIndex++;
+            advancedAttempts++;
             continue;
         }
         const slot = buildSlot(chosen, week);
