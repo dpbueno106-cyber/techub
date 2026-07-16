@@ -189,15 +189,15 @@ function populateInstructorDropdown(
 
   select.innerHTML = "";
   const blank = document.createElement("option");
-blank.value = "";
-blank.textContent = "-- Select Instructor --";
-select.appendChild(blank);
+  blank.value = "";
+  blank.textContent = "-- Select Instructor --";
+  select.appendChild(blank);
   let availableInstructors = instructors;
 
-if (
-  className &&
-  !showAll
-) {
+  if (
+    className &&
+    !showAll
+  ) {
     const normalizedClass =
       className.trim().toLowerCase();
 
@@ -212,19 +212,19 @@ if (
   }
 
   availableInstructors
-  .sort((a, b) =>
-    (a.name || a.id)
-      .localeCompare(b.name || b.id)
-  )
-  .forEach(inst => {
-    const opt = document.createElement("option");
+    .sort((a, b) =>
+      (a.name || a.id)
+        .localeCompare(b.name || b.id)
+    )
+    .forEach(inst => {
+      const opt = document.createElement("option");
 
-    opt.value = inst.id;
-    opt.textContent =
-      inst.name || inst.id;
+      opt.value = inst.id;
+      opt.textContent =
+        inst.name || inst.id;
 
-    select.appendChild(opt);
-  });
+      select.appendChild(opt);
+    });
 }
 
 
@@ -276,37 +276,37 @@ function serializeCalendarToSlots() {
 function openEditModal(event) {
   selectedEvent = event;
   if (showAllInstructorsEl) {
-  showAllInstructorsEl.onchange = () => {
-    populateInstructorDropdown(
-      "editEventInstructor",
-      selectedEvent?.extendedProps
-        ?.className,
-      showAllInstructorsEl.checked
-    );
+    showAllInstructorsEl.onchange = () => {
+      populateInstructorDropdown(
+        "editEventInstructor",
+        selectedEvent?.extendedProps
+          ?.className,
+        showAllInstructorsEl.checked
+      );
 
-    if (
-      selectedEvent?.extendedProps
-        ?.instructorId
-    ) {
-      editEventInstructorEl.value =
-        selectedEvent.extendedProps
-          .instructorId;
-    }
-  };
-}
+      if (
+        selectedEvent?.extendedProps
+          ?.instructorId
+      ) {
+        editEventInstructorEl.value =
+          selectedEvent.extendedProps
+            .instructorId;
+      }
+    };
+  }
 
   editEventTitleEl.value = event.extendedProps.className || "";
   editEventLocationEl.value = event.extendedProps.location || "IN";
 
-  populateInstructorDropdown("editEventInstructor" , event.extendedProps.className,showAllInstructorsEl?.checked);
+  populateInstructorDropdown("editEventInstructor", event.extendedProps.className, showAllInstructorsEl?.checked);
 
   if (event.extendedProps.instructorId) {
     editEventInstructorEl.value = event.extendedProps.instructorId;
-  }else {
-  editEventInstructorEl.value = "";
-}
-  
-editEventInstructorEl.onchange = () => {
+  } else {
+    editEventInstructorEl.value = "";
+  }
+
+  editEventInstructorEl.onchange = () => {
     if (!selectedEvent) return;
 
     const instructor = editEventInstructorEl.value;
@@ -370,7 +370,7 @@ function closeAddCourseModal() {
 // =========================
 
 function initCalendar() {
-  
+
   adminCalendar = new FullCalendar.Calendar(calendarEl, {
     initialView: "dayGridMonth",
     height: 600,
@@ -385,13 +385,13 @@ function initCalendar() {
       const e = info.event;
 
       const slot = {
-  className: e.extendedProps.className,
-  category: e.extendedProps.category,
-  location: e.extendedProps.location ?? "IN",
-  instructorId: e.extendedProps.instructorId,
-  durationWeeks: e.extendedProps.durationWeeks ?? 1,
-  weekStartDate: e.startStr.split("T")[0]
-};
+        className: e.extendedProps.className,
+        category: e.extendedProps.category,
+        location: e.extendedProps.location ?? "IN",
+        instructorId: e.extendedProps.instructorId,
+        durationWeeks: e.extendedProps.durationWeeks ?? 1,
+        weekStartDate: e.startStr.split("T")[0]
+      };
 
       e.remove();
       renderCalendarFromSchedule([slot], false);
@@ -459,12 +459,12 @@ function makeExternalEventsDraggable() {
         allDay: true,
         backgroundColor: "#888",
         extendedProps: {
-  className: el.innerText,
-  category: el.dataset.category,
-  location: null,
-  instructorId: null,
-  durationWeeks: Number(el.dataset.durationWeeks)
-}
+          className: el.innerText,
+          category: el.dataset.category,
+          location: null,
+          instructorId: null,
+          durationWeeks: Number(el.dataset.durationWeeks)
+        }
       };
     }
   });
@@ -509,8 +509,8 @@ function renderCalendarFromSchedule(schedule, clearFirst = true) {
           start: start.toLocaleDateString("en-CA"),
           end: end.toLocaleDateString("en-CA"),
           allDay: true,
-          classNames:slot.locked? ["fixed-course"]: [],
-          borderColor:slot.locked? "#000": bg,
+          classNames: slot.locked ? ["fixed-course"] : [],
+          borderColor: slot.locked ? "#000" : bg,
           backgroundColor: bg,
           textColor: tc,
           extendedProps: {
@@ -533,8 +533,8 @@ function renderCalendarFromSchedule(schedule, clearFirst = true) {
         allDay: true,
 
         backgroundColor: bg,
-        borderColor: slot.locked? "#000": bg,
-        classNames: slot.locked? ["fixed-course"]: [],
+        borderColor: slot.locked ? "#000" : bg,
+        classNames: slot.locked ? ["fixed-course"] : [],
         textColor: tc,
 
         extendedProps: {
@@ -563,35 +563,34 @@ function renderInstructorLegend() {
     swatch.style.marginRight = "6px";
     swatch.style.borderRadius = "3px";
     swatch.style.backgroundColor =
-  getInstructorColor(instructor.id);
+      getInstructorColor(instructor.id);
 
     const label = document.createElement("span");
     label.textContent =
-  ` ${
-    instructor.name || instructor.id
-  }`;
+      ` ${instructor.name || instructor.id
+      }`;
 
     row.appendChild(swatch);
-row.appendChild(label);
+    row.appendChild(label);
 
-row.style.cursor = "pointer";
+    row.style.cursor = "pointer";
 
-row.onclick = () => {
-  if (hiddenInstructors.has(instructor.id)) {
-    hiddenInstructors.delete(instructor.id);
-  } else {
-    hiddenInstructors.add(instructor.id);
-  }
+    row.onclick = () => {
+      if (hiddenInstructors.has(instructor.id)) {
+        hiddenInstructors.delete(instructor.id);
+      } else {
+        hiddenInstructors.add(instructor.id);
+      }
 
-  renderInstructorLegend();
-  applyInstructorFilter();
-};
+      renderInstructorLegend();
+      applyInstructorFilter();
+    };
 
-if (hiddenInstructors.has(instructor.id)) {
-  row.style.opacity = "0.4";
-}
+    if (hiddenInstructors.has(instructor.id)) {
+      row.style.opacity = "0.4";
+    }
 
-legend.appendChild(row);
+    legend.appendChild(row);
   });
 }
 
@@ -733,7 +732,7 @@ document
 
       const sheet =
         workbook.Sheets[
-          workbook.SheetNames[0]
+        workbook.SheetNames[0]
         ];
 
       const rows =
@@ -972,7 +971,7 @@ function getLogicalScheduleEvents() {
 
       const key = [
         props.classId ||
-          props.className,
+        props.className,
         props.location,
         props.weekStartDate,
         props.instructorId || ""
@@ -992,16 +991,16 @@ function getLogicalScheduleEvents() {
 }
 
 function renderScheduleAnalytics() {
- 
+
 
   const events =
-  getLogicalScheduleEvents();
+    getLogicalScheduleEvents();
 
   const instructorCounts = {};
   const locationCounts = {};
   const categoryCounts = {};
   const weekCounts = {};
-const uniqueClasses = new Set();
+  const uniqueClasses = new Set();
 
   events.forEach(event => {
     const instructor =
@@ -1016,23 +1015,23 @@ const uniqueClasses = new Set();
       event.extendedProps.category ||
       "Unknown";
 
-     const date = event.start;
+    const date = event.start;
 
-const yearStart = new Date(
-  date.getFullYear(),
-  0,
-  1
-);
-
-const week =
-  Math.ceil(
-    (
-      (date - yearStart) /
-      86400000 +
-      yearStart.getDay() +
+    const yearStart = new Date(
+      date.getFullYear(),
+      0,
       1
-    ) / 7
-  );
+    );
+
+    const week =
+      Math.ceil(
+        (
+          (date - yearStart) /
+          86400000 +
+          yearStart.getDay() +
+          1
+        ) / 7
+      );
 
     instructorCounts[instructor] =
       (instructorCounts[instructor] || 0) + 1;
@@ -1044,32 +1043,32 @@ const week =
       (categoryCounts[category] || 0) + 1;
 
     if (week) {
-  const key = [
-    week,
-    event.extendedProps.className,
-    event.extendedProps.location
-  ].join("|");
+      const key = [
+        week,
+        event.extendedProps.className,
+        event.extendedProps.location
+      ].join("|");
 
-  if (!uniqueClasses.has(key)) {
-    uniqueClasses.add(key);
+      if (!uniqueClasses.has(key)) {
+        uniqueClasses.add(key);
 
-    weekCounts[week] =
-      (weekCounts[week] || 0) + 1;
-  }
-}
+        weekCounts[week] =
+          (weekCounts[week] || 0) + 1;
+      }
+    }
 
   });
   const topInstructor =
-  Object.entries(instructorCounts)
-    .sort((a,b) => b[1] - a[1])[0];
+    Object.entries(instructorCounts)
+      .sort((a, b) => b[1] - a[1])[0];
 
-const topLocation =
-  Object.entries(locationCounts)
-    .sort((a,b) => b[1] - a[1])[0];
+  const topLocation =
+    Object.entries(locationCounts)
+      .sort((a, b) => b[1] - a[1])[0];
 
-const topCategory =
-  Object.entries(categoryCounts)
-    .sort((a,b) => b[1] - a[1])[0];
+  const topCategory =
+    Object.entries(categoryCounts)
+      .sort((a, b) => b[1] - a[1])[0];
   const maxClassesInWeek =
     Math.max(
       0,
@@ -1116,13 +1115,12 @@ const topCategory =
     <div class="analytics-label">
       Top Instructor
       <br>
-      ${
-  instructors.find(
+      ${instructors.find(
     i => i.id === topInstructor?.[0]
   )?.name ||
-  topInstructor?.[0] ||
-  "-"
-}
+    topInstructor?.[0] ||
+    "-"
+    }
     </div>
   </div>
 
@@ -1162,38 +1160,38 @@ window.addEventListener("DOMContentLoaded", () => {
       return;
     }
     await loadInstructors();
-buildInstructorColors();
+    buildInstructorColors();
 
-initCalendar();
+    initCalendar();
     loadCatalog();
     renderInstructorLegend();
     const loaded = await loadSavedSchedule();
     if (!loaded) generateSchedule();
 
     saveEventBtn.onclick = () => {
-  if (!selectedEvent) return;
-  const fixedPlacementImportEl =
-  document.getElementById(
-    "fixedPlacementImport"
-  );
-  const instructor = editEventInstructorEl.value;
-  const location = editEventLocationEl.value;
-  
-  selectedEvent.setExtendedProp("instructorId", instructor);
-  selectedEvent.setExtendedProp("location", location);
+      if (!selectedEvent) return;
+      const fixedPlacementImportEl =
+        document.getElementById(
+          "fixedPlacementImport"
+        );
+      const instructor = editEventInstructorEl.value;
+      const location = editEventLocationEl.value;
 
-  const bg = getInstructorColor(instructor);
-  const text = getContrastTextColor(bg);
+      selectedEvent.setExtendedProp("instructorId", instructor);
+      selectedEvent.setExtendedProp("location", location);
 
-  selectedEvent.setProp("backgroundColor", bg);
-  selectedEvent.setProp("borderColor", bg);
-  selectedEvent.setProp("textColor", text);
+      const bg = getInstructorColor(instructor);
+      const text = getContrastTextColor(bg);
 
-  closeEditModal();
-  renderInstructorWorkloadFromCalendar();
-  renderScheduleAnalytics();
-  
-};
+      selectedEvent.setProp("backgroundColor", bg);
+      selectedEvent.setProp("borderColor", bg);
+      selectedEvent.setProp("textColor", text);
+
+      closeEditModal();
+      renderInstructorWorkloadFromCalendar();
+      renderScheduleAnalytics();
+
+    };
 
     deleteEventBtn.onclick = () => {
       if (!selectedEvent) return;

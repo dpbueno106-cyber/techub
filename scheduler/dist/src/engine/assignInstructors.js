@@ -24,71 +24,91 @@ function assignInstructors(slots, instructors, generationConfig) {
     instructors.forEach(i => {
         assignmentsByInstructor.set(i.id, []);
     });
-    const avgAssignments = slots.length / Math.max(instructors.length, 1);
+    const avgAssignments = slots.length /
+        Math.max(instructors.length, 1);
     return slots.map(slot => {
-        // Skip manual overrides
+        // Preserve manual assignments
         if (slot.locked &&
             slot.instructorId) {
             return slot;
         }
-        console.log("INSTRUCTORS", instructors.map(i => ({
-            id: i.id,
-            capabilities: i.capabilities,
-            homeLocation: i.homeLocation,
-            canTravel: i.canTravel,
-            maxClasses: i.maxClasses
-        })));
-        console.log("SLOT", {
-            className: slot.className,
-            category: slot.category,
-            location: slot.location
-        });
+        // -------------------------
+        // Normal eligibility pass
+        // -------------------------
         const eligible = instructors.filter(i => {
-            const allowedByClass = true;
-            console.log({
-                className: slot.className,
-                capabilities: i.capabilities,
-                result: i.capabilities.includes(slot.className)
-            });
-            const normalizedClass = slot.className.trim().toLowerCase();
+            const normalizedClass = slot.className
+                .trim()
+                .toLowerCase();
             const canTeach = (i.capabilities ?? []).some(cap => cap.trim().toLowerCase() ===
                 normalizedClass);
-            const canBeThere = slot.location === i.homeLocation ||
+            const isPossibleInstructor = !slot.possibleInstructors
+                ?.length ||
+                slot.possibleInstructors.includes(i.id);
+            const canBeThere = slot.location ===
+                i.homeLocation ||
                 i.canTravel;
             const assignedWeeks = assignmentsByInstructor.get(i.id) ?? [];
-            const occupiedWeeks = assignmentsByInstructor.get(i.id) ?? [];
             const coveredWeeks = getCoveredWeeks(slot);
-            const hasConflict = coveredWeeks.some(week => occupiedWeeks.includes(week));
-            const wouldExceed = coveredWeeks.some(week => exceedsConsecutiveLimit(assignedWeeks, week, generationConfig.maxConsecutiveWeeks ?? 2));
+            const hasConflict = coveredWeeks.some(week => assignedWeeks.includes(week));
+            const wouldExceed = coveredWeeks.some(week => exceedsConsecutiveLimit(assignedWeeks, week, generationConfig.maxConsecutiveWeeks ??
+                2));
             const underMaxClasses = assignedWeeks.length <
-                (i.maxClasses ?? Number.MAX_SAFE_INTEGER);
-            if (!canTeach) {
-                console.log("Cannot teach", i.id, slot.className, i.capabilities);
-            }
-            console.log("FILTER CHECK", {
-                instructor: i.id,
-                className: slot.className,
-                allowedByClass,
-                canTeach,
-                canBeThere,
-                hasConflict,
-                wouldExceed,
-                underMaxClasses
-            });
-            return (allowedByClass &&
+                (i.maxClasses ??
+                    Number.MAX_SAFE_INTEGER);
+            return (isPossibleInstructor &&
                 canTeach &&
                 canBeThere &&
                 !hasConflict &&
                 !wouldExceed &&
                 underMaxClasses);
         });
-        console.log("ELIGIBLE", slot.className, eligible.map(i => i.id));
-        if (eligible.length === 0) {
-            console.warn(`No eligible instructor for ${slot.className} (week ${slot.weekNumber})`);
-            console.log("NO ELIGIBLE", slot.className, slot.possibleInstructors);
+        let candidates = eligible;
+        // -------------------------
+        // Fallback pass
+        // Ignore consecutive-week limit
+        // -------------------------
+        if (candidates.length === 0) {
+            console.warn(`No fully eligible instructor for ${slot.className}. Trying fallback assignment.`);
+            candidates =
+                instructors.filter(i => {
+                    const normalizedClass = slot.className
+                        .trim()
+                        .toLowerCase();
+                    const canTeach = (i.capabilities ?? []).some(cap => cap
+                        .trim()
+                        .toLowerCase() ===
+                        normalizedClass);
+                    const isPossibleInstructor = !slot
+                        .possibleInstructors
+                        ?.length ||
+                        slot.possibleInstructors.includes(i.id);
+                    const canBeThere = slot.location ===
+                        i.homeLocation ||
+                        i.canTravel;
+                    const assignedWeeks = assignmentsByInstructor.get(i.id) ?? [];
+                    const coveredWeeks = getCoveredWeeks(slot);
+                    const hasConflict = coveredWeeks.some(week => assignedWeeks.includes(week));
+                    const underMaxClasses = assignedWeeks.length <
+                        (i.maxClasses ??
+                            Number.MAX_SAFE_INTEGER);
+                    return (isPossibleInstructor &&
+                        canTeach &&
+                        canBeThere &&
+                        !hasConflict &&
+                        underMaxClasses);
+                });
+        }
+        // -------------------------
+        // No candidate at all
+        // -------------------------
+        if (candidates.length === 0) {
+            console.warn(`No instructor available for ${slot.className} (week ${slot.weekNumber})`);
             return slot;
         }
-        const scored = eligible.map(i => {
+        // -------------------------
+        // Score candidates
+        // -------------------------
+        const scored = candidates.map(i => {
             const weeks = assignmentsByInstructor.get(i.id) ?? [];
             return {
                 instructor: i,
@@ -106,10 +126,10 @@ function assignInstructors(slots, instructors, generationConfig) {
             }
             const aAssignments = assignmentsByInstructor.get(a.instructor.id)?.length ?? 0;
             const bAssignments = assignmentsByInstructor.get(b.instructor.id)?.length ?? 0;
-            return aAssignments - bAssignments;
+            return (aAssignments -
+                bAssignments);
         });
         const chosen = scored[0].instructor;
-        console.log("ASSIGNED", slot.className, "=>", chosen.id);
         const coveredWeeks = getCoveredWeeks(slot);
         assignmentsByInstructor
             .get(chosen.id)

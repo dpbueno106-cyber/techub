@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <!--<meta charset="UTF-8">-->
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>adminScheduleManagement</title>
   <link rel="stylesheet" href="schedulerAdmin.css">
 </head>
+
 <body>
 
   <!--  TOP BAR -->
@@ -18,14 +20,16 @@
   <!--  ACTION BUTTONS -->
   <div class="actionBar">
     <button id="generateScheduleBtn" class="secondary" onclick="generateSchedule()">
-  Generate Schedule
-</button>
-    <button id="adminScheduleSettings" class="secondary" onclick="window.location.href='adminScheduleSettings.html'">Generator Configuration</button>
+      Generate Schedule
+    </button>
+    <button id="adminScheduleSettings" class="secondary"
+      onclick="window.location.href='adminScheduleSettings.html'">Generator Configuration</button>
     <button id="saveScheduleBtn" class="saveBtn" onclick="saveSchedule()">Save Schedule</button>
     <button onclick="clearSchedule()" class="clearBtn">Reset Schedule</button>
-    <button class = "secondary" onclick="openAddCourseModal()">+ Add Course</button>
-    <input type="file" id="fixedPlacementImport" accept=".xlsx" hidden/>
-    <button class="secondary" onclick="document.getElementById('fixedPlacementImport').click()">Import Fixed Course</button>
+    <button class="secondary" onclick="openAddCourseModal()">+ Add Course</button>
+    <input type="file" id="fixedPlacementImport" accept=".xlsx" hidden />
+    <button class="secondary" onclick="document.getElementById('fixedPlacementImport').click()">Import Fixed
+      Course</button>
     <button class="danger" onclick="clearFixedPlacements()">Clear Imported Courses</button>
     <button id="manageFixedPlacementsBtn">Manage Fixed Placements</button>
     <span id="fixedPlacementCount"></span>
@@ -38,22 +42,23 @@
     <div class="calendarContainer">
       <div id="calendar"></div>
       <h3 class="dashboard-section">
-  Instructor Workload
-</h3>
+        Instructor Workload
+      </h3>
 
-<div id="instructorWorkload"></div>
+      <div id="instructorWorkload"></div>
 
-<h3 class="dashboard-section">
-  Schedule Analytics
-</h3>
+      <h3 class="dashboard-section">
+        Schedule Analytics
+      </h3>
 
-<div id="scheduleAnalytics"></div>
+      <div id="scheduleAnalytics"></div>
     </div>
 
     <!--  DRAGGABLE CLASSES (25%) -->
     <div class="sidePanel">
-      <button class = "secondary" onclick="window.location.href='manageInstructors.html'">Manage Instructors</button>
-      <button class="secondary" onclick="window.location.href='linkUsersToInstructors.html'">Link Users to Instructors</button>
+      <button class="secondary" onclick="window.location.href='manageInstructors.html'">Manage Instructors</button>
+      <button class="secondary" onclick="window.location.href='linkUsersToInstructors.html'">Link Users to
+        Instructors</button>
       <h3>Instructor Colors</h3>
       <div id="instructorLegend"></div>
       <h2>Classes</h2>
@@ -63,114 +68,93 @@
   </div>
 
   <!-- ADD COURSE MODAL -->
-<div id="addCourseModal" class="modal hidden">
-  <div class="modalContent">
+  <div id="addCourseModal" class="modal hidden">
+    <div class="modalContent">
 
-    <h2>Add Catalog Course</h2>
+      <h2>Add Catalog Course</h2>
 
-    <label for="courseName">Course Name</label>
-    <input id="courseName" placeholder="Technology 1" />
+      <label for="courseName">Course Name</label>
+      <input id="courseName" placeholder="Technology 1" />
 
-    <label for="courseCategory">Category</label>
-    <select id="courseCategory">
-      <option value="NTO">NTO</option>
-      <option value="Foundational">Foundational</option>
-      <option value="Advanced">Advanced</option>
-    </select>
+      <label for="courseCategory">Category</label>
+      <select id="courseCategory">
+        <option value="NTO">NTO</option>
+        <option value="Foundational">Foundational</option>
+        <option value="Advanced">Advanced</option>
+      </select>
 
-    <label for="courseDuration">Duration (Weeks)</label>
-    <input
-      id="courseDuration"
-      type="number"
-      min="1"
-      value="1"
-    />
+      <label for="courseDuration">Duration (Weeks)</label>
+      <input id="courseDuration" type="number" min="1" value="1" />
 
-    <label>Default Locations</label>
+      <label>Default Locations</label>
 
-    <div class="location-options">
-  <label class="checkbox-label">
-    <input type="checkbox" id="locationIN" checked />
-    <span>IN</span>
-  </label>
+      <div class="location-options">
+        <label class="checkbox-label">
+          <input type="checkbox" id="locationIN" checked />
+          <span>IN</span>
+        </label>
 
-  <label class="checkbox-label">
-    <input type="checkbox" id="locationMI" />
-    <span>MI</span>
-  </label>
-</div>
+        <label class="checkbox-label">
+          <input type="checkbox" id="locationMI" />
+          <span>MI</span>
+        </label>
+      </div>
 
-    <label for="frequencyMode">
-      Frequency Mode
-    </label>
+      <label for="frequencyMode">
+        Frequency Mode
+      </label>
 
-    <select id="frequencyMode">
-      <option value="WEIGHT">
-        Weight
-      </option>
+      <select id="frequencyMode">
+        <option value="WEIGHT">
+          Weight
+        </option>
 
-      <option value="FIXED">
-        Fixed
-      </option>
-    </select>
+        <option value="FIXED">
+          Fixed
+        </option>
+      </select>
 
-    <label for="frequencyWeight">
-      Frequency Weight
-    </label>
+      <label for="frequencyWeight"> Frequency Weight </label>
 
-    <input
-      id="frequencyWeight"
-      type="number"
-      min="1"
-      value="1"
-    />
+      <input id="frequencyWeight" type="number" min="1" value="1" /><label>
+        <input type="checkbox" id="courseActive" checked />
+        Active
+      </label>
 
-    <label>
-      <input
-        type="checkbox"
-        id="courseActive"
-        checked
-      />
-      Active
-    </label>
+      <div class="modalActions">
+        <button onclick="saveCatalogClass()">
+          Save
+        </button>
 
-    <div class="modalActions">
-      <button onclick="saveCatalogClass()">
-        Save
-      </button>
+        <button onclick="closeAddCourseModal()" class="secondary">
+          Cancel
+        </button>
+      </div>
 
-      <button
-        onclick="closeAddCourseModal()"
-        class="secondary"
-      >
-        Cancel
-      </button>
-    </div>
-
-  </div>
-</div>
-<!-- EDIT EVENT MODAL -->
-<div id="eventEditMenu" class="modal hidden">
-  <div class="modalContent">
-    <h2>Edit Course</h2>
-
-    <input id="editEventTitle" placeholder="Course Name" />
-    <select id="editEventLocation">
-  <option value="IN">IN</option>
-  <option value="MI">MI</option>
-</select>
-
-    <select id="editEventInstructor"></select>
-    <label>
-  <input type="checkbox" id="showAllInstructors"/> Show all instructors </label>
-    <div class="modalActions">
-      <button id="saveEventBtn">Save</button>
-      <button id="deleteEventBtn" class="secondary">Delete</button>
-      <button onclick="closeEditModal()" class="secondary">Cancel</button>
     </div>
   </div>
-</div>
-<script>document.getElementById("manageFixedPlacementsBtn").addEventListener("click", () => {window.location.href ="adminFixedPlacements.html";});</script>
+  <!-- EDIT EVENT MODAL -->
+  <div id="eventEditMenu" class="modal hidden">
+    <div class="modalContent">
+      <h2>Edit Course</h2>
+
+      <input id="editEventTitle" placeholder="Course Name" />
+      <select id="editEventLocation">
+        <option value="IN">IN</option>
+        <option value="MI">MI</option>
+      </select>
+
+      <select id="editEventInstructor"></select>
+      <label>
+        <input type="checkbox" id="showAllInstructors" /> Show all instructors </label>
+      <div class="modalActions">
+        <button id="saveEventBtn">Save</button>
+        <button id="deleteEventBtn" class="secondary">Delete</button>
+        <button onclick="closeEditModal()" class="secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+  <script>document.getElementById("manageFixedPlacementsBtn").addEventListener("click", () => { window.location.href = "adminFixedPlacements.html"; });</script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
   <script type="module" src="schedulerAdmin.js"></script>
