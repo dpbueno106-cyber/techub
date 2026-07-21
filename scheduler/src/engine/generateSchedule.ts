@@ -212,13 +212,87 @@ function buildFixedPlacementSlots(
       );
 
     if (!course) {
-      console.warn(
-        "Skipping fixed placement because the course was not found:",
-        placement
-      );
 
-      continue;
-    }
+  console.warn(
+    "Course not found in catalog. Creating custom fixed course.",
+    placement
+  );
+
+  const dateText =
+    normalizeDateText(
+      placement.weekStartDate
+    );
+
+  const weekIndex =
+    weeks.findIndex(
+      week =>
+        normalizeDateText(
+          week.startDate
+        ) === dateText
+    );
+
+  if (weekIndex < 0) {
+    continue;
+  }
+
+  const startWeek =
+    weeks[weekIndex];
+
+  const instructor =
+    findInstructor(
+      instructors,
+      placement.instructorName
+    );
+
+  fixedSlots.push({
+    classId:
+      `custom-${Date.now()}-${weekIndex}`,
+
+    className:
+      placement.className,
+
+    classAcronym:
+      placement.classAcronym,
+
+    courseNumber:
+      placement.courseNumber,
+
+    cohortNumber:
+      placement.cohortNumber,
+
+    displayCategory:
+      placement.displayCategory,
+
+    category:
+      "Custom",
+
+    location:
+      (
+        placement.location
+          ?.toUpperCase?.() || "IN"
+      ) as "IN" | "MI",
+
+    instructorId:
+      instructor?.id ?? null,
+
+    weekNumber:
+      startWeek.weekNumber,
+
+    weekStartDate:
+      startWeek.startDate,
+
+    weekEndDate:
+      startWeek.endDate,
+
+    durationWeeks: 1,
+
+    possibleInstructors: [],
+
+    locked: true
+  });
+
+  continue;
+}
 
     const dateText =
       normalizeDateText(

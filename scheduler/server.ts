@@ -126,13 +126,52 @@ app.post(
         );
         if (!course) {
 
-          console.log(
-            "NO MATCH FOUND FOR:",
-            excelName
-          );
+  console.log(
+    "NO MATCH FOUND FOR:",
+    excelName,
+    "- importing as custom course"
+  );
 
-          continue;
-        }
+  placements.push({
+    className:
+      String(
+        row["Course Name"] ?? ""
+      ).trim(),
+
+    classAcronym:
+      String(
+        row["Class Acronym"] ?? ""
+      ).trim(),
+
+    courseNumber:
+      String(
+        row["Course #"] ?? ""
+      ).trim(),
+
+    cohortNumber:
+      String(
+        row["Cohort #"] ?? ""
+      ).trim(),
+
+    displayCategory:
+      String(
+        row["Category"] ?? ""
+      ).trim(),
+
+    weekStartDate:
+      row["Week Start"],
+
+    location:
+      row["Location"],
+
+    instructorName:
+      row["Instructor"] || null,
+
+    locked: true
+  });
+
+  continue;
+}
 
 
         placements.push({

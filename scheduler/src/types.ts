@@ -1,6 +1,6 @@
 export type Location = "IN" | "MI";
 export type ClassLevel = "Foundational" | "Advanced";
-export type ClassCategory = "Foundational" | "Advanced" | "NTO";
+export type ClassCategory = "Foundational" | "Advanced" | "NTO" | "Custom";
 
 export interface ScheduleConfig {
   year: number;
