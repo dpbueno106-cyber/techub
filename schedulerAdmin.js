@@ -237,13 +237,18 @@ function serializeCalendarToSlots() {
 
   getLogicalScheduleEvents().forEach(event => {
     const {
-      className,
-      category,
-      location,
-      instructorId,
-      durationWeeks,
-      weekStartDate
-    } = event.extendedProps;
+  className,
+  classAcronym,
+  courseNumber,
+  cohortNumber,
+  displayCategory,
+
+  category,
+  location,
+  instructorId,
+  durationWeeks,
+  weekStartDate
+} = event.extendedProps;
 
     const key = `${className}-${location}-${weekStartDate}`;
 
@@ -257,13 +262,19 @@ function serializeCalendarToSlots() {
     }
 
     slots.push({
-      className,
-      category,
-      location,
-      instructorId,
-      weekStartDate,
-      durationWeeks
-    });
+  className,
+
+  classAcronym,
+  courseNumber,
+  cohortNumber,
+  displayCategory,
+
+  category,
+  location,
+  instructorId,
+  weekStartDate,
+  durationWeeks
+});
   });
 
   return slots;
@@ -470,6 +481,23 @@ function makeExternalEventsDraggable() {
   });
 }
 
+
+function buildFixedClassTitle(slot) {
+  const prefix = [
+    slot.classAcronym,
+    slot.courseNumber
+  ]
+    .filter(Boolean)
+    .join("");
+
+  return [
+    prefix,
+    slot.displayCategory,
+    slot.className
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
 // =========================
 // RENDERING
 // =========================
@@ -505,7 +533,10 @@ function renderCalendarFromSchedule(schedule, clearFirst = true) {
         );
 
         adminCalendar.addEvent({
-          title: `${slot.className} (${slot.location})`,
+          title:
+            slot.locked
+              ? buildFixedClassTitle(slot)
+              : `${slot.className} (${slot.location})`,
           start: start.toLocaleDateString("en-CA"),
           end: end.toLocaleDateString("en-CA"),
           allDay: true,
@@ -527,7 +558,10 @@ function renderCalendarFromSchedule(schedule, clearFirst = true) {
       end.setDate(end.getDate() + 5);
 
       adminCalendar.addEvent({
-        title: `${slot.className} (${slot.location})`,
+        title:
+          slot.locked
+            ? buildFixedClassTitle(slot)
+            : `${slot.className} (${slot.location})`,
         start: start.toLocaleDateString("en-CA"),
         end: end.toLocaleDateString("en-CA"),
         allDay: true,

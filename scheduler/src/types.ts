@@ -21,6 +21,10 @@ export interface FixedPlacement {
   location: Location;
   instructorName?: string | null;
   locked?: boolean;
+  classAcronym?: string;
+courseNumber?: string;
+cohortNumber?: string;
+displayCategory?: string;
 }
 
 export interface ClassDefinition {
@@ -78,6 +82,10 @@ export interface ClassSlot {
   instructorName?: string | null;
   recommendedInstructors?: RecommendedInstructor[];
   locked?: boolean;
+  classAcronym?: string;
+courseNumber?: string;
+cohortNumber?: string;
+displayCategory?: string;
 }
 
 export interface Instructor {

@@ -29,6 +29,10 @@ async function loadFixedPlacements() {
         return {
             id: doc.id,
             className: String(data.className ?? ""),
+            classAcronym: data.classAcronym ?? "",
+            courseNumber: data.courseNumber ?? "",
+            cohortNumber: data.cohortNumber ?? "",
+            displayCategory: data.displayCategory ?? "",
             weekStartDate: String(data.weekStartDate ?? ""),
             location: data.location,
             instructorName: data.instructorName == null
@@ -65,6 +69,10 @@ app.post("/fixedPlacements/import", async (req, res) => {
             }
             placements.push({
                 className: course.name,
+                classAcronym: String(row["Class Acronym"] ?? "").trim(),
+                courseNumber: String(row["Course #"] ?? "").trim(),
+                cohortNumber: String(row["Cohort #"] ?? "").trim(),
+                displayCategory: String(row["Category"] ?? "").trim(),
                 weekStartDate: row["Week Start"],
                 location: row["Location"],
                 instructorName: row["Instructor"] || null,

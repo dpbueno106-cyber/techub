@@ -329,23 +329,44 @@ function buildFixedPlacementSlots(
       ];
 
     fixedSlots.push({
-      classId: course.id,
-      className: course.name,
-      category: course.category,
-      location,
-      instructorId:
-        instructor?.id ?? null,
-      weekNumber:
-        startWeek.weekNumber,
-      weekStartDate:
-        startWeek.startDate,
-      weekEndDate:
-        endingWeek.endDate,
-      durationWeeks,
-      possibleInstructors:
-        course.possibleInstructors,
-      locked: true
-    });
+  classId: course.id,
+  className: course.name,
+
+  classAcronym:
+    placement.classAcronym,
+
+  courseNumber:
+    placement.courseNumber,
+
+  cohortNumber:
+    placement.cohortNumber,
+
+  displayCategory:
+    placement.displayCategory,
+
+  category: course.category,
+
+  location,
+
+  instructorId:
+    instructor?.id ?? null,
+
+  weekNumber:
+    startWeek.weekNumber,
+
+  weekStartDate:
+    startWeek.startDate,
+
+  weekEndDate:
+    endingWeek.endDate,
+
+  durationWeeks,
+
+  possibleInstructors:
+    course.possibleInstructors,
+
+  locked: true
+});
   }
 
   return fixedSlots;

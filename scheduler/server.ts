@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import type {FixedPlacement} from "./src/types";
+import type { FixedPlacement } from "./src/types";
 import { generateSchedule } from "./src/engine/generateSchedule";
 import {
   loadConfigFromFirestore,
@@ -35,17 +35,34 @@ async function loadFixedPlacements(): Promise<FixedPlacement[]> {
 
     return {
       id: doc.id,
+
       className: String(
         data.className ?? ""
       ),
+
+      classAcronym:
+        data.classAcronym ?? "",
+
+      courseNumber:
+        data.courseNumber ?? "",
+
+      cohortNumber:
+        data.cohortNumber ?? "",
+
+      displayCategory:
+        data.displayCategory ?? "",
+
       weekStartDate: String(
         data.weekStartDate ?? ""
       ),
+
       location: data.location,
+
       instructorName:
         data.instructorName == null
           ? null
           : String(data.instructorName),
+
       locked:
         data.locked !== false
     } as FixedPlacement;
@@ -56,71 +73,91 @@ async function loadFixedPlacements(): Promise<FixedPlacement[]> {
 
 app.post(
   "/fixedPlacements/import",
-  
+
   async (req, res) => {
     console.log(
-  "IMPORT BODY:",
-  JSON.stringify(req.body, null, 2)
-);
+      "IMPORT BODY:",
+      JSON.stringify(req.body, null, 2)
+    );
     try {
-      console.log("IMPORT REQUEST BODY:",req.body);
+      console.log("IMPORT REQUEST BODY:", req.body);
       const rows = req.body;
 
       const catalog =
-  await loadCatalogFromFirestore();
+        await loadCatalogFromFirestore();
 
       const placements = [];
 
       for (const row of rows) {
-        console.log("Processing row:",row);
-       
-          const excelName =
-  String(
-    row["Course Name"] ?? ""
-  )
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
+        console.log("Processing row:", row);
+
+        const excelName =
+          String(
+            row["Course Name"] ?? ""
+          )
+            .replace(/\s+/g, " ")
+            .trim()
+            .toLowerCase();
 
 
-   const course =
-  catalog.find(
-    c =>
-      c.name
-        ?.replace(/\s+/g, " ")
-        .trim()
-        .toLowerCase() ===
-      excelName
-  );
-  
+        const course =
+          catalog.find(
+            c =>
+              c.name
+                ?.replace(/\s+/g, " ")
+                .trim()
+                .toLowerCase() ===
+              excelName
+          );
+
+        console.log(
+          "Excel course:",
+          row["Course Name"]
+        );
+
+        console.log(
+          "Catalog names:",
+          catalog.map(c => c.name)
+        );
+
+        console.log(
+          "Matched course:",
+          course
+        );
+        if (!course) {
+
           console.log(
-  "Excel course:",
-  row["Course Name"]
-);
+            "NO MATCH FOUND FOR:",
+            excelName
+          );
 
-console.log(
-  "Catalog names:",
-  catalog.map(c => c.name)
-);
+          continue;
+        }
 
-console.log(
-  "Matched course:",
-  course
-);
-if (!course) {
-
-  console.log(
-    "NO MATCH FOUND FOR:",
-    excelName
-  );
-
-  continue;
-}
-        
 
         placements.push({
           className:
             course.name,
+
+          classAcronym:
+            String(
+              row["Class Acronym"] ?? ""
+            ).trim(),
+
+          courseNumber:
+            String(
+              row["Course #"] ?? ""
+            ).trim(),
+
+          cohortNumber:
+            String(
+              row["Cohort #"] ?? ""
+            ).trim(),
+
+          displayCategory:
+            String(
+              row["Category"] ?? ""
+            ).trim(),
 
           weekStartDate:
             row["Week Start"],
@@ -134,111 +171,111 @@ if (!course) {
           locked: true
         });
         console.log(
-  "ADDED TO PLACEMENTS ARRAY:",
-  {
-    className: course.name,
-    weekStartDate: row["Week Start"],
-    location: row["Location"],
-    instructorName: row["Instructor"] || null
-  }
-);
+          "ADDED TO PLACEMENTS ARRAY:",
+          {
+            className: course.name,
+            weekStartDate: row["Week Start"],
+            location: row["Location"],
+            instructorName: row["Instructor"] || null
+          }
+        );
 
       }
 
 
-console.log(
-  "PLACEMENTS TO SAVE:",
-  placements
-);
-
-for (const placement of placements) {
-
-  try {
-
-    console.log(
-      "CHECKING:",
-      placement
-    );
-
-    const existing =
-      await db
-        .collection("fixedPlacements")
-        .where(
-          "className",
-          "==",
-          placement.className
-        )
-        .where(
-          "weekStartDate",
-          "==",
-          placement.weekStartDate
-        )
-        .where(
-          "location",
-          "==",
-          placement.location
-        )
-        .where(
-          "instructorName",
-          "==",
-          placement.instructorName
-        )
-        .get();
-
-    console.log(
-      "MATCHES FOUND:",
-      existing.size
-    );
-
-    if (!existing.empty) {
-
       console.log(
-        "SKIPPING DUPLICATE:",
-        placement
+        "PLACEMENTS TO SAVE:",
+        placements
       );
 
-      continue;
-    }
+      for (const placement of placements) {
 
-    console.log(
-      "SAVING:",
-      placement
-    );
+        try {
 
-    const docRef =
-      await db
-        .collection("fixedPlacements")
-        .add(placement);
+          console.log(
+            "CHECKING:",
+            placement
+          );
 
-    console.log(
-      "SAVED DOC ID:",
-      docRef.id
-    );
+          const existing =
+            await db
+              .collection("fixedPlacements")
+              .where(
+                "className",
+                "==",
+                placement.className
+              )
+              .where(
+                "weekStartDate",
+                "==",
+                placement.weekStartDate
+              )
+              .where(
+                "location",
+                "==",
+                placement.location
+              )
+              .where(
+                "instructorName",
+                "==",
+                placement.instructorName
+              )
+              .get();
 
-  } catch (err) {
+          console.log(
+            "MATCHES FOUND:",
+            existing.size
+          );
 
-    console.error(
-      "SAVE FAILED:",
-      err
-    );
-  }
-}
+          if (!existing.empty) {
 
-const verify =
-  await db
-    .collection("fixedPlacements")
-    .get();
+            console.log(
+              "SKIPPING DUPLICATE:",
+              placement
+            );
 
-console.log(
-  "TOTAL DOCS AFTER IMPORT:",
-  verify.size
-);
+            continue;
+          }
 
-      
-console.log(
-  "FINAL PLACEMENTS COUNT:",
-  placements.length
-);
+          console.log(
+            "SAVING:",
+            placement
+          );
+
+          const docRef =
+            await db
+              .collection("fixedPlacements")
+              .add(placement);
+
+          console.log(
+            "SAVED DOC ID:",
+            docRef.id
+          );
+
+        } catch (err) {
+
+          console.error(
+            "SAVE FAILED:",
+            err
+          );
+        }
+      }
+
+      const verify =
+        await db
+          .collection("fixedPlacements")
+          .get();
+
+      console.log(
+        "TOTAL DOCS AFTER IMPORT:",
+        verify.size
+      );
+
+
+      console.log(
+        "FINAL PLACEMENTS COUNT:",
+        placements.length
+      );
       res.json({
         success: true
       });
@@ -358,9 +395,9 @@ app.get("/schedule", async (_req, res) => {
     const catalog = await loadCatalogFromFirestore();
     const instructors = await loadInstructorsFromFirestore();
     const fixedPlacements = await loadFixedPlacements();
-    console.log("FIXED PLACEMENTS LOADED:",fixedPlacements);
-    console.log("Loaded fixed placements:",fixedPlacements);
-    
+    console.log("FIXED PLACEMENTS LOADED:", fixedPlacements);
+    console.log("Loaded fixed placements:", fixedPlacements);
+
     if (!config) {
       return res.status(404).json({
         error: "Generation config not found"
@@ -375,11 +412,11 @@ app.get("/schedule", async (_req, res) => {
 
     //  Instructors may be empty — engine can handle this
     const schedule = generateSchedule(
-  config,
-  catalog,
-  instructors ?? [],
-  fixedPlacements
-);
+      config,
+      catalog,
+      instructors ?? [],
+      fixedPlacements
+    );
 
     res.json(schedule);
   } catch (err) {
