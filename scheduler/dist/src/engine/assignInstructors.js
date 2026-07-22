@@ -24,6 +24,16 @@ function assignInstructors(slots, instructors, generationConfig) {
     instructors.forEach(i => {
         assignmentsByInstructor.set(i.id, []);
     });
+    // Seed instructor usage with locked assignments
+    slots.forEach(slot => {
+        if (!slot.locked || !slot.instructorId) {
+            return;
+        }
+        const coveredWeeks = getCoveredWeeks(slot);
+        const current = assignmentsByInstructor.get(slot.instructorId) ?? [];
+        current.push(...coveredWeeks);
+        assignmentsByInstructor.set(slot.instructorId, current);
+    });
     const avgAssignments = slots.length /
         Math.max(instructors.length, 1);
     return slots.map(slot => {
