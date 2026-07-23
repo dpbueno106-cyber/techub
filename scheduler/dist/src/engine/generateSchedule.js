@@ -6,7 +6,7 @@ const buildWeeks_1 = require("./buildWeeks");
 const placeNTO_1 = require("./placeNTO");
 const classSlotGenerator_1 = require("./classSlotGenerator");
 const assignInstructors_1 = require("./assignInstructors");
-function generateSchedule(generationConfig, catalog, instructors, fixedPlacements = []) {
+function generateSchedule(generationConfig, catalog, instructors, fixedPlacements = [], instructorTimeOff = []) {
     // 1. Build the configured calendar weeks.
     const weeks = (0, buildWeeks_1.buildWeeks)(generationConfig.year);
     // 2. Convert imported fixed placements into schedule slots.
@@ -53,7 +53,7 @@ function generateSchedule(generationConfig, catalog, instructors, fixedPlacement
     // 6. Balance only unlocked locations.
     const balanced = (0, balanceLocations_1.balanceLocations)(slots);
     // 7. Assign instructors while preserving locked assignments.
-    const assigned = (0, assignInstructors_1.assignInstructors)(balanced, instructors, generationConfig);
+    const assigned = (0, assignInstructors_1.assignInstructors)(balanced, instructors, generationConfig, instructorTimeOff);
     // 8. Sort the completed schedule.
     return assigned.sort((first, second) => {
         if (first.weekNumber ===

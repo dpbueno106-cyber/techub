@@ -1,4 +1,4 @@
-﻿import type { ClassSlot, Instructor } from "../types";
+﻿import type { ClassSlot, Instructor, InstructorTimeOff } from "../types";
 import { scoreInstructor } from "./scoreInstructor";
 
 function exceedsConsecutiveLimit(
@@ -37,7 +37,8 @@ export function assignInstructors(
   instructors: Instructor[],
   generationConfig: {
     maxConsecutiveWeeks: number;
-  }
+  },
+  instructorTimeOff: InstructorTimeOff[] = []
 ): ClassSlot[] {
   const assignmentsByInstructor = new Map<
     string,
@@ -47,31 +48,90 @@ export function assignInstructors(
   instructors.forEach(i => {
     assignmentsByInstructor.set(i.id, []);
   });
-// Seed instructor usage with locked assignments
-slots.forEach(slot => {
-  if (!slot.locked || !slot.instructorId) {
-    return;
-  }
+  // Seed instructor usage with locked assignments
+  slots.forEach(slot => {
+    if (!slot.locked || !slot.instructorId) {
+      return;
+    }
 
-  const coveredWeeks =
-    getCoveredWeeks(slot);
+    const coveredWeeks =
+      getCoveredWeeks(slot);
 
-  const current =
-    assignmentsByInstructor.get(
-      slot.instructorId
-    ) ?? [];
+    const current =
+      assignmentsByInstructor.get(
+        slot.instructorId
+      ) ?? [];
 
-  current.push(...coveredWeeks);
+    current.push(...coveredWeeks);
 
-  assignmentsByInstructor.set(
-    slot.instructorId,
-    current
-  );
-});
+    assignmentsByInstructor.set(
+      slot.instructorId,
+      current
+    );
+  });
   const avgAssignments =
     slots.length /
     Math.max(instructors.length, 1);
+  const timeOffWeeks =
+    new Map<string, number[]>();
+  instructorTimeOff.forEach(
+    timeOff => {
 
+      const start =
+        new Date(
+          timeOff.startDate
+        );
+
+      const end =
+        new Date(
+          timeOff.endDate
+        );
+
+      const blockedWeeks: number[] =
+        [];
+
+      for (
+        const slot of slots
+      ) {
+
+        const slotStart =
+          new Date(
+            slot.weekStartDate
+          );
+
+        const slotEnd =
+          new Date(
+            slot.weekEndDate
+          );
+
+        const overlaps =
+          slotStart <= end &&
+          slotEnd >= start;
+
+        if (overlaps) {
+
+          blockedWeeks.push(
+            slot.weekNumber
+          );
+
+        }
+      }
+
+      const existing =
+        timeOffWeeks.get(
+          timeOff.instructorId
+        ) ?? [];
+
+      existing.push(
+        ...blockedWeeks
+      );
+
+      timeOffWeeks.set(
+        timeOff.instructorId,
+        existing
+      );
+    }
+  );
   return slots.map(slot => {
     // Preserve manual assignments
     if (
@@ -108,23 +168,37 @@ slots.forEach(slot => {
 
         const canBeThere =
           slot.location ===
-            i.homeLocation ||
+          i.homeLocation ||
           i.canTravel;
 
         const assignedWeeks =
-          assignmentsByInstructor.get(
-            i.id
-          ) ?? [];
+  assignmentsByInstructor.get(
+    i.id
+  ) ?? [];
 
-        const coveredWeeks =
-          getCoveredWeeks(slot);
+const coveredWeeks =
+  getCoveredWeeks(slot);
 
-        const hasConflict =
-          coveredWeeks.some(week =>
-            assignedWeeks.includes(
-              week
-            )
-          );
+const blockedWeeks =
+  timeOffWeeks.get(
+    i.id
+  ) ?? [];
+
+const onTimeOff =
+  coveredWeeks.some(
+    week =>
+      blockedWeeks.includes(
+        week
+      )
+  );
+
+const hasConflict =
+  coveredWeeks.some(
+    week =>
+      assignedWeeks.includes(
+        week
+      )
+  );
 
         const wouldExceed =
           coveredWeeks.some(
@@ -133,7 +207,7 @@ slots.forEach(slot => {
                 assignedWeeks,
                 week,
                 generationConfig.maxConsecutiveWeeks ??
-                  2
+                2
               )
           );
 
@@ -143,13 +217,15 @@ slots.forEach(slot => {
             Number.MAX_SAFE_INTEGER);
 
         return (
-          isPossibleInstructor &&
-          canTeach &&
-          canBeThere &&
-          !hasConflict &&
-          !wouldExceed &&
-          underMaxClasses
-        );
+  isPossibleInstructor &&
+  canTeach &&
+  canBeThere &&
+  !hasConflict &&
+  !wouldExceed &&
+  !onTimeOff &&
+  underMaxClasses
+);
+
       });
 
     let candidates = eligible;
@@ -192,7 +268,7 @@ slots.forEach(slot => {
 
           const canBeThere =
             slot.location ===
-              i.homeLocation ||
+            i.homeLocation ||
             i.canTravel;
 
           const assignedWeeks =
@@ -202,7 +278,17 @@ slots.forEach(slot => {
 
           const coveredWeeks =
             getCoveredWeeks(slot);
-
+          const blockedWeeks =
+            timeOffWeeks.get(
+              i.id
+            ) ?? [];
+          const onTimeOff =
+            coveredWeeks.some(
+              week =>
+                blockedWeeks.includes(
+                  week
+                )
+            );
           const hasConflict =
             coveredWeeks.some(
               week =>
@@ -217,12 +303,13 @@ slots.forEach(slot => {
               Number.MAX_SAFE_INTEGER);
 
           return (
-            isPossibleInstructor &&
-            canTeach &&
-            canBeThere &&
-            !hasConflict &&
-            underMaxClasses
-          );
+  isPossibleInstructor &&
+  canTeach &&
+  canBeThere &&
+  !hasConflict &&
+  !onTimeOff &&
+  underMaxClasses
+);
         });
     }
 

@@ -19,7 +19,7 @@ function exceedsConsecutiveLimit(assignedWeeks, nextWeek, maxConsecutive) {
 function getCoveredWeeks(slot) {
     return Array.from({ length: slot.durationWeeks }, (_, index) => slot.weekNumber + index);
 }
-function assignInstructors(slots, instructors, generationConfig) {
+function assignInstructors(slots, instructors, generationConfig, instructorTimeOff = []) {
     const assignmentsByInstructor = new Map();
     instructors.forEach(i => {
         assignmentsByInstructor.set(i.id, []);
@@ -36,6 +36,24 @@ function assignInstructors(slots, instructors, generationConfig) {
     });
     const avgAssignments = slots.length /
         Math.max(instructors.length, 1);
+    const timeOffWeeks = new Map();
+    instructorTimeOff.forEach(timeOff => {
+        const start = new Date(timeOff.startDate);
+        const end = new Date(timeOff.endDate);
+        const blockedWeeks = [];
+        for (const slot of slots) {
+            const slotStart = new Date(slot.weekStartDate);
+            const slotEnd = new Date(slot.weekEndDate);
+            const overlaps = slotStart <= end &&
+                slotEnd >= start;
+            if (overlaps) {
+                blockedWeeks.push(slot.weekNumber);
+            }
+        }
+        const existing = timeOffWeeks.get(timeOff.instructorId) ?? [];
+        existing.push(...blockedWeeks);
+        timeOffWeeks.set(timeOff.instructorId, existing);
+    });
     return slots.map(slot => {
         // Preserve manual assignments
         if (slot.locked &&
@@ -59,6 +77,8 @@ function assignInstructors(slots, instructors, generationConfig) {
                 i.canTravel;
             const assignedWeeks = assignmentsByInstructor.get(i.id) ?? [];
             const coveredWeeks = getCoveredWeeks(slot);
+            const blockedWeeks = timeOffWeeks.get(i.id) ?? [];
+            const onTimeOff = coveredWeeks.some(week => blockedWeeks.includes(week));
             const hasConflict = coveredWeeks.some(week => assignedWeeks.includes(week));
             const wouldExceed = coveredWeeks.some(week => exceedsConsecutiveLimit(assignedWeeks, week, generationConfig.maxConsecutiveWeeks ??
                 2));
@@ -70,6 +90,7 @@ function assignInstructors(slots, instructors, generationConfig) {
                 canBeThere &&
                 !hasConflict &&
                 !wouldExceed &&
+                !onTimeOff &&
                 underMaxClasses);
         });
         let candidates = eligible;
@@ -97,6 +118,8 @@ function assignInstructors(slots, instructors, generationConfig) {
                         i.canTravel;
                     const assignedWeeks = assignmentsByInstructor.get(i.id) ?? [];
                     const coveredWeeks = getCoveredWeeks(slot);
+                    const blockedWeeks = timeOffWeeks.get(i.id) ?? [];
+                    const onTimeOff = coveredWeeks.some(week => blockedWeeks.includes(week));
                     const hasConflict = coveredWeeks.some(week => assignedWeeks.includes(week));
                     const underMaxClasses = assignedWeeks.length <
                         (i.maxClasses ??
@@ -105,6 +128,7 @@ function assignInstructors(slots, instructors, generationConfig) {
                         canTeach &&
                         canBeThere &&
                         !hasConflict &&
+                        !onTimeOff &&
                         underMaxClasses);
                 });
         }

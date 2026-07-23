@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    />
+
+    <title>
+        Instructor Time Off
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="adminInstructorTimeOff.css"
+    />
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div class="header">
+            <h1>
+                Instructor Time Off
+            </h1>
+
+            <p>
+                Manage instructor vacations, PTO,
+                conferences, off-sites, training events,
+                and other unavailable dates.
+            </p>
+        </div>
+
+        <div class="card">
+
+            <h2>
+                Add Time Off
+            </h2>
+
+            <div class="formGrid">
+
+                <div class="formGroup">
+                    <label for="instructors">
+                        Instructors
+                    </label>
+
+                    <select
+                        id="instructors"
+                        multiple
+                    ></select>
+
+                    <small>
+                        Hold Ctrl (Windows) or Cmd (Mac)
+                        to select multiple instructors.
+                    </small>
+                </div>
+
+                <div class="formGroup">
+                    <label for="startDate">
+                        Start Date
+                    </label>
+
+                    <input
+                        type="date"
+                        id="startDate"
+                    />
+                </div>
+
+                <div class="formGroup">
+                    <label for="endDate">
+                        End Date
+                    </label>
+
+                    <input
+                        type="date"
+                        id="endDate"
+                    />
+                </div>
+
+                <div class="formGroup fullWidth">
+                    <label for="reason">
+                        Reason
+                    </label>
+
+                    <input
+                        type="text"
+                        id="reason"
+                        placeholder="Vacation, PTO, Conference, Personal, Training..."
+                    />
+                </div>
+
+            </div>
+
+            <button
+                class="primaryBtn"
+                onclick="addTimeOff()"
+            >
+                Add Time Off
+            </button>
+
+        </div>
+
+        <div class="card">
+
+            <h2>
+                Instructor Summary
+            </h2>
+
+            <div
+                id="summaryContainer"
+                class="summaryGrid"
+            >
+                <!-- Populated by JS -->
+            </div>
+
+        </div>
+
+        <div class="card">
+
+            <h2>
+                Existing Time Off Requests
+            </h2>
+
+            <div id="timeOffList">
+                <!-- Populated by JS -->
+            </div>
+
+        </div>
+
+        <div class="actions">
+
+            <button
+                class="primaryBtn"
+                onclick="window.location.href = 'adminScheduleManagement.html'"
+            >
+                ← Back to Scheduler
+            </button>
+
+        </div>
+
+    </div>
+
+    <script src="adminInstructorTimeOff.js"></script>
+
+</body>
+
+</html>

@@ -4,7 +4,8 @@ import type {
   Instructor,
   GenerationConfig,
   WeekSlot,
-  FixedPlacement
+  FixedPlacement,
+  InstructorTimeOff
 } from "../types";
 
 import { balanceLocations } from "./balanceLocations";
@@ -19,7 +20,8 @@ export function generateSchedule(
   generationConfig: GenerationConfig,
   catalog: ClassDefinition[],
   instructors: Instructor[],
-  fixedPlacements: FixedPlacement[] = []
+  fixedPlacements: FixedPlacement[] = [],
+  instructorTimeOff: InstructorTimeOff[] = []
 ): ClassSlot[] {
   // 1. Build the configured calendar weeks.
   const weeks = buildWeeks(
@@ -160,11 +162,12 @@ export function generateSchedule(
 
   // 7. Assign instructors while preserving locked assignments.
   const assigned =
-    assignInstructors(
-      balanced,
-      instructors,
-      generationConfig
-    );
+  assignInstructors(
+    balanced,
+    instructors,
+    generationConfig,
+    instructorTimeOff
+  );
 
   // 8. Sort the completed schedule.
   return assigned.sort(

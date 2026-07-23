@@ -42,6 +42,44 @@ async function loadFixedPlacements() {
         };
     });
 }
+app.get("/instructorTimeOff", async (_, res) => {
+    const snapshot = await firebase_1.db
+        .collection("instructorTimeOff")
+        .get();
+    res.json(snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    })));
+});
+app.get("/instructors", async (_req, res) => {
+    try {
+        const instructors = await (0, firestoreLoaders_1.loadInstructorsFromFirestore)();
+        res.json(instructors);
+    }
+    catch (err) {
+        console.error("Failed to load instructors:", err);
+        res.status(500).json({
+            error: "Failed to load instructors"
+        });
+    }
+});
+app.post("/instructorTimeOff", async (req, res) => {
+    const doc = await firebase_1.db
+        .collection("instructorTimeOff")
+        .add(req.body);
+    res.json({
+        id: doc.id
+    });
+});
+app.delete("/instructorTimeOff/:id", async (req, res) => {
+    await firebase_1.db
+        .collection("instructorTimeOff")
+        .doc(req.params.id)
+        .delete();
+    res.json({
+        success: true
+    });
+});
 app.post("/fixedPlacements/import", async (req, res) => {
     console.log("IMPORT BODY:", JSON.stringify(req.body, null, 2));
     try {

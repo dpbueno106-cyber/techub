@@ -8,6 +8,14 @@ export interface ScheduleConfig {
   holidays: string[];
 }
 
+export interface InstructorTimeOff {
+  id?: string;
+  instructorId: string;
+  startDate: string;
+  endDate: string;
+  reason?: string;
+}
+
 export interface WeekSlot {
   weekNumber: number;
   startDate: string;

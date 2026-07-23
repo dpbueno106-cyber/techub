@@ -103,18 +103,52 @@ async function deleteAllFixedPlacements() {
 
 
 function formatDate(date) {
+  if (!date) {
+    return "";
+  }
 
-  if (!date) return "";
-
+  // Firestore Timestamp
   if (date._seconds) {
-
     return new Date(
       date._seconds * 1000
     ).toLocaleDateString();
   }
 
-  return new Date(date)
-    .toLocaleDateString();
+  // Excel serial date
+  if (
+    typeof date === "number" ||
+    /^\d+$/.test(String(date))
+  ) {
+    const excelDate =
+      Number(date);
+
+    const jsDate =
+      new Date(
+        (excelDate - 25569) *
+          86400 *
+          1000
+      );
+
+    return jsDate.toLocaleDateString();
+  }
+
+  // ISO yyyy-mm-dd
+  if (
+    typeof date === "string" &&
+    date.match(
+      /^\d{4}-\d{1,2}-\d{1,2}$/
+    )
+  ) {
+    const [
+      year,
+      month,
+      day
+    ] = date.split("-");
+
+    return `${month.padStart(2,"0")}/${day.padStart(2,"0")}/${year}`;
+  }
+
+  return String(date);
 }
 
 function goBack() {
