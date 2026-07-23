@@ -4,19 +4,13 @@
 <head>
     <meta charset="UTF-8" />
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>
         Instructor Time Off
     </title>
 
-    <link
-        rel="stylesheet"
-        href="adminInstructorTimeOff.css"
-    />
+    <link rel="stylesheet" href="adminInstructorTimeOff.css" />
 </head>
 
 <body>
@@ -43,20 +37,15 @@
 
             <div class="formGrid">
 
-                <div class="formGroup">
-                    <label for="instructors">
+                <div class="formGroup fullWidth">
+
+                    <label>
                         Instructors
                     </label>
 
-                    <select
-                        id="instructors"
-                        multiple
-                    ></select>
+                    <div id="instructorSelector" class="instructorSelector">
+                    </div>
 
-                    <small>
-                        Hold Ctrl (Windows) or Cmd (Mac)
-                        to select multiple instructors.
-                    </small>
                 </div>
 
                 <div class="formGroup">
@@ -64,10 +53,7 @@
                         Start Date
                     </label>
 
-                    <input
-                        type="date"
-                        id="startDate"
-                    />
+                    <input type="date" id="startDate" />
                 </div>
 
                 <div class="formGroup">
@@ -75,10 +61,7 @@
                         End Date
                     </label>
 
-                    <input
-                        type="date"
-                        id="endDate"
-                    />
+                    <input type="date" id="endDate" />
                 </div>
 
                 <div class="formGroup fullWidth">
@@ -86,19 +69,12 @@
                         Reason
                     </label>
 
-                    <input
-                        type="text"
-                        id="reason"
-                        placeholder="Vacation, PTO, Conference, Personal, Training..."
-                    />
+                    <input type="text" id="reason" placeholder="Vacation, PTO, Conference, Personal, Training..." />
                 </div>
 
             </div>
 
-            <button
-                class="primaryBtn"
-                onclick="addTimeOff()"
-            >
+            <button class="primaryBtn" onclick="addTimeOff()">
                 Add Time Off
             </button>
 
@@ -110,10 +86,7 @@
                 Instructor Summary
             </h2>
 
-            <div
-                id="summaryContainer"
-                class="summaryGrid"
-            >
+            <div id="summaryContainer" class="summaryGrid">
                 <!-- Populated by JS -->
             </div>
 
@@ -133,10 +106,7 @@
 
         <div class="actions">
 
-            <button
-                class="primaryBtn"
-                onclick="window.location.href = 'adminScheduleManagement.html'"
-            >
+            <button class="primaryBtn" onclick="window.location.href = 'adminScheduleManagement.html'">
                 ← Back to Scheduler
             </button>
 

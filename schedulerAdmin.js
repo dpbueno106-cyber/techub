@@ -20,7 +20,10 @@ const API_URL = window.location.hostname.includes("localhost")
 // =========================
 // DOM REFERENCES (EXPLICIT)
 // =========================
-
+const courseAnalyticsEl =
+  document.getElementById(
+    "courseAnalytics"
+  );
 const calendarEl = document.getElementById("calendar");
 const externalEventsEl = document.getElementById("externalEvents");
 const instructorWorkloadEl = document.getElementById("instructorWorkload");
@@ -237,18 +240,18 @@ function serializeCalendarToSlots() {
 
   getLogicalScheduleEvents().forEach(event => {
     const {
-  className,
-  classAcronym,
-  courseNumber,
-  cohortNumber,
-  displayCategory,
+      className,
+      classAcronym,
+      courseNumber,
+      cohortNumber,
+      displayCategory,
 
-  category,
-  location,
-  instructorId,
-  durationWeeks,
-  weekStartDate
-} = event.extendedProps;
+      category,
+      location,
+      instructorId,
+      durationWeeks,
+      weekStartDate
+    } = event.extendedProps;
 
     const key = `${className}-${location}-${weekStartDate}`;
 
@@ -262,19 +265,19 @@ function serializeCalendarToSlots() {
     }
 
     slots.push({
-  className,
+      className,
 
-  classAcronym,
-  courseNumber,
-  cohortNumber,
-  displayCategory,
+      classAcronym,
+      courseNumber,
+      cohortNumber,
+      displayCategory,
 
-  category,
-  location,
-  instructorId,
-  weekStartDate,
-  durationWeeks
-});
+      category,
+      location,
+      instructorId,
+      weekStartDate,
+      durationWeeks
+    });
   });
 
   return slots;
@@ -409,6 +412,7 @@ function initCalendar() {
       applyInstructorFilter();
       renderInstructorWorkloadFromCalendar();
       renderScheduleAnalytics();
+      renderCourseAnalytics();
     }
   });
 
@@ -909,6 +913,7 @@ async function generateSchedule() {
     applyInstructorFilter();
     renderInstructorWorkloadFromCalendar();
     renderScheduleAnalytics();
+    renderCourseAnalytics();
 
     console.log(
       "Generated schedule:",
@@ -991,6 +996,7 @@ async function loadSavedSchedule() {
   applyInstructorFilter();
   renderInstructorWorkloadFromCalendar();
   renderScheduleAnalytics();
+  renderCourseAnalytics();
 
   return true;
 }
@@ -1183,6 +1189,132 @@ function renderScheduleAnalytics() {
 </div>
 `;
 }
+
+
+function renderCourseAnalytics() {
+
+  const events =
+    getLogicalScheduleEvents();
+
+  const courseStats = {};
+
+  events.forEach(event => {
+
+    const course =
+      event.extendedProps.className ||
+      "Unknown";
+
+    const instructorId =
+      event.extendedProps.instructorId ||
+      "Unassigned";
+
+    const instructorName =
+      instructors.find(
+        i => i.id === instructorId
+      )?.name ||
+      instructorId;
+
+    if (!courseStats[course]) {
+
+      courseStats[course] = {
+        total: 0,
+        instructors: {}
+      };
+
+    }
+
+    courseStats[course].total++;
+
+    courseStats[course]
+      .instructors[
+        instructorName
+      ] =
+      (
+        courseStats[course]
+          .instructors[
+            instructorName
+          ] || 0
+      ) + 1;
+
+  });
+
+  const sortedCourses =
+    Object.entries(courseStats)
+      .sort(
+        (a, b) =>
+          b[1].total -
+          a[1].total
+      );
+
+  courseAnalyticsEl.innerHTML = `
+    <h2 class="analytics-heading">
+      Course Analytics
+    </h2>
+  `;
+
+  sortedCourses.forEach(
+    ([course, stats]) => {
+
+      const instructorsHtml =
+        Object.entries(
+          stats.instructors
+        )
+          .sort(
+            (a, b) =>
+              b[1] - a[1]
+          )
+          .map(
+            ([name, count]) => {
+
+  const percent =
+    Math.round(
+      (count / stats.total) * 100
+    );
+
+  return `
+    <div class="course-instructor-row">
+
+      <span>
+        ${name}
+      </span>
+
+      <strong>
+        ${count}
+        (${percent}%)
+      </strong>
+
+    </div>
+  `;
+}
+          )
+          .join("");
+
+      courseAnalyticsEl.innerHTML += `
+  <details class="course-analytics-card">
+
+    <summary class="course-summary">
+
+      <span class="course-name">
+        ${course}
+      </span>
+
+      <span class="course-total">
+        ${stats.total}
+      </span>
+
+    </summary>
+
+    <div class="course-details">
+
+      ${instructorsHtml}
+
+    </div>
+
+  </details>
+`;
+    }
+  );
+}
 // =========================
 // PAGE INIT
 // =========================
@@ -1208,6 +1340,10 @@ window.addEventListener("DOMContentLoaded", () => {
         document.getElementById(
           "fixedPlacementImport"
         );
+      const courseAnalyticsEl =
+        document.getElementById(
+          "courseAnalytics"
+        );
       const instructor = editEventInstructorEl.value;
       const location = editEventLocationEl.value;
 
@@ -1224,6 +1360,7 @@ window.addEventListener("DOMContentLoaded", () => {
       closeEditModal();
       renderInstructorWorkloadFromCalendar();
       renderScheduleAnalytics();
+      renderCourseAnalytics();
 
     };
 
@@ -1233,6 +1370,7 @@ window.addEventListener("DOMContentLoaded", () => {
       closeEditModal();
       renderInstructorWorkloadFromCalendar();
       renderScheduleAnalytics();
+      renderCourseAnalytics();
     };
   });
 });
@@ -1249,6 +1387,7 @@ Object.assign(window, {
   showAllInstructorsEl,
   saveCatalogClass,
   renderScheduleAnalytics,
+  renderCourseAnalytics,
   goBack: () => window.location.href = "adminDashboard.html",
   openEditModal,
   closeEditModal,
@@ -1258,6 +1397,7 @@ Object.assign(window, {
       adminCalendar.removeAllEvents();
       renderInstructorWorkloadFromCalendar();
       renderScheduleAnalytics();
+      renderCourseAnalytics();
     }
   }
 });

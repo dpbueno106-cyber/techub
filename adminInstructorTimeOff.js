@@ -12,69 +12,83 @@ window.addEventListener(
         await loadTimeOff();
     }
 );
-
+let selectedInstructors = [];
 async function loadInstructors() {
+
     try {
 
-        console.log("Loading instructors...");
-
-        const response = await fetch(
-            `${API_URL}/instructors`
-        );
-
-        const data =
-    await response.json();
-
-console.log(
-  "Raw instructor response:",
-  JSON.stringify(
-    data,
-    null,
-    2
-  )
-);
-
-        const select =
-            document.getElementById(
-                "instructors"
+        const response =
+            await fetch(
+                `${API_URL}/instructors`
             );
 
-        console.log(
-            "Select:",
-            select
-        );
+        const instructors =
+            await response.json();
 
-        select.innerHTML = "";
+        const container =
+            document.getElementById(
+                "instructorSelector"
+            );
 
-        data.forEach(
-            instructor => {
+        container.innerHTML = "";
 
-                console.log(
-                    "Instructor row:",
-                    instructor
-                );
+        instructors
+            .sort((a, b) =>
+                (a.name ?? a.id)
+                    .localeCompare(
+                        b.name ?? b.id
+                    )
+            )
+            .forEach(instructor => {
 
-                const option =
+                const chip =
                     document.createElement(
-                        "option"
+                        "div"
                     );
 
-                option.value =
+                chip.className =
+                    "instructorChip";
+
+                chip.textContent =
+                    instructor.name ??
                     instructor.id;
 
-                option.textContent =
-                    `${instructor.name}`;
+                chip.dataset.id =
+                    instructor.id;
 
-                select.appendChild(
-                    option
+                chip.addEventListener(
+                    "click",
+                    () => {
+
+                        chip.classList.toggle(
+                            "selected"
+                        );
+
+                        if (
+                            chip.classList.contains(
+                                "selected"
+                            )
+                        ) {
+
+                            selectedInstructors.push(
+                                instructor.id
+                            );
+
+                        } else {
+
+                            selectedInstructors =
+                                selectedInstructors.filter(
+                                    id =>
+                                        id !== instructor.id
+                                );
+                        }
+                    }
                 );
-            }
-        );
 
-        console.log(
-            "Options created:",
-            select.options.length
-        );
+                container.appendChild(
+                    chip
+                );
+            });
 
     } catch (error) {
 
@@ -89,13 +103,8 @@ console.log(
 async function addTimeOff() {
 
     const instructorIds =
-        Array.from(
-            document.getElementById(
-                "instructors"
-            ).selectedOptions
-        ).map(
-            option => option.value
-        );
+        [...selectedInstructors];
+
 
     const startDate =
         document.getElementById(
@@ -177,9 +186,17 @@ async function addTimeOff() {
             "reason"
         ).value = "";
 
-        document.getElementById(
-            "instructors"
-        ).selectedIndex = -1;
+        selectedInstructors = [];
+
+        document
+            .querySelectorAll(
+                ".instructorChip"
+            )
+            .forEach(chip => {
+                chip.classList.remove(
+                    "selected"
+                );
+            });
 
         await loadTimeOff();
 

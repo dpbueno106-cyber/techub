@@ -323,7 +323,41 @@ td {
 tr:hover {
   background: #363636;
 }
+.instructorSelector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
 
+.instructorChip {
+    padding: 10px 16px;
+
+    background: #3a3a3a;
+
+    border: 2px solid #555;
+
+    color: white;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    transition: .2s;
+
+    user-select: none;
+}
+
+.instructorChip:hover {
+    border-color: #ffcd11;
+}
+
+.instructorChip.selected {
+    background: #ffcd11;
+    color: #1e1e1e;
+    border-color: #ffcd11;
+
+    font-weight: bold;
+}
 /* ===================
    Mobile
 =================== */
