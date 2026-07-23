@@ -760,68 +760,115 @@ document
       const file =
         event.target.files?.[0];
 
-      if (!file) return;
-
-      const data =
-        await file.arrayBuffer();
-
-      const workbook =
-        XLSX.read(data);
-
-      const sheet =
-        workbook.Sheets[
-        workbook.SheetNames[0]
-        ];
-
-      const rows =
-        XLSX.utils.sheet_to_json(
-          sheet
-        );
-
-      console.log(
-        "ROWS TO IMPORT:",
-        rows
-      );
-
-      const res =
-        await fetch(
-          `${API_URL}/fixedPlacements/import`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type":
-                "application/json"
-            },
-            body: JSON.stringify(
-              rows
-            )
-          }
-        );
-
-      console.log(
-        "IMPORT STATUS:",
-        res.status
-      );
-
-      if (!res.ok) {
-        alert(
-          "Import failed"
-        );
+      if (!file) {
         return;
       }
 
-      alert(
-        "Import complete"
-      );
+      const importBtn =
+        document.getElementById(
+          "importBtn"
+        );
 
-      await generateSchedule();
+      try {
+
+        importBtn.style.opacity =
+          "0.6";
+
+        importBtn.style.pointerEvents =
+          "none";
+
+        importBtn.textContent =
+          "Importing...";
+
+        const data =
+          await file.arrayBuffer();
+
+        const workbook =
+          XLSX.read(data);
+
+        const sheet =
+          workbook.Sheets[
+            workbook.SheetNames[0]
+          ];
+
+        const rows =
+          XLSX.utils.sheet_to_json(
+            sheet
+          );
+
+        console.log(
+          "ROWS TO IMPORT:",
+          rows
+        );
+
+        const res =
+          await fetch(
+            `${API_URL}/fixedPlacements/import`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+              body: JSON.stringify(
+                rows
+              )
+            }
+          );
+
+        console.log(
+          "IMPORT STATUS:",
+          res.status
+        );
+
+        if (!res.ok) {
+
+          alert(
+            "Import failed"
+          );
+
+          return;
+        }
+
+        alert(
+          "Import complete"
+        );
+
+        await generateSchedule();
+
+      } catch (error) {
+
+        console.error(
+          "Import failed:",
+          error
+        );
+
+        alert(
+          "Import failed"
+        );
+
+      } finally {
+
+        importBtn.style.opacity =
+          "";
+
+        importBtn.style.pointerEvents =
+          "";
+
+        importBtn.textContent =
+          "Import Fixed Courses";
+
+        event.target.value = "";
+      }
     }
   );
 
-async function getConfiguredYear() {
-  const response = await fetch(
-    `${API_URL}/config/generation`
-  );
+  async function getConfiguredYear() {
+
+  const response =
+    await fetch(
+      `${API_URL}/config/generation`
+    );
 
   if (!response.ok) {
     return new Date().getFullYear();

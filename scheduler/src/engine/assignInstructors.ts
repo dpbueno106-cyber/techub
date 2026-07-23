@@ -32,6 +32,45 @@ function getCoveredWeeks(
       slot.weekNumber + index
   );
 }
+
+function isInstructorAvailable(
+  instructorId: string,
+  slot: ClassSlot,
+  instructorTimeOff: InstructorTimeOff[]
+): boolean {
+
+  const classStart =
+    new Date(slot.weekStartDate);
+
+  const classEnd =
+    new Date(slot.weekEndDate);
+
+  return !instructorTimeOff.some(
+    timeOff => {
+
+      if (
+        !timeOff.instructorId?.includes(
+          instructorId
+        )
+      ) {
+        return false;
+      }
+
+      const vacationStart =
+        new Date(timeOff.startDate);
+
+      const vacationEnd =
+        new Date(timeOff.endDate);
+
+      return (
+        vacationStart <= classEnd &&
+        vacationEnd >= classStart
+      );
+    }
+  );
+}
+
+
 export function assignInstructors(
   slots: ClassSlot[],
   instructors: Instructor[],
@@ -40,6 +79,10 @@ export function assignInstructors(
   },
   instructorTimeOff: InstructorTimeOff[] = []
 ): ClassSlot[] {
+  console.log(
+  "INSTRUCTOR PTO:",
+  instructorTimeOff
+);
   const assignmentsByInstructor = new Map<
     string,
     number[]
@@ -72,66 +115,7 @@ export function assignInstructors(
   const avgAssignments =
     slots.length /
     Math.max(instructors.length, 1);
-  const timeOffWeeks =
-    new Map<string, number[]>();
-  instructorTimeOff.forEach(
-    timeOff => {
 
-      const start =
-        new Date(
-          timeOff.startDate
-        );
-
-      const end =
-        new Date(
-          timeOff.endDate
-        );
-
-      const blockedWeeks: number[] =
-        [];
-
-      for (
-        const slot of slots
-      ) {
-
-        const slotStart =
-          new Date(
-            slot.weekStartDate
-          );
-
-        const slotEnd =
-          new Date(
-            slot.weekEndDate
-          );
-
-        const overlaps =
-          slotStart <= end &&
-          slotEnd >= start;
-
-        if (overlaps) {
-
-          blockedWeeks.push(
-            slot.weekNumber
-          );
-
-        }
-      }
-
-      const existing =
-        timeOffWeeks.get(
-          timeOff.instructorId
-        ) ?? [];
-
-      existing.push(
-        ...blockedWeeks
-      );
-
-      timeOffWeeks.set(
-        timeOff.instructorId,
-        existing
-      );
-    }
-  );
   return slots.map(slot => {
     // Preserve manual assignments
     if (
@@ -172,33 +156,27 @@ export function assignInstructors(
           i.canTravel;
 
         const assignedWeeks =
-  assignmentsByInstructor.get(
-    i.id
-  ) ?? [];
+          assignmentsByInstructor.get(
+            i.id
+          ) ?? [];
 
-const coveredWeeks =
-  getCoveredWeeks(slot);
+        const coveredWeeks =
+          getCoveredWeeks(slot);
 
-const blockedWeeks =
-  timeOffWeeks.get(
-    i.id
-  ) ?? [];
+        const available =
+          isInstructorAvailable(
+            i.id,
+            slot,
+            instructorTimeOff
+          );
 
-const onTimeOff =
-  coveredWeeks.some(
-    week =>
-      blockedWeeks.includes(
-        week
-      )
-  );
-
-const hasConflict =
-  coveredWeeks.some(
-    week =>
-      assignedWeeks.includes(
-        week
-      )
-  );
+        const hasConflict =
+          coveredWeeks.some(
+            week =>
+              assignedWeeks.includes(
+                week
+              )
+          );
 
         const wouldExceed =
           coveredWeeks.some(
@@ -216,15 +194,17 @@ const hasConflict =
           (i.maxClasses ??
             Number.MAX_SAFE_INTEGER);
 
+
+
         return (
-  isPossibleInstructor &&
-  canTeach &&
-  canBeThere &&
-  !hasConflict &&
-  !wouldExceed &&
-  !onTimeOff &&
-  underMaxClasses
-);
+          isPossibleInstructor &&
+          canTeach &&
+          canBeThere &&
+          !hasConflict &&
+          !wouldExceed &&
+          available &&
+          underMaxClasses
+        );
 
       });
 
@@ -278,16 +258,11 @@ const hasConflict =
 
           const coveredWeeks =
             getCoveredWeeks(slot);
-          const blockedWeeks =
-            timeOffWeeks.get(
-              i.id
-            ) ?? [];
-          const onTimeOff =
-            coveredWeeks.some(
-              week =>
-                blockedWeeks.includes(
-                  week
-                )
+          const available =
+            isInstructorAvailable(
+              i.id,
+              slot,
+              instructorTimeOff
             );
           const hasConflict =
             coveredWeeks.some(
@@ -303,13 +278,13 @@ const hasConflict =
               Number.MAX_SAFE_INTEGER);
 
           return (
-  isPossibleInstructor &&
-  canTeach &&
-  canBeThere &&
-  !hasConflict &&
-  !onTimeOff &&
-  underMaxClasses
-);
+            isPossibleInstructor &&
+            canTeach &&
+            canBeThere &&
+            !hasConflict &&
+            available &&
+            underMaxClasses
+          );
         });
     }
 

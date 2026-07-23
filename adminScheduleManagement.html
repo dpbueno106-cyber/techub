@@ -28,12 +28,14 @@
     <button onclick="clearSchedule()" class="clearBtn">Reset Schedule</button>
     <button class="secondary" onclick="openAddCourseModal()">+ Add Course</button>
     <input type="file" id="fixedPlacementImport" accept=".xlsx" hidden />
-    <button class="secondary" onclick="document.getElementById('fixedPlacementImport').click()">Import Fixed
-      Course</button>
+    <button id="importBtn" class="secondary" onclick="document.getElementById('fixedPlacementImport').click()">
+      Import Fixed Course
+    </button>
     <button class="danger" onclick="clearFixedPlacements()">Clear Imported Courses</button>
     <button id="manageFixedPlacementsBtn">Manage Fixed Placements</button>
     <span id="fixedPlacementCount"></span>
-    <button onclick="window.location.href='adminInstructorTimeOff.html'" class="secondary">Manage Instructor Time Off</button>
+    <button onclick="window.location.href='adminInstructorTimeOff.html'" class="secondary">Manage Instructor Time
+      Off</button>
   </div>
 
   <!--  MAIN LAYOUT -->
