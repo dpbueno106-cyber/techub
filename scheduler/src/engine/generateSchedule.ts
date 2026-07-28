@@ -197,7 +197,10 @@ function buildFixedPlacementSlots(
   configuredYear: number
 ): ClassSlot[] {
   const fixedSlots: ClassSlot[] = [];
-
+console.log(
+  "Fixed placements received:",
+  fixedPlacements.length
+);
   for (
     const placement of fixedPlacements
   ) {
@@ -375,7 +378,11 @@ function buildFixedPlacementSlots(
         "Skipping fixed placement because its location is invalid:",
         placement
       );
-
+console.warn(
+  "Skipped placement:",
+  placement.className,
+  placement.weekStartDate
+);
       continue;
     }
 
@@ -445,7 +452,15 @@ function buildFixedPlacementSlots(
   locked: true
 });
   }
+console.log(
+  "Fixed placements received:",
+  fixedPlacements.length
+);
 
+console.log(
+  "Fixed placements converted:",
+  fixedSlots.length
+);
   return fixedSlots;
 }
 

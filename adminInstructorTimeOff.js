@@ -34,9 +34,9 @@ async function loadInstructors() {
 
         instructors
             .sort((a, b) =>
-                (a.name ?? a.id)
+                (a.name )
                     .localeCompare(
-                        b.name ?? b.id
+                        b.name
                     )
             )
             .forEach(instructor => {
@@ -50,8 +50,7 @@ async function loadInstructors() {
                     "instructorChip";
 
                 chip.textContent =
-                    instructor.name ??
-                    instructor.id;
+                    instructor.name;
 
                 chip.dataset.id =
                     instructor.id;
@@ -71,15 +70,15 @@ async function loadInstructors() {
                         ) {
 
                             selectedInstructors.push(
-                                instructor.id
+                                instructor.name
                             );
 
                         } else {
 
                             selectedInstructors =
                                 selectedInstructors.filter(
-                                    id =>
-                                        id !== instructor.id
+                                    name =>
+                                        name !== instructor.name
                                 );
                         }
                     }
@@ -256,12 +255,12 @@ function buildSummary(entries) {
             );
 
         (
-            entry.instructorIds ?? []
-        ).forEach(id => {
+            entry.instructorNames ?? []
+        ).forEach(name => {
 
             counts.set(
-                id,
-                (counts.get(id) ?? 0) +
+                name,
+                (counts.get(name) ?? 0) +
                 days
             );
 
@@ -277,7 +276,7 @@ function buildSummary(entries) {
             );
 
     sorted.forEach(
-        ([instructorId, days]) => {
+        ([instructorIds, days]) => {
 
             const card =
                 document.createElement(
@@ -288,7 +287,7 @@ function buildSummary(entries) {
                 "summaryCard";
 
             card.innerHTML = `
-        <h3>${instructorId}</h3>
+        <h3>${instructorIds}</h3>
         <div class="days">
           ${days} Day${days === 1
                     ? ""

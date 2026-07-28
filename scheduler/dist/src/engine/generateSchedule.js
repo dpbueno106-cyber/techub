@@ -66,6 +66,7 @@ function generateSchedule(generationConfig, catalog, instructors, fixedPlacement
 }
 function buildFixedPlacementSlots(fixedPlacements, catalog, instructors, weeks, configuredYear) {
     const fixedSlots = [];
+    console.log("Fixed placements received:", fixedPlacements.length);
     for (const placement of fixedPlacements) {
         const normalizedClassName = normalizeText(placement.className);
         const course = catalog.find(catalogCourse => normalizeText(catalogCourse.name) === normalizedClassName);
@@ -130,6 +131,7 @@ function buildFixedPlacementSlots(fixedPlacements, catalog, instructors, weeks, 
         if (normalizedLocation !== "IN" &&
             normalizedLocation !== "MI") {
             console.warn("Skipping fixed placement because its location is invalid:", placement);
+            console.warn("Skipped placement:", placement.className, placement.weekStartDate);
             continue;
         }
         const location = normalizedLocation;
@@ -155,6 +157,8 @@ function buildFixedPlacementSlots(fixedPlacements, catalog, instructors, weeks, 
             locked: true
         });
     }
+    console.log("Fixed placements received:", fixedPlacements.length);
+    console.log("Fixed placements converted:", fixedSlots.length);
     return fixedSlots;
 }
 function buildInitialWeekUsage(slots) {
