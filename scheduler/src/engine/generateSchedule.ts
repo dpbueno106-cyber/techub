@@ -375,9 +375,13 @@ console.log(
       normalizedLocation !== "MI"
     ) {
       console.warn(
-        "Skipping fixed placement because its location is invalid:",
-        placement
-      );
+  "INVALID DATE",
+  {
+    className: placement.className,
+    date: placement.weekStartDate,
+    raw: placement
+  }
+);
 console.warn(
   "Skipped placement:",
   placement.className,

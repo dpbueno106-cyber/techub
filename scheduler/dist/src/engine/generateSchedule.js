@@ -130,7 +130,11 @@ function buildFixedPlacementSlots(fixedPlacements, catalog, instructors, weeks, 
         const normalizedLocation = normalizeText(String(placement.location)).toUpperCase();
         if (normalizedLocation !== "IN" &&
             normalizedLocation !== "MI") {
-            console.warn("Skipping fixed placement because its location is invalid:", placement);
+            console.warn("INVALID DATE", {
+                className: placement.className,
+                date: placement.weekStartDate,
+                raw: placement
+            });
             console.warn("Skipped placement:", placement.className, placement.weekStartDate);
             continue;
         }
