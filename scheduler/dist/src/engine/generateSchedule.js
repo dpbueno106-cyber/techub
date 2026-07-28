@@ -199,16 +199,23 @@ function normalizeText(value) {
         .toLowerCase();
 }
 function normalizeDateText(value) {
+    if (typeof value === "number") {
+        const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+        const date = new Date(excelEpoch.getTime() +
+            value *
+                86400000);
+        return date
+            .toISOString()
+            .slice(0, 10);
+    }
     if (!value) {
         return null;
     }
     const text = String(value).trim();
-    // YYYY-MM-DD
     const iso = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if (iso) {
         return text;
     }
-    // MM/DD/YYYY
     const us = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
     if (us) {
         const month = us[1].padStart(2, "0");

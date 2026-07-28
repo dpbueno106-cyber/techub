@@ -554,8 +554,33 @@ function normalizeText(
 }
 
 function normalizeDateText(
-  value: string
+  value: string | number
 ): string | null {
+
+  if (
+    typeof value === "number"
+  ) {
+
+    const excelEpoch =
+      new Date(
+        Date.UTC(
+          1899,
+          11,
+          30
+        )
+      );
+
+    const date =
+      new Date(
+        excelEpoch.getTime() +
+        value *
+        86400000
+      );
+
+    return date
+      .toISOString()
+      .slice(0, 10);
+  }
 
   if (!value) {
     return null;
@@ -563,8 +588,6 @@ function normalizeDateText(
 
   const text =
     String(value).trim();
-
-  // YYYY-MM-DD
 
   const iso =
     text.match(
@@ -574,8 +597,6 @@ function normalizeDateText(
   if (iso) {
     return text;
   }
-
-  // MM/DD/YYYY
 
   const us =
     text.match(
