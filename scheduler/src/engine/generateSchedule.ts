@@ -544,6 +544,9 @@ function getInstructorName(
   );
 }
 
+
+
+
 function normalizeText(
   value: string
 ): string {

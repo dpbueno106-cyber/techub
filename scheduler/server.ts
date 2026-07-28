@@ -25,6 +25,35 @@ app.use(
 // ROUTES
 // =========================
 
+function normalizeExcelDate(
+  value: unknown
+): string {
+
+  if (typeof value === "number") {
+
+    const excelEpoch =
+      new Date(
+        Date.UTC(
+          1899,
+          11,
+          30
+        )
+      );
+
+    const date =
+      new Date(
+        excelEpoch.getTime() +
+        value * 86400000
+      );
+
+    return date
+      .toISOString()
+      .slice(0, 10);
+  }
+
+  return String(value).trim();
+}
+
 async function loadFixedPlacements(): Promise<FixedPlacement[]> {
   const snapshot = await db
     .collection("fixedPlacements")
@@ -243,7 +272,7 @@ app.post(
       ).trim(),
 
     weekStartDate:
-      row["Week Start"],
+      normalizeExcelDate(row["Week Start"]),
 
     location:
       row["Location"],
@@ -283,7 +312,7 @@ app.post(
             ).trim(),
 
           weekStartDate:
-            row["Week Start"],
+            normalizeExcelDate(row["Week Start"]),
 
           location:
             row["Location"],
@@ -297,7 +326,7 @@ app.post(
           "ADDED TO PLACEMENTS ARRAY:",
           {
             className: course.name,
-            weekStartDate: row["Week Start"],
+            weekStartDate: normalizeExcelDate(row["Week Start"]),
             location: row["Location"],
             instructorName: row["Instructor"] || null
           }

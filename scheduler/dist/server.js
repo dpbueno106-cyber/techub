@@ -20,6 +20,17 @@ app.use((0, cors_1.default)({
 // =========================
 // ROUTES
 // =========================
+function normalizeExcelDate(value) {
+    if (typeof value === "number") {
+        const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+        const date = new Date(excelEpoch.getTime() +
+            value * 86400000);
+        return date
+            .toISOString()
+            .slice(0, 10);
+    }
+    return String(value).trim();
+}
 async function loadFixedPlacements() {
     const snapshot = await firebase_1.db
         .collection("fixedPlacements")
@@ -109,7 +120,7 @@ app.post("/fixedPlacements/import", async (req, res) => {
                     courseNumber: String(row["Course #"] ?? "").trim(),
                     cohortNumber: String(row["Cohort #"] ?? "").trim(),
                     displayCategory: String(row["Category"] ?? "").trim(),
-                    weekStartDate: row["Week Start"],
+                    weekStartDate: normalizeExcelDate(row["Week Start"]),
                     location: row["Location"],
                     instructorName: row["Instructor"] || null,
                     locked: true
@@ -122,14 +133,14 @@ app.post("/fixedPlacements/import", async (req, res) => {
                 courseNumber: String(row["Course #"] ?? "").trim(),
                 cohortNumber: String(row["Cohort #"] ?? "").trim(),
                 displayCategory: String(row["Category"] ?? "").trim(),
-                weekStartDate: row["Week Start"],
+                weekStartDate: normalizeExcelDate(row["Week Start"]),
                 location: row["Location"],
                 instructorName: row["Instructor"] || null,
                 locked: true
             });
             console.log("ADDED TO PLACEMENTS ARRAY:", {
                 className: course.name,
-                weekStartDate: row["Week Start"],
+                weekStartDate: normalizeExcelDate(row["Week Start"]),
                 location: row["Location"],
                 instructorName: row["Instructor"] || null
             });
