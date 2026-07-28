@@ -198,18 +198,19 @@ function normalizeDateText(value) {
     if (!value) {
         return null;
     }
-    /*
-     * Preserve ISO date strings without allowing timezone
-     * conversion to move the date backward or forward.
-     */
-    const isoMatch = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
-    if (!isoMatch) {
-        return null;
+    const text = String(value).trim();
+    // YYYY-MM-DD
+    const iso = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (iso) {
+        return text;
     }
-    const normalized = `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
-    const date = new Date(`${normalized}T00:00:00`);
-    if (Number.isNaN(date.getTime())) {
-        return null;
+    // MM/DD/YYYY
+    const us = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (us) {
+        const month = us[1].padStart(2, "0");
+        const day = us[2].padStart(2, "0");
+        const year = us[3];
+        return `${year}-${month}-${day}`;
     }
-    return normalized;
+    return null;
 }
