@@ -70,15 +70,15 @@ async function loadInstructors() {
                         ) {
 
                             selectedInstructors.push(
-                                instructor.name
+                                instructor.id
                             );
 
                         } else {
 
                             selectedInstructors =
                                 selectedInstructors.filter(
-                                    name =>
-                                        name !== instructor.name
+                                    id =>
+                                        id !== instructor.id
                                 );
                         }
                     }
