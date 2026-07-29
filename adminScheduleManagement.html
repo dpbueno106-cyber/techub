@@ -26,6 +26,8 @@
       onclick="window.location.href='adminScheduleSettings.html'">Generator Configuration</button>
     <button id="saveScheduleBtn" class="saveBtn" onclick="saveSchedule()">Save Schedule</button>
     <button onclick="clearSchedule()" class="clearBtn">Reset Schedule</button>
+    <button onclick="exportSchedule()">Export Schedule</button>
+
     <button class="secondary" onclick="openAddCourseModal()">+ Add Course</button>
     <input type="file" id="fixedPlacementImport" accept=".xlsx" hidden />
     <button id="importBtn" class="secondary" onclick="document.getElementById('fixedPlacementImport').click()">

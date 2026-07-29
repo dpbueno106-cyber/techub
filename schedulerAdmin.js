@@ -989,6 +989,184 @@ async function generateSchedule() {
   }
 }
 
+
+function exportSchedule() {
+
+  const events =
+    getLogicalScheduleEvents();
+
+  const rows =
+    events.map(event => {
+
+      const props =
+        event.extendedProps;
+
+      const instructor =
+        instructors.find(
+          i => i.id === props.instructorId
+        );
+const startDate =
+  event.start
+    ?.toISOString()
+    .slice(0, 10) || "";
+
+const endDate =
+  event.end
+    ?.toISOString()
+    .slice(0, 10) || "";
+
+      return {
+
+        Instructor:
+          instructor?.name ||
+          props.instructorId ||
+          "Unassigned",
+
+        Course:
+  event.title || props.className || "",
+
+        Acronym:
+          props.classAcronym || "",
+
+        CourseNumber:
+          props.courseNumber || "",
+
+        Cohort:
+          props.cohortNumber || "",
+
+        Category:
+          props.displayCategory ||
+          props.category ||
+          "",
+
+        Location:
+          props.location || "",
+
+        StartDate:
+          startDate,
+
+        EndDate:
+          endDate,
+
+        DurationWeeks:
+          props.durationWeeks || 1
+      };
+    });
+  rows.sort((a, b) => {
+
+    const instructorCompare =
+      a.Instructor.localeCompare(
+        b.Instructor
+      );
+
+    if (instructorCompare !== 0) {
+      return instructorCompare;
+    }
+
+    return a.StartDate.localeCompare(
+      b.StartDate
+    );
+  });
+  const worksheet =
+    XLSX.utils.json_to_sheet(
+      rows
+    );
+  worksheet["!autofilter"] = {
+    ref: worksheet["!ref"]
+  };
+
+  worksheet["!cols"] = [
+    { wch: 20 }, // Instructor
+    { wch: 40 }, // Course
+    { wch: 10 }, // Acronym
+    { wch: 12 }, // Course Number
+    { wch: 10 }, // Cohort
+    { wch: 12 }, // Category
+    { wch: 10 }, // Location
+    { wch: 15 }, // Start
+    { wch: 15 }, // End
+    { wch: 10 }  // Duration
+  ];
+
+  const workbook =
+    XLSX.utils.book_new();
+
+  /*
+   * Full schedule tab
+   */
+
+  XLSX.utils.book_append_sheet(
+    workbook,
+    worksheet,
+    "Full Schedule"
+  );
+
+  /*
+   * Instructor tabs
+   */
+
+  const instructorsMap = {};
+
+  rows.forEach(row => {
+
+    const instructor =
+      row.Instructor || "Unassigned";
+
+    if (!instructorsMap[instructor]) {
+      instructorsMap[instructor] = [];
+    }
+
+    instructorsMap[instructor].push(row);
+  });
+
+  Object.entries(instructorsMap)
+    .forEach(
+      ([instructor, instructorRows]) => {
+
+        const instructorSheet =
+          XLSX.utils.json_to_sheet(
+            instructorRows
+          );
+        instructorSheet["!autofilter"] = {
+          ref: instructorSheet["!ref"]
+        };
+        instructorSheet["!cols"] = [
+          { wch: 20 },
+          { wch: 40 },
+          { wch: 10 },
+          { wch: 12 },
+          { wch: 10 },
+          { wch: 12 },
+          { wch: 10 },
+          { wch: 15 },
+          { wch: 15 },
+          { wch: 10 }
+        ];
+
+        let sheetName =
+          instructor.substring(0, 31);
+
+        XLSX.utils.book_append_sheet(
+          workbook,
+          instructorSheet,
+          sheetName
+        );
+      }
+    );
+
+  const year =
+    new Date(
+      rows[0]?.StartDate ||
+      Date.now()
+    ).getFullYear();
+
+  XLSX.writeFile(
+    workbook,
+    `TechHubSchedule_${year}.xlsx`
+  );
+
+}
+
 async function saveSchedule() {
   const year =
     await getConfiguredYear();
@@ -1437,6 +1615,9 @@ Object.assign(window, {
   openAddCourseModal,
   closeAddCourseModal,
   showAllInstructorsEl,
+  exportSchedule,
+  loadCatalog,
+  loadSavedSchedule,
   saveCatalogClass,
   renderScheduleAnalytics,
   renderCourseAnalytics,
