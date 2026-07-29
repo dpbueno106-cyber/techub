@@ -788,7 +788,7 @@ document
 
         const sheet =
           workbook.Sheets[
-            workbook.SheetNames[0]
+          workbook.SheetNames[0]
           ];
 
         const rows =
@@ -822,16 +822,19 @@ document
         );
 
         if (!res.ok) {
-
-          alert(
-            "Import failed"
-          );
-
+          alert("Import failed");
           return;
         }
 
+        const result = await res.json();
+
         alert(
-          "Import complete"
+          `Import Complete
+
+Rows in spreadsheet: ${result.totalRows}
+Recognized catalog courses: ${result.recognizedCount}
+Imported courses: ${result.importedCount}
+Skipped: ${result.totalRows - result.importedCount}`
         );
 
         await generateSchedule();
@@ -863,7 +866,7 @@ document
     }
   );
 
-  async function getConfiguredYear() {
+async function getConfiguredYear() {
 
   const response =
     await fetch(
@@ -1274,13 +1277,13 @@ function renderCourseAnalytics() {
 
     courseStats[course]
       .instructors[
-        instructorName
-      ] =
+      instructorName
+    ] =
       (
         courseStats[course]
           .instructors[
-            instructorName
-          ] || 0
+        instructorName
+        ] || 0
       ) + 1;
 
   });
@@ -1313,12 +1316,12 @@ function renderCourseAnalytics() {
           .map(
             ([name, count]) => {
 
-  const percent =
-    Math.round(
-      (count / stats.total) * 100
-    );
+              const percent =
+                Math.round(
+                  (count / stats.total) * 100
+                );
 
-  return `
+              return `
     <div class="course-instructor-row">
 
       <span>
@@ -1332,7 +1335,7 @@ function renderCourseAnalytics() {
 
     </div>
   `;
-}
+            }
           )
           .join("");
 

@@ -98,6 +98,10 @@ app.post("/fixedPlacements/import", async (req, res) => {
         const rows = req.body;
         const catalog = await (0, firestoreLoaders_1.loadCatalogFromFirestore)();
         const placements = [];
+        const totalRows = rows.length;
+        let recognizedCount = 0;
+        let customCourseCount = 0;
+        let importedCount = 0;
         for (const row of rows) {
             console.log("Processing row:", row);
             const excelName = String(row["Course Name"] ?? "")
@@ -113,6 +117,7 @@ app.post("/fixedPlacements/import", async (req, res) => {
             console.log("Catalog names:", catalog.map(c => c.name));
             console.log("Matched course:", course);
             if (!course) {
+                customCourseCount++;
                 console.log("NO MATCH FOUND FOR:", excelName, "- importing as custom course");
                 placements.push({
                     className: String(row["Course Name"] ?? "").trim(),
@@ -127,6 +132,7 @@ app.post("/fixedPlacements/import", async (req, res) => {
                 });
                 continue;
             }
+            recognizedCount++;
             placements.push({
                 className: course.name,
                 classAcronym: String(row["Class Acronym"] ?? "").trim(),
@@ -165,6 +171,7 @@ app.post("/fixedPlacements/import", async (req, res) => {
                 const docRef = await firebase_1.db
                     .collection("fixedPlacements")
                     .add(placement);
+                importedCount++;
                 console.log("SAVED DOC ID:", docRef.id);
             }
             catch (err) {
@@ -177,7 +184,12 @@ app.post("/fixedPlacements/import", async (req, res) => {
         console.log("TOTAL DOCS AFTER IMPORT:", verify.size);
         console.log("FINAL PLACEMENTS COUNT:", placements.length);
         res.json({
-            success: true
+            success: true,
+            totalRows,
+            recognizedCount,
+            customCourseCount,
+            importedCount,
+            skippedCount: totalRows - importedCount
         });
     }
     catch (err) {

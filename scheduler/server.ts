@@ -200,7 +200,11 @@ app.post(
         await loadCatalogFromFirestore();
 
       const placements = [];
+      const totalRows = rows.length;
 
+let recognizedCount = 0;
+let customCourseCount = 0;
+let importedCount = 0;
       for (const row of rows) {
         console.log("Processing row:", row);
 
@@ -238,13 +242,13 @@ app.post(
           course
         );
         if (!course) {
-
+          customCourseCount++;
   console.log(
     "NO MATCH FOUND FOR:",
     excelName,
     "- importing as custom course"
   );
-
+  
   placements.push({
     className:
       String(
@@ -286,7 +290,7 @@ app.post(
   continue;
 }
 
-
+        recognizedCount++;
         placements.push({
           className:
             course.name,
@@ -398,7 +402,7 @@ app.post(
             await db
               .collection("fixedPlacements")
               .add(placement);
-
+            importedCount++;
           console.log(
             "SAVED DOC ID:",
             docRef.id
@@ -429,8 +433,15 @@ app.post(
         placements.length
       );
       res.json({
-        success: true
-      });
+  success: true,
+  totalRows,
+  recognizedCount,
+  customCourseCount,
+  importedCount,
+  skippedCount:
+    totalRows - importedCount
+});
+
 
     } catch (err) {
       console.error(err);
