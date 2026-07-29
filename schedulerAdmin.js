@@ -828,14 +828,16 @@ document
 
         const result = await res.json();
 
-        alert(
-          `Import Complete
+        alert(`
+Import Complete
 
-Rows in spreadsheet: ${result.totalRows}
-Recognized catalog courses: ${result.recognizedCount}
-Imported courses: ${result.importedCount}
-Skipped: ${result.totalRows - result.importedCount}`
-        );
+Spreadsheet Rows: ${result.totalRows}
+Catalog Matches: ${result.recognizedCount}
+Custom Courses: ${result.customCourseCount}
+Imported: ${result.importedCount}
+Skipped/Duplicates: ${result.skippedCount}
+`);
+
 
         await generateSchedule();
 
