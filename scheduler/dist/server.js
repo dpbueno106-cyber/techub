@@ -160,7 +160,8 @@ app.post("/fixedPlacements/import", async (req, res) => {
                     .where("className", "==", placement.className)
                     .where("weekStartDate", "==", placement.weekStartDate)
                     .where("location", "==", placement.location)
-                    .where("instructorName", "==", placement.instructorName)
+                    .where("cohortNumber", "==", placement.cohortNumber)
+                    .where("displayCategory", "==", placement.displayCategory)
                     .get();
                 console.log("MATCHES FOUND:", existing.size);
                 if (!existing.empty) {

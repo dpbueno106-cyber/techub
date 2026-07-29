@@ -354,29 +354,23 @@ let importedCount = 0;
           );
 
           const existing =
-            await db
-              .collection("fixedPlacements")
-              .where(
-                "className",
-                "==",
-                placement.className
-              )
-              .where(
-                "weekStartDate",
-                "==",
-                placement.weekStartDate
-              )
-              .where(
-                "location",
-                "==",
-                placement.location
-              )
-              .where(
-                "instructorName",
-                "==",
-                placement.instructorName
-              )
-              .get();
+  await db
+    .collection("fixedPlacements")
+    .where("className", "==", placement.className)
+    .where("weekStartDate", "==", placement.weekStartDate)
+    .where("location", "==", placement.location)
+    .where(
+      "cohortNumber",
+      "==",
+      placement.cohortNumber
+    )
+    .where(
+      "displayCategory",
+      "==",
+      placement.displayCategory
+    )
+    .get();
+
 
           console.log(
             "MATCHES FOUND:",
