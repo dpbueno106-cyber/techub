@@ -48,8 +48,10 @@ function isInstructorAvailable(
   return !instructorTimeOff.some(
     timeOff => {
 
-      if (
-  timeOff.instructorId !== instructorId
+   if (
+  !timeOff.instructorIds?.includes(
+    instructorId
+  )
 ) {
   return false;
 }

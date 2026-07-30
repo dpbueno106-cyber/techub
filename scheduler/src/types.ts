@@ -14,6 +14,7 @@ export interface InstructorTimeOff {
   startDate: string;
   endDate: string;
   reason?: string;
+  instructorId: string;
 }
 
 export interface WeekSlot {
