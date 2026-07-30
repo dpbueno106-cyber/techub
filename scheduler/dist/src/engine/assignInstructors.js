@@ -23,7 +23,7 @@ function isInstructorAvailable(instructorId, slot, instructorTimeOff) {
     const classStart = new Date(slot.weekStartDate);
     const classEnd = new Date(slot.weekEndDate);
     return !instructorTimeOff.some(timeOff => {
-        if (!timeOff.instructorId?.includes(instructorId)) {
+        if (timeOff.instructorId !== instructorId) {
             return false;
         }
         const vacationStart = new Date(timeOff.startDate);

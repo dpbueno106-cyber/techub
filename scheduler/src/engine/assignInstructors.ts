@@ -49,12 +49,10 @@ function isInstructorAvailable(
     timeOff => {
 
       if (
-        !timeOff.instructorId?.includes(
-          instructorId
-        )
-      ) {
-        return false;
-      }
+  timeOff.instructorId !== instructorId
+) {
+  return false;
+}
 
       const vacationStart =
         new Date(timeOff.startDate);

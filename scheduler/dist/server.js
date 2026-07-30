@@ -293,8 +293,16 @@ app.get("/schedule", async (_req, res) => {
                 error: "Catalog is empty"
             });
         }
+        const timeOffSnapshot = await firebase_1.db
+            .collection("instructorTimeOff")
+            .get();
+        const instructorTimeOff = timeOffSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        console.log("PTO LOADED:", instructorTimeOff);
         //  Instructors may be empty — engine can handle this
-        const schedule = (0, generateSchedule_1.generateSchedule)(config, catalog, instructors ?? [], fixedPlacements);
+        const schedule = (0, generateSchedule_1.generateSchedule)(config, catalog, instructors ?? [], fixedPlacements, instructorTimeOff);
         res.json(schedule);
     }
     catch (err) {

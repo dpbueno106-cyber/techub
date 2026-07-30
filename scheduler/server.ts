@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import type { FixedPlacement } from "./src/types";
+import type { FixedPlacement, InstructorTimeOff } from "./src/types";
 import { generateSchedule } from "./src/engine/generateSchedule";
 import {
   loadConfigFromFirestore,
@@ -566,14 +566,28 @@ app.get("/schedule", async (_req, res) => {
         error: "Catalog is empty"
       });
     }
+const timeOffSnapshot = await db
+  .collection("instructorTimeOff")
+  .get();
 
+const instructorTimeOff =
+  timeOffSnapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  })) as InstructorTimeOff[];
+
+console.log(
+  "PTO LOADED:",
+  instructorTimeOff
+);
     //  Instructors may be empty — engine can handle this
     const schedule = generateSchedule(
-      config,
-      catalog,
-      instructors ?? [],
-      fixedPlacements
-    );
+  config,
+  catalog,
+  instructors ?? [],
+  fixedPlacements,
+  instructorTimeOff
+);
 
     res.json(schedule);
   } catch (err) {
