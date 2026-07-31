@@ -154,24 +154,28 @@ async function addTimeOff() {
 
     try {
 
-        await fetch(
-            `${API_URL}/instructorTimeOff`,
-            {
-                method: "POST",
+        await Promise.all(
+  instructorIds.map(
+    instructorId =>
+      fetch(
+        `${API_URL}/instructorTimeOff`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+          body: JSON.stringify({
+            instructorIds: [instructorId],
+            startDate,
+            endDate,
+            reason
+          })
+        }
+      )
+  )
+);
 
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-
-                body: JSON.stringify({
-                    instructorIds,
-                    startDate,
-                    endDate,
-                    reason
-                })
-            }
-        );
 
         document.getElementById(
             "startDate"
