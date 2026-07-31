@@ -20,16 +20,17 @@ function getCoveredWeeks(slot) {
     return Array.from({ length: slot.durationWeeks }, (_, index) => slot.weekNumber + index);
 }
 function isInstructorAvailable(instructorId, slot, instructorTimeOff) {
-    const classStart = new Date(slot.weekStartDate);
-    const classEnd = new Date(slot.weekEndDate);
+    const classWeekStart = new Date(slot.weekStartDate);
+    const classWeekEnd = new Date(classWeekStart);
+    classWeekEnd.setDate(classWeekEnd.getDate() + 6);
     return !instructorTimeOff.some(timeOff => {
         if (!timeOff.instructorIds.includes(instructorId)) {
             return false;
         }
         const vacationStart = new Date(timeOff.startDate);
         const vacationEnd = new Date(timeOff.endDate);
-        const overlaps = vacationStart <= classEnd &&
-            vacationEnd >= classStart;
+        const overlaps = vacationStart <= classWeekEnd &&
+            vacationEnd >= classWeekStart;
         console.log("PTO CHECK", {
             instructorId,
             classStart: slot.weekStartDate,

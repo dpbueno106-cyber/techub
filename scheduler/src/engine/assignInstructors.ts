@@ -39,11 +39,16 @@ function isInstructorAvailable(
   instructorTimeOff: InstructorTimeOff[]
 ): boolean {
 
-  const classStart =
-    new Date(slot.weekStartDate);
+  const classWeekStart =
+  new Date(slot.weekStartDate);
 
-  const classEnd =
-    new Date(slot.weekEndDate);
+const classWeekEnd =
+  new Date(classWeekStart);
+
+classWeekEnd.setDate(
+  classWeekEnd.getDate() + 6
+);
+
 
   return !instructorTimeOff.some(
   timeOff => {
@@ -63,8 +68,8 @@ function isInstructorAvailable(
       new Date(timeOff.endDate);
 
     const overlaps =
-      vacationStart <= classEnd &&
-      vacationEnd >= classStart;
+      vacationStart <= classWeekEnd &&
+      vacationEnd >= classWeekStart;
 
     console.log(
       "PTO CHECK",
