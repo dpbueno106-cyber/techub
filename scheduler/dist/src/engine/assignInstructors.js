@@ -23,13 +23,22 @@ function isInstructorAvailable(instructorId, slot, instructorTimeOff) {
     const classStart = new Date(slot.weekStartDate);
     const classEnd = new Date(slot.weekEndDate);
     return !instructorTimeOff.some(timeOff => {
-        if (!timeOff.instructorIds?.includes(instructorId)) {
+        if (!timeOff.instructorIds.includes(instructorId)) {
             return false;
         }
         const vacationStart = new Date(timeOff.startDate);
         const vacationEnd = new Date(timeOff.endDate);
-        return (vacationStart <= classEnd &&
-            vacationEnd >= classStart);
+        const overlaps = vacationStart <= classEnd &&
+            vacationEnd >= classStart;
+        console.log("PTO CHECK", {
+            instructorId,
+            classStart: slot.weekStartDate,
+            classEnd: slot.weekEndDate,
+            vacationStart: timeOff.startDate,
+            vacationEnd: timeOff.endDate,
+            overlaps
+        });
+        return overlaps;
     });
 }
 function assignInstructors(slots, instructors, generationConfig, instructorTimeOff = []) {

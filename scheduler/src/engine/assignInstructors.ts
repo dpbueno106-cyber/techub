@@ -46,28 +46,42 @@ function isInstructorAvailable(
     new Date(slot.weekEndDate);
 
   return !instructorTimeOff.some(
-    timeOff => {
+  timeOff => {
 
-   if (
-  !timeOff.instructorIds?.includes(
-    instructorId
-  )
-) {
-  return false;
-}
-
-      const vacationStart =
-        new Date(timeOff.startDate);
-
-      const vacationEnd =
-        new Date(timeOff.endDate);
-
-      return (
-        vacationStart <= classEnd &&
-        vacationEnd >= classStart
-      );
+    if (
+      !timeOff.instructorIds.includes(
+        instructorId
+      )
+    ) {
+      return false;
     }
-  );
+
+    const vacationStart =
+      new Date(timeOff.startDate);
+
+    const vacationEnd =
+      new Date(timeOff.endDate);
+
+    const overlaps =
+      vacationStart <= classEnd &&
+      vacationEnd >= classStart;
+
+    console.log(
+      "PTO CHECK",
+      {
+        instructorId,
+        classStart: slot.weekStartDate,
+        classEnd: slot.weekEndDate,
+        vacationStart: timeOff.startDate,
+        vacationEnd: timeOff.endDate,
+        overlaps
+      }
+    );
+
+    return overlaps;
+  }
+);
+  
 }
 
 
