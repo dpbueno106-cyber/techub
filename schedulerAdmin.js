@@ -87,7 +87,39 @@ const auth = getAuth(app);
 // =========================
 // INSTRUCTOR HELPERS
 // =========================
+function showLoading(
+  message =
+    "Loading..."
+) {
 
+  const overlay =
+    document.getElementById(
+      "loadingOverlay"
+    );
+
+  const text =
+    document.getElementById(
+      "loadingMessage"
+    );
+
+  text.textContent =
+    message;
+
+  overlay.classList.remove(
+    "hidden"
+  );
+}
+
+function hideLoading() {
+
+  document
+    .getElementById(
+      "loadingOverlay"
+    )
+    .classList.add(
+      "hidden"
+    );
+}
 async function clearFixedPlacements() {
 
   if (
@@ -785,6 +817,9 @@ document
 
         importBtn.textContent =
           "Importing...";
+          showLoading(
+  "Importing fixed classes..."
+);
 
         const data =
           await file.arrayBuffer();
@@ -859,7 +894,7 @@ Skipped/Duplicates: ${result.skippedCount}
         );
 
       } finally {
-
+        hideLoading();
         importBtn.style.opacity =
           "";
 
@@ -895,12 +930,16 @@ async function getConfiguredYear() {
 }
 
 async function generateSchedule() {
+  
   if (generateScheduleBtn) {
     generateScheduleBtn.disabled = true;
     generateScheduleBtn.textContent = "Generating...";
   }
 
   try {
+    showLoading(
+  "Generating schedule..."
+);
     const res = await fetch(
       `${API_URL}/schedule`,
       {
@@ -988,6 +1027,7 @@ async function generateSchedule() {
       "Failed to generate schedule."
     );
   } finally {
+    hideLoading();
     if (generateScheduleBtn) {
       generateScheduleBtn.disabled = false;
       generateScheduleBtn.textContent =
@@ -1611,16 +1651,22 @@ function renderCourseAnalytics() {
 
 window.addEventListener("DOMContentLoaded", () => {
   onAuthStateChanged(auth, async user => {
+    
     if (!user) {
       window.location.href = "index.html";
       return;
     }
+showLoading( "Loading Instructors..." );
     await loadInstructors();
-    buildInstructorColors();
 
+    buildInstructorColors();
+showLoading( "Preparing Calendar..." );
     initCalendar();
     loadCatalog();
     renderInstructorLegend();
+    showLoading(
+  "Loading saved schedule..."
+);
     const loaded =
   await loadSavedSchedule();
 
@@ -1630,8 +1676,8 @@ if (!loaded) {
     "No saved schedule found."
   );
 }
-
-    saveEventBtn.onclick = () => {
+hideLoading();
+    saveEventBtn.onclick = async () => {
       if (!selectedEvent) return;
       const fixedPlacementImportEl =
         document.getElementById(
@@ -1658,17 +1704,19 @@ if (!loaded) {
       renderInstructorWorkloadFromCalendar();
       renderScheduleAnalytics();
       renderCourseAnalytics();
+      await autoSaveSchedule();
 
     };
 
-    deleteEventBtn.onclick = () => {
+    deleteEventBtn.onclick = async () => {
       if (!selectedEvent) return;
       selectedEvent.remove();
       closeEditModal();
       renderInstructorWorkloadFromCalendar();
       renderScheduleAnalytics();
       renderCourseAnalytics();
-      autoSaveSchedule();
+      await autoSaveSchedule();
+      
     };
   });
 });
