@@ -10,7 +10,6 @@ export interface ScheduleConfig {
 
 export interface InstructorTimeOff {
   id?: string;
-  instructorIds: string[];
   startDate: string;
   endDate: string;
   reason?: string;

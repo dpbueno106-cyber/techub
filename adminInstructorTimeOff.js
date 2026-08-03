@@ -336,10 +336,7 @@ function renderTimeOffList(
             "timeOffCard";
 
         const instructorText =
-            (
-                entry.instructorIds ??
-                []
-            ).join(", ");
+    entry.instructorId ?? "";
 
         card.innerHTML = `
       <strong>

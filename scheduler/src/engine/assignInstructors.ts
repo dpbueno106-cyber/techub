@@ -54,12 +54,10 @@ classWeekEnd.setDate(
   timeOff => {
 
     if (
-      !timeOff.instructorIds.includes(
-        instructorId
-      )
-    ) {
-      return false;
-    }
+  timeOff.instructorId !== instructorId
+) {
+  return false;
+}
 
     const vacationStart =
       new Date(timeOff.startDate);
@@ -68,9 +66,25 @@ classWeekEnd.setDate(
       new Date(timeOff.endDate);
 
     const overlaps =
-      vacationStart <= classWeekEnd &&
-      vacationEnd >= classWeekStart;
+  vacationStart <= classWeekEnd &&
+  vacationEnd >= classWeekStart;
 
+if (
+  slot.weekStartDate.startsWith("2027-02")
+) {
+  console.log(
+    "FEB CHECK",
+    {
+      instructorId,
+      weekNumber: slot.weekNumber,
+      classStart: classWeekStart,
+      classEnd: classWeekEnd,
+      vacationStart,
+      vacationEnd,
+      overlaps
+    }
+  );
+}
     console.log(
       "PTO CHECK",
       {
@@ -84,7 +98,9 @@ classWeekEnd.setDate(
     );
 
     return overlaps;
+    
   }
+  
 );
   
 }
