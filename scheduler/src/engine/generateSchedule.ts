@@ -225,10 +225,20 @@ console.log(
   );
 
   const dateText =
-    normalizeDateText(
+  getMonday(
+    String(
       placement.weekStartDate
-    );
-
+    )
+  );
+console.log(
+  "Fixed placement normalized",
+  {
+    original:
+      placement.weekStartDate,
+    normalized:
+      dateText
+  }
+);
   const weekIndex =
     weeks.findIndex(
       week =>
@@ -301,10 +311,20 @@ console.log(
 }
 
     const dateText =
-      normalizeDateText(
-        placement.weekStartDate
-      );
-
+  getMonday(
+    String(
+      placement.weekStartDate
+    )
+  );
+console.log(
+  "Fixed placement normalized",
+  {
+    original:
+      placement.weekStartDate,
+    normalized:
+      dateText
+  }
+);
     if (!dateText) {
       console.warn(
         "Skipping fixed placement because the date is invalid:",
@@ -545,6 +565,38 @@ function getInstructorName(
 }
 
 
+function getMonday(
+  value: string
+): string | null {
+
+  const normalized =
+    normalizeDateText(value);
+
+  if (!normalized) {
+    return null;
+  }
+
+  const date =
+    new Date(
+      `${normalized}T00:00:00`
+    );
+
+  const day =
+    date.getDay();
+
+  const diff =
+    day === 0
+      ? -6
+      : 1 - day;
+
+  date.setDate(
+    date.getDate() + diff
+  );
+
+  return date
+    .toISOString()
+    .slice(0, 10);
+}
 
 
 function normalizeText(

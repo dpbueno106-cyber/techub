@@ -487,6 +487,7 @@ async function deleteTimeOff(
         );
 
         await loadTimeOff();
+        await autoSaveSchedule();
 
     } catch (error) {
 

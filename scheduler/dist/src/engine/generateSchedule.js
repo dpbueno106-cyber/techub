@@ -72,7 +72,11 @@ function buildFixedPlacementSlots(fixedPlacements, catalog, instructors, weeks, 
         const course = catalog.find(catalogCourse => normalizeText(catalogCourse.name) === normalizedClassName);
         if (!course) {
             console.warn("Course not found in catalog. Creating custom fixed course.", placement);
-            const dateText = normalizeDateText(placement.weekStartDate);
+            const dateText = getMonday(String(placement.weekStartDate));
+            console.log("Fixed placement normalized", {
+                original: placement.weekStartDate,
+                normalized: dateText
+            });
             const weekIndex = weeks.findIndex(week => normalizeDateText(week.startDate) === dateText);
             if (weekIndex < 0) {
                 continue;
@@ -99,7 +103,11 @@ function buildFixedPlacementSlots(fixedPlacements, catalog, instructors, weeks, 
             });
             continue;
         }
-        const dateText = normalizeDateText(placement.weekStartDate);
+        const dateText = getMonday(String(placement.weekStartDate));
+        console.log("Fixed placement normalized", {
+            original: placement.weekStartDate,
+            normalized: dateText
+        });
         if (!dateText) {
             console.warn("Skipping fixed placement because the date is invalid:", placement);
             continue;
@@ -191,6 +199,21 @@ function getInstructorName(instructor) {
     const instructorWithName = instructor;
     return (instructorWithName.name ??
         instructor.id);
+}
+function getMonday(value) {
+    const normalized = normalizeDateText(value);
+    if (!normalized) {
+        return null;
+    }
+    const date = new Date(`${normalized}T00:00:00`);
+    const day = date.getDay();
+    const diff = day === 0
+        ? -6
+        : 1 - day;
+    date.setDate(date.getDate() + diff);
+    return date
+        .toISOString()
+        .slice(0, 10);
 }
 function normalizeText(value) {
     return value
