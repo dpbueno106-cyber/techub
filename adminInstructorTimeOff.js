@@ -318,22 +318,46 @@ function buildSummary(entries) {
 function renderTimeOffList(
     entries
 ) {
-
     const container =
-        document.getElementById(
-            "timeOffList"
-        );
-
-    container.innerHTML = "";
-
-    entries.sort(
-        (a, b) =>
-            a.startDate.localeCompare(
-                b.startDate
-            )
+    document.getElementById(
+        "timeOffList"
     );
 
-    entries.forEach(entry => {
+container.innerHTML = "";
+    const grouped =
+    new Map();
+
+entries.forEach(entry => {
+
+    const key =
+        entry.instructorName ??
+        entry.instructorId;
+
+    if (!grouped.has(key)) {
+        grouped.set(key, []);
+    }
+
+    grouped.get(key).push(entry);
+});
+grouped.forEach(
+    (records, instructorName) => {
+records.sort(
+    (a, b) =>
+        a.startDate.localeCompare(
+            b.startDate
+        )
+);
+
+        const totalDays =
+            records.reduce(
+                (sum, record) =>
+                    sum +
+                    calculateDays(
+                        record.startDate,
+                        record.endDate
+                    ),
+                0
+            );
 
         const card =
             document.createElement(
@@ -342,48 +366,104 @@ function renderTimeOffList(
 
         card.className =
             "timeOffCard";
+            card.innerHTML = `
+<div class="timeOffHeader">
 
-        const instructorText =
-    entry.instructorName ??
-    entry.instructorId ??
-    "";
+    <div>
+        <strong>
+            ${instructorName}
+        </strong>
 
-        card.innerHTML = `
-      <strong>
-        ${instructorText}
-      </strong>
-
-      <div class="dates">
-        ${formatDate(
-            entry.startDate
-        )}
-        -
-        ${formatDate(
-            entry.endDate
-        )}
-      </div>
-
-      <div class="reason">
-        ${entry.reason ||
-            "No reason provided"
+        <div class="dates">
+            ${records.length}
+            Request${
+                records.length === 1
+                    ? ""
+                    : "s"
             }
-      </div>
+            •
+            ${totalDays}
+            Days
+        </div>
+    </div>
 
-      <br>
+    <span class="expandIcon">
+        ▼
+    </span>
 
-      <button
-        class="dangerBtn"
-        onclick="deleteTimeOff('${entry.id}')"
-      >
-        Delete
-      </button>
-    `;
+</div>
 
-        container.appendChild(
-            card
-        );
-    });
+<div
+    class="timeOffDetails"
+    style="display:none;"
+>
+
+${records.map(record => `
+    <div class="ptoEntry">
+
+    <div class="ptoDates">
+        ${formatDate(record.startDate)}
+        -
+        ${formatDate(record.endDate)}
+    </div>
+
+    <div class="ptoReason">
+        ${record.reason ||
+        "No Reason Provided"}
+    </div>
+
+        <button
+            class="dangerBtn"
+            onclick="deleteTimeOff('${record.id}')"
+        >
+            Delete
+        </button>
+
+    </div>
+`).join("")}
+
+</div>
+`;
+const header =
+    card.querySelector(
+        ".timeOffHeader"
+    );
+
+const details =
+    card.querySelector(
+        ".timeOffDetails"
+    );
+
+const icon =
+    card.querySelector(
+        ".expandIcon"
+    );
+
+header.addEventListener(
+    "click",
+    () => {
+
+        const open =
+            details.style.display ===
+            "block";
+
+        details.style.display =
+            open
+                ? "none"
+                : "block";
+
+        icon.textContent =
+            open
+                ? "▼"
+                : "▲";
+    }
+);
+
+container.appendChild(card);
 }
+);
+}
+
 
 async function deleteTimeOff(
     id

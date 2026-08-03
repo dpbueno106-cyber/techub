@@ -358,6 +358,32 @@ tr:hover {
 
     font-weight: bold;
 }
+
+.timeOffHeader {
+    cursor: pointer;
+    padding: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.timeOffDetails {
+    padding: 12px;
+    border-top: 1px solid #444;
+}
+
+.timeOffCard {
+    transition: all 0.2s ease;
+}
+
+.timeOffHeader:hover {
+    background: rgba(
+        255,
+        255,
+        255,
+        0.05
+    );
+}
 /* ===================
    Mobile
 =================== */
