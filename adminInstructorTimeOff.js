@@ -13,6 +13,7 @@ window.addEventListener(
     }
 );
 let selectedInstructors = [];
+let instructors = [];
 async function loadInstructors() {
 
     try {
@@ -22,8 +23,8 @@ async function loadInstructors() {
                 `${API_URL}/instructors`
             );
 
-        const instructors =
-            await response.json();
+       instructors =
+    await response.json();
 
         const container =
             document.getElementById(
@@ -34,7 +35,7 @@ async function loadInstructors() {
 
         instructors
             .sort((a, b) =>
-                (a.name )
+                (a.name)
                     .localeCompare(
                         b.name
                     )
@@ -152,28 +153,36 @@ async function addTimeOff() {
         return;
     }
 
-    try {
+    try {await Promise.all(
+    instructorIds.map(
+        instructorId => {
 
-        await Promise.all(
-  instructorIds.map(
-    instructorId =>
-      fetch(
-        `${API_URL}/instructorTimeOff`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json"
-          },
-          body: JSON.stringify({
-            instructorIds: [instructorId],
-            startDate,
-            endDate,
-            reason
-          })
+            const instructor =
+                instructors.find(
+                    i => i.id === instructorId
+                );
+
+            return fetch(
+                `${API_URL}/instructorTimeOff`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body: JSON.stringify({
+                        instructorId,
+                        instructorName:
+                            instructor?.name ??
+                            instructorId,
+                        startDate,
+                        endDate,
+                        reason
+                    })
+                }
+            );
         }
-      )
-  )
+    )
 );
 
 
@@ -258,18 +267,17 @@ function buildSummary(entries) {
                 entry.endDate
             );
 
-        (
-            entry.instructorNames ?? []
-        ).forEach(name => {
+        const instructorName =
+    entry.instructorName ??
+    entry.instructorId;
 
-            counts.set(
-                name,
-                (counts.get(name) ?? 0) +
-                days
-            );
-
-        });
-
+        if (instructorName) {
+    counts.set(
+        instructorName,
+        (counts.get(instructorName) ?? 0) +
+        days
+    );
+}
     });
 
     const sorted =
@@ -280,7 +288,7 @@ function buildSummary(entries) {
             );
 
     sorted.forEach(
-        ([instructorIds, days]) => {
+        ([instructorName, days]) => {
 
             const card =
                 document.createElement(
@@ -291,7 +299,7 @@ function buildSummary(entries) {
                 "summaryCard";
 
             card.innerHTML = `
-        <h3>${instructorIds}</h3>
+        <h3>${instructorName}</h3>
         <div class="days">
           ${days} Day${days === 1
                     ? ""
@@ -336,7 +344,9 @@ function renderTimeOffList(
             "timeOffCard";
 
         const instructorText =
-    entry.instructorId ?? "";
+    entry.instructorName ??
+    entry.instructorId ??
+    "";
 
         card.innerHTML = `
       <strong>
