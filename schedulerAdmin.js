@@ -508,6 +508,10 @@ function buildFixedClassTitle(slot) {
 // RENDERING
 // =========================
 function renderCalendarFromSchedule(schedule, clearFirst = true) {
+  console.log(
+  "Rendering schedule:",
+  schedule.length
+);
   if (clearFirst) {
     adminCalendar.removeAllEvents();
   }
@@ -1256,12 +1260,29 @@ async function loadSavedSchedule() {
   if (!data.slots?.length) {
     return false;
   }
+  console.log(
+  "Loaded saved slots:",
+  data.slots?.length
+);
 
   renderCalendarFromSchedule(
     data.slots,
     true
   );
 
+  const firstSlot = data.slots?.[0];
+
+if (firstSlot) {
+  adminCalendar.gotoDate(
+    firstSlot.weekStartDate
+  );
+}
+console.log(
+  "Calendar events:",
+  adminCalendar
+    .getEvents()
+    .length
+);
   applyInstructorFilter();
   renderInstructorWorkloadFromCalendar();
   renderScheduleAnalytics();
