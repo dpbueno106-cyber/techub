@@ -66,8 +66,10 @@ classWeekEnd.setDate(
       new Date(timeOff.endDate);
 
     const overlaps =
-  vacationStart <= classWeekEnd &&
-  vacationEnd >= classWeekStart;
+      classWeekStart <= vacationStart && vacationEnd <= classWeekEnd ||
+      classWeekStart <= vacationStart && classWeekEnd <= vacationEnd ||
+      classWeekStart <= vacationEnd && vacationStart <= classWeekEnd ||
+      vacationStart <= classWeekStart && classWeekEnd <= vacationEnd;
 
 if (
   slot.weekStartDate.startsWith("2027-02")
