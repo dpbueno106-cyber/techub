@@ -117,6 +117,7 @@ async function clearFixedPlacements() {
   );
 
   await generateSchedule();
+  await autoSaveSchedule();
 }
 
 async function loadInstructors() {
@@ -413,6 +414,7 @@ function initCalendar() {
       renderInstructorWorkloadFromCalendar();
       renderScheduleAnalytics();
       renderCourseAnalytics();
+      autoSaveSchedule();
     }
   });
 
@@ -966,6 +968,7 @@ async function generateSchedule() {
     renderInstructorWorkloadFromCalendar();
     renderScheduleAnalytics();
     renderCourseAnalytics();
+    await autoSaveSchedule();
 
     console.log(
       "Generated schedule:",
@@ -1167,25 +1170,61 @@ const endDate =
 
 }
 
+async function autoSaveSchedule() {
+
+  try {
+
+    const year =
+      await getConfiguredYear();
+
+    await fetch(
+      `${API_URL}/schedule/save`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json"
+        },
+        body: JSON.stringify({
+          year,
+          slots:
+            serializeCalendarToSlots()
+        })
+      }
+    );
+
+    console.log(
+      "Schedule auto-saved"
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Auto-save failed:",
+      error
+    );
+  }
+}
+
 async function saveSchedule() {
   const year =
     await getConfiguredYear();
 
   await fetch(
-    `${API_URL}/schedule/save`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type":
-          "application/json"
-      },
-      body: JSON.stringify({
-        year,
-        slots:
-          serializeCalendarToSlots()
-      })
-    }
-  );
+  `${API_URL}/schedule/save`,
+  {
+    method: "POST",
+    headers: {
+      "Content-Type":
+        "application/json"
+    },
+    body: JSON.stringify({
+      year: await getConfiguredYear(),
+      slots:
+        serializeCalendarToSlots()
+    })
+  }
+);
 
   alert("Schedule saved");
 }
@@ -1561,8 +1600,15 @@ window.addEventListener("DOMContentLoaded", () => {
     initCalendar();
     loadCatalog();
     renderInstructorLegend();
-    const loaded = await loadSavedSchedule();
-    if (!loaded) generateSchedule();
+    const loaded =
+  await loadSavedSchedule();
+
+if (!loaded) {
+
+  console.log(
+    "No saved schedule found."
+  );
+}
 
     saveEventBtn.onclick = () => {
       if (!selectedEvent) return;
@@ -1601,6 +1647,7 @@ window.addEventListener("DOMContentLoaded", () => {
       renderInstructorWorkloadFromCalendar();
       renderScheduleAnalytics();
       renderCourseAnalytics();
+      autoSaveSchedule();
     };
   });
 });
@@ -1631,6 +1678,7 @@ Object.assign(window, {
       renderInstructorWorkloadFromCalendar();
       renderScheduleAnalytics();
       renderCourseAnalytics();
+      autoSaveSchedule();
     }
   }
 });
