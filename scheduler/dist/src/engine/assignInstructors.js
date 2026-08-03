@@ -30,7 +30,7 @@ function isInstructorAvailable(instructorId, slot, instructorTimeOff) {
         const vacationStart = new Date(timeOff.startDate);
         const vacationEnd = new Date(timeOff.endDate);
         const overlaps = classWeekStart <= vacationStart && vacationEnd <= classWeekEnd ||
-            classWeekStart <= vacationStart && classWeekEnd <= vacationEnd ||
+            classWeekStart <= vacationStart && ((classWeekEnd <= vacationEnd) && classWeekEnd >= vacationStart) ||
             classWeekStart <= vacationEnd && vacationStart <= classWeekEnd ||
             vacationStart <= classWeekStart && classWeekEnd <= vacationEnd;
         if (slot.weekStartDate.startsWith("2027-02")) {

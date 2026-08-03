@@ -67,7 +67,7 @@ classWeekEnd.setDate(
 
     const overlaps =
       classWeekStart <= vacationStart && vacationEnd <= classWeekEnd ||
-      classWeekStart <= vacationStart && classWeekEnd <= vacationEnd ||
+      classWeekStart <= vacationStart && ((classWeekEnd <= vacationEnd) && classWeekEnd >= vacationStart) ||
       classWeekStart <= vacationEnd && vacationStart <= classWeekEnd ||
       vacationStart <= classWeekStart && classWeekEnd <= vacationEnd;
 
