@@ -518,10 +518,42 @@ details[open] .course-summary::before {
         transform: rotate(360deg);
     }
 }
+
+/* Multi-month cells */
+.fc .fc-daygrid-day {
+  background-color: #2b2b2b !important;
+}
+
+/* Month containers */
+.fc .fc-multimonth {
+  background-color: #1e1e1e !important;
+}
+
+/* Month grid */
+.fc .fc-scrollgrid,
+.fc .fc-scrollgrid table {
+  background-color: #2b2b2b !important;
+}
+
+/* Day headers */
+.fc .fc-col-header-cell {
+  background-color: #252525 !important;
+}
+
+/* Empty/outside days */
+.fc .fc-day-other {
+  background-color: #222 !important;
+}
 .loadingOverlay {
     opacity: 1;
     transition: opacity 0.25s ease;
 }
+
+.fc-multimonth-daygrid-table {
+  table-layout: auto !important;
+}
+
+
 
 .loadingOverlay.hidden {
     opacity: 0;
@@ -530,3 +562,75 @@ details[open] .course-summary::before {
 .hidden {
     display: none;
 }
+
+.fc-multimonth {
+  --fc-daygrid-event-dot-width: 8px;
+}
+
+/* Quarter + Year views only */
+.fc-multimonth .fc-daygrid-day-frame {
+  min-height: 160px !important;
+}
+
+/* Slightly larger course blocks */
+.fc-multimonth .fc-event,
+.fc-multimonth .fc-daygrid-event {
+  min-height: 20px !important;
+  line-height: 20px !important;
+  font-size: 11px !important;
+
+  border: none !important;
+  border-radius: 4px !important;
+
+  font-weight: 600;
+}
+
+/* Small space between rows */
+.fc-multimonth .fc-daygrid-event-harness {
+  margin-bottom: 2px !important;
+}
+
+.calendarLabel {
+  padding-left: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+.fc-multimonth .compact-event {
+  font-size: 10px;
+  line-height: 12px;
+  padding-left: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fc-multimonth-month {
+  background: #1f1f1f;
+  border: 1px solid #444;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.fc-multimonth-title {
+  color: #ffd400 !important;
+  font-size: 1.3rem !important;
+  font-weight: 700 !important;
+}
+.fc-popover {
+  background: #222 !important;
+  border: 1px solid #555 !important;
+  color: #fff !important;
+}
+
+.fc-popover-header {
+  background: #2d2d2d !important;
+  color: #ffd400 !important;
+}
+
+.fc-popover-body {
+  background: #222 !important;
+}
+

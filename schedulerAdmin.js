@@ -418,11 +418,28 @@ function closeAddCourseModal() {
 
 function initCalendar() {
 
-  adminCalendar = new FullCalendar.Calendar(calendarEl, {
-    initialView: "dayGridMonth",
-    height: 600,
-    editable: true,
-    droppable: true,
+ adminCalendar = new FullCalendar.Calendar(calendarEl, {
+  initialView: "dayGridMonth",
+  height: "auto",
+
+  dayMaxEvents: true, // keep normal month view
+
+  views: {
+  quarterView: {
+    type: "multiMonth",
+    duration: { months: 3 },
+    dayMaxEvents: false,
+    dayMaxEventRows: false,
+    moreLinkClick: "popover"
+  },
+
+  multiMonthYear: {
+    dayMaxEvents: false,
+    dayMaxEventRows: false,
+    moreLinkClick: "popover"
+  }
+},
+
 
     eventClick(info) {
       openEditModal(info.event);
@@ -449,8 +466,11 @@ function initCalendar() {
       autoSaveSchedule();
     }
   });
+  window.changeCalendarView = function (viewName) {
+  adminCalendar.changeView(viewName);
+};
 
-  adminCalendar.render();
+adminCalendar.render();
 }
 
 // =========================
