@@ -270,8 +270,8 @@ function populateInstructorDropdown(
 
 function serializeCalendarToSlots() {
   const slots = [];
-
   getLogicalScheduleEvents().forEach(event => {
+    const locked = event.extendedProps.locked ?? false;
     const {
       className,
       classAcronym,
@@ -309,7 +309,8 @@ function serializeCalendarToSlots() {
       location,
       instructorId,
       weekStartDate,
-      durationWeeks
+      durationWeeks,
+      locked
     });
   });
 
@@ -901,7 +902,7 @@ Skipped/Duplicates: ${result.skippedCount}
 
 
         await generateSchedule();
-
+        await autoSaveSchedule();
       } catch (error) {
 
         console.error(
