@@ -487,7 +487,7 @@ async function deleteTimeOff(
         );
 
         await loadTimeOff();
-        await autoSaveSchedule();
+        
 
     } catch (error) {
 
@@ -552,5 +552,5 @@ function formatDate(
 
 Object.assign(window, {
     addTimeOff,
-    deleteTimeOff
+    deleteTimeOff,
 });

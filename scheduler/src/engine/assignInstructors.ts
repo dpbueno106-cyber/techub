@@ -155,10 +155,15 @@ export function assignInstructors(
 
   return slots.map(slot => {
     // Preserve manual assignments
-   if (
+  if (
   slot.locked &&
-  slot.instructorId
-) {
+  slot.instructorId &&
+  !isInstructorAvailable(
+    slot.instructorId,
+    slot,
+    instructorTimeOff
+  )
+)  {
 
   const available =
     isInstructorAvailable(
@@ -175,8 +180,7 @@ export function assignInstructors(
 
     slot = {
   ...slot,
-  instructorId: null,
-  locked: false
+  instructorId: null
 };
   }
 
