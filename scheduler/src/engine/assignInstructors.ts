@@ -73,20 +73,7 @@ classWeekEnd.setDate(
 
 if (
   slot.weekStartDate.startsWith("2027-02")
-) {
-  console.log(
-    "FEB CHECK",
-    {
-      instructorId,
-      weekNumber: slot.weekNumber,
-      classStart: classWeekStart,
-      classEnd: classWeekEnd,
-      vacationStart,
-      vacationEnd,
-      overlaps
-    }
-  );
-}
+) 
     console.log(
       "PTO CHECK",
       {
@@ -157,12 +144,7 @@ export function assignInstructors(
     // Preserve manual assignments
   if (
   slot.locked &&
-  slot.instructorId &&
-  !isInstructorAvailable(
-    slot.instructorId,
-    slot,
-    instructorTimeOff
-  )
+  slot.instructorId 
 )  {
 
   const available =
@@ -187,9 +169,9 @@ export function assignInstructors(
   return slot;
 }
 
-    // -------------------------
+    
     // Normal eligibility pass
-    // -------------------------
+    
 
     const eligible =
       instructors.filter(i => {
@@ -272,10 +254,10 @@ export function assignInstructors(
 
     let candidates = eligible;
 
-    // -------------------------
+    
     // Fallback pass
     // Ignore consecutive-week limit
-    // -------------------------
+    
 
     if (candidates.length === 0) {
       console.warn(
@@ -350,9 +332,9 @@ export function assignInstructors(
         });
     }
 
-    // -------------------------
+   
     // No candidate at all
-    // -------------------------
+    
 
     if (
       candidates.length === 0
@@ -364,9 +346,9 @@ export function assignInstructors(
       return slot;
     }
 
-    // -------------------------
+    
     // Score candidates
-    // -------------------------
+    
 
     const scored =
       candidates.map(i => {

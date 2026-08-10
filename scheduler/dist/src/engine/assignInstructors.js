@@ -33,25 +33,15 @@ function isInstructorAvailable(instructorId, slot, instructorTimeOff) {
             classWeekStart <= vacationStart && ((classWeekEnd <= vacationEnd) && classWeekEnd >= vacationStart) ||
             classWeekStart <= vacationEnd && vacationStart <= classWeekEnd ||
             vacationStart <= classWeekStart && classWeekEnd <= vacationEnd;
-        if (slot.weekStartDate.startsWith("2027-02")) {
-            console.log("FEB CHECK", {
+        if (slot.weekStartDate.startsWith("2027-02"))
+            console.log("PTO CHECK", {
                 instructorId,
-                weekNumber: slot.weekNumber,
-                classStart: classWeekStart,
-                classEnd: classWeekEnd,
-                vacationStart,
-                vacationEnd,
+                classStart: slot.weekStartDate,
+                classEnd: slot.weekEndDate,
+                vacationStart: timeOff.startDate,
+                vacationEnd: timeOff.endDate,
                 overlaps
             });
-        }
-        console.log("PTO CHECK", {
-            instructorId,
-            classStart: slot.weekStartDate,
-            classEnd: slot.weekEndDate,
-            vacationStart: timeOff.startDate,
-            vacationEnd: timeOff.endDate,
-            overlaps
-        });
         return overlaps;
     });
 }
@@ -76,8 +66,7 @@ function assignInstructors(slots, instructors, generationConfig, instructorTimeO
     return slots.map(slot => {
         // Preserve manual assignments
         if (slot.locked &&
-            slot.instructorId &&
-            !isInstructorAvailable(slot.instructorId, slot, instructorTimeOff)) {
+            slot.instructorId) {
             const available = isInstructorAvailable(slot.instructorId, slot, instructorTimeOff);
             if (!available) {
                 console.warn(`Fixed course ${slot.className} removed from ${slot.instructorId} due to PTO`);
@@ -88,9 +77,7 @@ function assignInstructors(slots, instructors, generationConfig, instructorTimeO
             }
             return slot;
         }
-        // -------------------------
         // Normal eligibility pass
-        // -------------------------
         const eligible = instructors.filter(i => {
             const normalizedClass = slot.className
                 .trim()
@@ -121,10 +108,8 @@ function assignInstructors(slots, instructors, generationConfig, instructorTimeO
                 underMaxClasses);
         });
         let candidates = eligible;
-        // -------------------------
         // Fallback pass
         // Ignore consecutive-week limit
-        // -------------------------
         if (candidates.length === 0) {
             console.warn(`No fully eligible instructor for ${slot.className}. Trying fallback assignment.`);
             candidates =
@@ -158,16 +143,12 @@ function assignInstructors(slots, instructors, generationConfig, instructorTimeO
                         underMaxClasses);
                 });
         }
-        // -------------------------
         // No candidate at all
-        // -------------------------
         if (candidates.length === 0) {
             console.warn(`No instructor available for ${slot.className} (week ${slot.weekNumber})`);
             return slot;
         }
-        // -------------------------
         // Score candidates
-        // -------------------------
         const scored = candidates.map(i => {
             const weeks = assignmentsByInstructor.get(i.id) ?? [];
             return {
