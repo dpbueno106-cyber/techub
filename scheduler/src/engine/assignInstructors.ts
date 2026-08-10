@@ -155,12 +155,33 @@ export function assignInstructors(
 
   return slots.map(slot => {
     // Preserve manual assignments
-    if (
-      slot.locked &&
-      slot.instructorId
-    ) {
-      return slot;
-    }
+   if (
+  slot.locked &&
+  slot.instructorId
+) {
+
+  const available =
+    isInstructorAvailable(
+      slot.instructorId,
+      slot,
+      instructorTimeOff
+    );
+
+  if (!available) {
+
+    console.warn(
+      `Fixed course ${slot.className} removed from ${slot.instructorId} due to PTO`
+    );
+
+    slot = {
+  ...slot,
+  instructorId: null,
+  locked: false
+};
+  }
+
+  return slot;
+}
 
     // -------------------------
     // Normal eligibility pass
