@@ -146,7 +146,10 @@ function getAvailableInstructors(
   return instructors.filter(i => {
 
   const canTeach =
-    cls.possibleInstructors?.includes(i.id);
+  !cls.possibleInstructors?.length ||
+  cls.possibleInstructors.includes(
+    i.id
+  );
 
   const reservedWeeks =
     instructorWeekReservations.get(i.id);

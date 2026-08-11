@@ -66,7 +66,8 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
         const weekStart = new Date(week.startDate);
         const weekEnd = new Date(week.endDate);
         return instructors.filter(i => {
-            const canTeach = cls.possibleInstructors?.includes(i.id);
+            const canTeach = !cls.possibleInstructors?.length ||
+                cls.possibleInstructors.includes(i.id);
             const reservedWeeks = instructorWeekReservations.get(i.id);
             const canBeThere = cls.defaultLocations.includes(i.homeLocation) ||
                 i.canTravel;
