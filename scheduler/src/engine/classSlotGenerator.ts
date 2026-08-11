@@ -140,10 +140,18 @@ function getAvailableInstructors(
 
   return instructors.filter(i => {
 
-  const canTeach =
-  !cls.possibleInstructors?.length ||
-  cls.possibleInstructors.includes(
-    i.id
+  const normalizedClass =
+  cls.name
+    .trim()
+    .toLowerCase();
+
+const canTeach =
+  (i.capabilities ?? []).some(
+    capability =>
+      capability
+        .trim()
+        .toLowerCase() ===
+      normalizedClass
   );
 
   const reservedWeeks =
