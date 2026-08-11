@@ -34,15 +34,18 @@ function isInstructorAvailable(instructorId, slot, instructorTimeOff) {
             classWeekStart <= vacationEnd && vacationStart <= classWeekEnd ||
             vacationStart <= classWeekStart && classWeekEnd <= vacationEnd;
         if (slot.weekStartDate.startsWith("2027-02"))
-            console.log("PTO CHECK", {
+            /*console.log(
+              "PTO CHECK",
+              {
                 instructorId,
                 classStart: slot.weekStartDate,
                 classEnd: slot.weekEndDate,
                 vacationStart: timeOff.startDate,
                 vacationEnd: timeOff.endDate,
                 overlaps
-            });
-        return overlaps;
+              }
+            );*/
+            return overlaps;
     });
 }
 function isStillValidAssignment(instructorId, slot, assignmentsByInstructor, generationConfig, instructorTimeOff) {
@@ -73,6 +76,7 @@ function assignInstructors(slots, instructors, generationConfig, instructorTimeO
     });
     const avgAssignments = slots.length /
         Math.max(instructors.length, 1);
+    console.log("Preassigned", slots.filter(s => s.instructorId && !s.locked).length);
     return slots.map(slot => {
         // Preserve locked assignments
         if (slot.locked &&

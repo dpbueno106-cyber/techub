@@ -289,6 +289,36 @@ function instructorPenalty(
   return penalty;
 }
 
+function instructorScarcityBonus(
+  cls: ClassDefinition,
+  week: WeekSlot
+): number {
+
+  const available =
+    getAvailableInstructors(
+      cls,
+      week,
+      instructors,
+      instructorTimeOff
+    );
+
+  if (available.length === 0) {
+    console.log(
+  "NO AVAILABLE",
+  {
+    className: cls.name,
+    week: week.weekNumber
+  }
+);
+    return -50;
+  }
+
+  return (
+    10 /
+    available.length
+  ) * 20;
+}
+
 function getWeekUsage(
   weekNumber: number,
   weekUsage: Map<number, number>
@@ -310,7 +340,8 @@ function getLeastUsedWeeks(
 
 function scoreClass(
   cls: ClassDefinition,
-  weekIndex: number
+  weekIndex: number,
+  week?: WeekSlot
 ) {
   const stats = classStats[cls.name];
   const spacing = weekIndex - stats.lastWeek;
@@ -331,6 +362,15 @@ function scoreClass(
   // Penalize overuse
   score -= stats.timesScheduled * 5;
 score -= instructorPenalty(cls, weekIndex);
+
+if (week) {
+  score +=
+    instructorScarcityBonus(
+      cls,
+      week
+    );
+}
+
 
   return score;
 }
@@ -381,6 +421,13 @@ const available =
   );
 
 if (available.length === 0) {
+  console.log(
+  "NO AVAILABLE",
+  {
+    className: cls.name,
+    week: week.weekNumber
+  }
+);
   continue;
 }
 const slot =
@@ -508,7 +555,11 @@ while (
 
   const scored = foundational.map(cls => ({
     cls,
-    score: scoreClass(cls, i)
+    score: scoreClass(
+  cls,
+  i,
+  week
+)
   }));
 
   scored.sort((a, b) => b.score - a.score);
@@ -645,9 +696,10 @@ while (
   const scored = advanced.map(cls => ({
     cls,
     score: scoreClass(
-      cls,
-      advancedIndex
-    )
+  cls,
+  advancedIndex,
+  week
+)
   }));
 
   scored.sort(

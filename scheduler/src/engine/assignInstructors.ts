@@ -74,7 +74,7 @@ classWeekEnd.setDate(
 if (
   slot.weekStartDate.startsWith("2027-02")
 ) 
-    console.log(
+    /*console.log(
       "PTO CHECK",
       {
         instructorId,
@@ -84,7 +84,7 @@ if (
         vacationEnd: timeOff.endDate,
         overlaps
       }
-    );
+    );*/
 
     return overlaps;
     
@@ -186,7 +186,12 @@ export function assignInstructors(
   const avgAssignments =
     slots.length /
     Math.max(instructors.length, 1);
-
+console.log(
+  "Preassigned",
+  slots.filter(
+    s => s.instructorId && !s.locked
+  ).length
+);
   return slots.map(slot => {
    // Preserve locked assignments
 if (

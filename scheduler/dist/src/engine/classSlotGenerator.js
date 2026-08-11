@@ -135,6 +135,18 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
         }
         return penalty;
     }
+    function instructorScarcityBonus(cls, week) {
+        const available = getAvailableInstructors(cls, week, instructors, instructorTimeOff);
+        if (available.length === 0) {
+            console.log("NO AVAILABLE", {
+                className: cls.name,
+                week: week.weekNumber
+            });
+            return -50;
+        }
+        return (10 /
+            available.length) * 20;
+    }
     function getWeekUsage(weekNumber, weekUsage) {
         return weekUsage.get(weekNumber) ?? 0;
     }
@@ -144,7 +156,7 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
             .sort((a, b) => (weekUsage.get(a.weekNumber) ?? 0) -
             (weekUsage.get(b.weekNumber) ?? 0));
     }
-    function scoreClass(cls, weekIndex) {
+    function scoreClass(cls, weekIndex, week) {
         const stats = classStats[cls.name];
         const spacing = weekIndex - stats.lastWeek;
         // Hard block if too soon
@@ -159,6 +171,10 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
         // Penalize overuse
         score -= stats.timesScheduled * 5;
         score -= instructorPenalty(cls, weekIndex);
+        if (week) {
+            score +=
+                instructorScarcityBonus(cls, week);
+        }
         return score;
     }
     // -------------------------
@@ -179,6 +195,10 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
             }
             const available = getAvailableInstructors(cls, week, instructors, instructorTimeOff);
             if (available.length === 0) {
+                console.log("NO AVAILABLE", {
+                    className: cls.name,
+                    week: week.weekNumber
+                });
                 continue;
             }
             const slot = buildSlot(cls, week);
@@ -233,7 +253,7 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
         }
         const scored = foundational.map(cls => ({
             cls,
-            score: scoreClass(cls, i)
+            score: scoreClass(cls, i, week)
         }));
         scored.sort((a, b) => b.score - a.score);
         const chosen = scored[0].score === -Infinity
@@ -293,7 +313,7 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
         }
         const scored = advanced.map(cls => ({
             cls,
-            score: scoreClass(cls, advancedIndex)
+            score: scoreClass(cls, advancedIndex, week)
         }));
         scored.sort((a, b) => b.score - a.score);
         const chosen = scored[0].score === -Infinity
