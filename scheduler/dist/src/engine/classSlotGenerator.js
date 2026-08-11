@@ -66,22 +66,11 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
         const weekStart = new Date(week.startDate);
         const weekEnd = new Date(week.endDate);
         return instructors.filter(i => {
-            // Can teach this class
             const canTeach = cls.possibleInstructors?.includes(i.id);
-            if (!canTeach) {
-                return false;
-            }
             const reservedWeeks = instructorWeekReservations.get(i.id);
             const canBeThere = cls.defaultLocations.includes(i.homeLocation) ||
                 i.canTravel;
-            if (!canBeThere) {
-                return false;
-            }
             const conflicts = Array.from({ length: cls.durationWeeks }, (_, offset) => week.weekNumber + offset).some(weekNumber => reservedWeeks?.has(weekNumber));
-            if (conflicts) {
-                return false;
-            }
-            // PTO check
             const onPTO = instructorTimeOff.some(timeOff => {
                 if (timeOff.instructorId !== i.id) {
                     return false;
@@ -91,7 +80,21 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
                 return (weekStart <= ptoEnd &&
                     ptoStart <= weekEnd);
             });
-            return !onPTO;
+            if (cls.name ===
+                "Advanced Troubleshooting") {
+                console.log("INSTRUCTOR CHECK", {
+                    className: cls.name,
+                    instructor: i.id,
+                    canTeach,
+                    canBeThere,
+                    conflicts,
+                    onPTO
+                });
+            }
+            return (canTeach &&
+                canBeThere &&
+                !conflicts &&
+                !onPTO);
         });
     }
     function scoreInstructorCandidate(instructor, weekNumber) {

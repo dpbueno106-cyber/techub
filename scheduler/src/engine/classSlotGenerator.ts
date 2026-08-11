@@ -145,68 +145,76 @@ function getAvailableInstructors(
 
   return instructors.filter(i => {
 
-    // Can teach this class
-    const canTeach =
-      cls.possibleInstructors?.includes(
-        i.id
+  const canTeach =
+    cls.possibleInstructors?.includes(i.id);
+
+  const reservedWeeks =
+    instructorWeekReservations.get(i.id);
+
+  const canBeThere =
+    cls.defaultLocations.includes(
+      i.homeLocation as "IN" | "MI"
+    ) ||
+    i.canTravel;
+
+  const conflicts =
+    Array.from(
+      { length: cls.durationWeeks },
+      (_, offset) =>
+        week.weekNumber + offset
+    ).some(
+      weekNumber =>
+        reservedWeeks?.has(
+          weekNumber
+        )
+    );
+
+  const onPTO =
+    instructorTimeOff.some(timeOff => {
+
+      if (
+        timeOff.instructorId !== i.id
+      ) {
+        return false;
+      }
+
+      const ptoStart =
+        new Date(timeOff.startDate);
+
+      const ptoEnd =
+        new Date(timeOff.endDate);
+
+      return (
+        weekStart <= ptoEnd &&
+        ptoStart <= weekEnd
       );
+    });
 
-    if (!canTeach) {
-      return false;
-    }
-    const reservedWeeks =
-  instructorWeekReservations.get(
-    i.id
+  if (
+    cls.name ===
+    "Advanced Troubleshooting"
+  ) {
+    console.log(
+      "INSTRUCTOR CHECK",
+      {
+        className: cls.name,
+        instructor: i.id,
+        canTeach,
+        canBeThere,
+        conflicts,
+        onPTO
+      }
+    );
+  }
+
+  return (
+    canTeach &&
+    canBeThere &&
+    !conflicts &&
+    !onPTO
   );
-const canBeThere =
-  cls.defaultLocations.includes(
-    i.homeLocation as "IN" | "MI"
-  ) ||
-  i.canTravel;
+});
 
-if (!canBeThere) {
-  return false;
-}
-const conflicts =
-  Array.from(
-    { length: cls.durationWeeks },
-    (_, offset) =>
-      week.weekNumber + offset
-  ).some(
-    weekNumber =>
-      reservedWeeks?.has(
-        weekNumber
-      )
-  );
-
-if (conflicts) {
-  return false;
-}
-
-    // PTO check
-    const onPTO =
-      instructorTimeOff.some(timeOff => {
-
-        if (
-          timeOff.instructorId !== i.id
-        ) {
-          return false;
-        }
-
-        const ptoStart =
-          new Date(timeOff.startDate);
-
-        const ptoEnd =
-          new Date(timeOff.endDate);
-
-        return (
-          weekStart <= ptoEnd &&
-          ptoStart <= weekEnd
-        );
-      });
-
-    return !onPTO;
-  });
 }
 
 
