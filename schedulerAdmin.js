@@ -901,7 +901,7 @@ Skipped/Duplicates: ${result.skippedCount}
 `);
 
 
-        await generateSchedule();
+        
         await autoSaveSchedule();
       } catch (error) {
 
