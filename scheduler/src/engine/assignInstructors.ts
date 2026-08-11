@@ -95,6 +95,53 @@ if (
 }
 
 
+function isStillValidAssignment(
+  instructorId: string,
+  slot: ClassSlot,
+  assignmentsByInstructor: Map<string, number[]>,
+  generationConfig: {
+    maxConsecutiveWeeks: number;
+  },
+  instructorTimeOff: InstructorTimeOff[]
+): boolean {
+
+  const assignedWeeks =
+    assignmentsByInstructor.get(
+      instructorId
+    ) ?? [];
+
+  const coveredWeeks =
+    getCoveredWeeks(slot);
+
+  const available =
+    isInstructorAvailable(
+      instructorId,
+      slot,
+      instructorTimeOff
+    );
+
+  const hasConflict =
+    coveredWeeks.some(
+      week =>
+        assignedWeeks.includes(week)
+    );
+
+  const wouldExceed =
+    coveredWeeks.some(
+      week =>
+        exceedsConsecutiveLimit(
+          assignedWeeks,
+          week,
+          generationConfig.maxConsecutiveWeeks
+        )
+    );
+
+  return (
+    available &&
+    !hasConflict &&
+    !wouldExceed
+  );
+}
 export function assignInstructors(
   slots: ClassSlot[],
   instructors: Instructor[],
@@ -141,11 +188,11 @@ export function assignInstructors(
     Math.max(instructors.length, 1);
 
   return slots.map(slot => {
-    // Preserve manual assignments
-  if (
+   // Preserve locked assignments
+if (
   slot.locked &&
-  slot.instructorId 
-)  {
+  slot.instructorId
+) {
 
   const available =
     isInstructorAvailable(
@@ -154,22 +201,57 @@ export function assignInstructors(
       instructorTimeOff
     );
 
-  if (!available) {
-
-    console.warn(
-      `Fixed course ${slot.className} removed from ${slot.instructorId} due to PTO`
-    );
-
-    slot = {
-  ...slot,
-  instructorId: null
-};
+  if (available) {
+    return slot;
   }
 
-  return slot;
-}
+  console.warn(
+    `Fixed course ${slot.className} removed from ${slot.instructorId} due to PTO`
+  );
 
-    
+  slot = {
+    ...slot,
+    instructorId: null
+  };
+}
+    // Preserve generator-selected instructor
+// Preserve generator-selected instructor
+if (
+  !slot.locked &&
+  slot.instructorId
+) {
+
+  const valid =
+    isStillValidAssignment(
+      slot.instructorId,
+      slot,
+      assignmentsByInstructor,
+      generationConfig,
+      instructorTimeOff
+    );
+
+  if (valid) {
+
+    const coveredWeeks =
+      getCoveredWeeks(slot);
+
+    assignmentsByInstructor
+      .get(slot.instructorId)
+      ?.push(...coveredWeeks);
+
+    return slot;
+  }
+
+  console.warn(
+    `Generator-selected instructor ${slot.instructorId}
+     became invalid for ${slot.className}`
+  );
+
+  slot = {
+    ...slot,
+    instructorId: null
+  };
+}
     // Normal eligibility pass
     
 

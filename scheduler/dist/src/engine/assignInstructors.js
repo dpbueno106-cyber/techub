@@ -45,6 +45,16 @@ function isInstructorAvailable(instructorId, slot, instructorTimeOff) {
         return overlaps;
     });
 }
+function isStillValidAssignment(instructorId, slot, assignmentsByInstructor, generationConfig, instructorTimeOff) {
+    const assignedWeeks = assignmentsByInstructor.get(instructorId) ?? [];
+    const coveredWeeks = getCoveredWeeks(slot);
+    const available = isInstructorAvailable(instructorId, slot, instructorTimeOff);
+    const hasConflict = coveredWeeks.some(week => assignedWeeks.includes(week));
+    const wouldExceed = coveredWeeks.some(week => exceedsConsecutiveLimit(assignedWeeks, week, generationConfig.maxConsecutiveWeeks));
+    return (available &&
+        !hasConflict &&
+        !wouldExceed);
+}
 function assignInstructors(slots, instructors, generationConfig, instructorTimeOff = []) {
     console.log("INSTRUCTOR PTO:", instructorTimeOff);
     const assignmentsByInstructor = new Map();
@@ -64,18 +74,37 @@ function assignInstructors(slots, instructors, generationConfig, instructorTimeO
     const avgAssignments = slots.length /
         Math.max(instructors.length, 1);
     return slots.map(slot => {
-        // Preserve manual assignments
+        // Preserve locked assignments
         if (slot.locked &&
             slot.instructorId) {
             const available = isInstructorAvailable(slot.instructorId, slot, instructorTimeOff);
-            if (!available) {
-                console.warn(`Fixed course ${slot.className} removed from ${slot.instructorId} due to PTO`);
-                slot = {
-                    ...slot,
-                    instructorId: null
-                };
+            if (available) {
+                return slot;
             }
-            return slot;
+            console.warn(`Fixed course ${slot.className} removed from ${slot.instructorId} due to PTO`);
+            slot = {
+                ...slot,
+                instructorId: null
+            };
+        }
+        // Preserve generator-selected instructor
+        // Preserve generator-selected instructor
+        if (!slot.locked &&
+            slot.instructorId) {
+            const valid = isStillValidAssignment(slot.instructorId, slot, assignmentsByInstructor, generationConfig, instructorTimeOff);
+            if (valid) {
+                const coveredWeeks = getCoveredWeeks(slot);
+                assignmentsByInstructor
+                    .get(slot.instructorId)
+                    ?.push(...coveredWeeks);
+                return slot;
+            }
+            console.warn(`Generator-selected instructor ${slot.instructorId}
+     became invalid for ${slot.className}`);
+            slot = {
+                ...slot,
+                instructorId: null
+            };
         }
         // Normal eligibility pass
         const eligible = instructors.filter(i => {

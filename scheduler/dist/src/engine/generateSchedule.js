@@ -38,7 +38,7 @@ function generateSchedule(generationConfig, catalog, instructors, fixedPlacement
     console.log("Requested non-NTO slots:", reservedForNonNTO);
     console.log("Maximum classes per week:", generationConfig.maxClassesPerWeek);
     // 5. Generate normal classes around fixed placements and NTO.
-    const nonNTOSlots = (0, classSlotGenerator_1.classSlotGenerator)(weeks, catalog, reservedForNonNTO, weekUsage, generationConfig, slots);
+    const nonNTOSlots = (0, classSlotGenerator_1.classSlotGenerator)(weeks, catalog, reservedForNonNTO, weekUsage, generationConfig, slots, instructors, instructorTimeOff);
     console.log("Generated non-NTO slots:", nonNTOSlots.length);
     slots = [
         ...slots,

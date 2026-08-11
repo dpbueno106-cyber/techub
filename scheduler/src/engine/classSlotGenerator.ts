@@ -1,7 +1,10 @@
 import type {
   ClassDefinition,
   ClassSlot,
-  WeekSlot
+  WeekSlot,
+  Instructor,
+  InstructorTimeOff,
+  GenerationConfig
 } from "../types";
 
 /**
@@ -17,14 +20,11 @@ export function classSlotGenerator(
   catalog: ClassDefinition[],
   remainingSlots: number,
   weekUsage: Map<number, number>,
-  generationConfig: {
-    categoryCaps: {
-      Foundational: number;
-      Advanced: number;
-    };
-    maxClassesPerWeek: number;
-  },
-  existingSlots: ClassSlot[] = []
+  generationConfig: GenerationConfig,
+  existingSlots: ClassSlot[] = [],
+
+  instructors: Instructor[],
+  instructorTimeOff: InstructorTimeOff[]
 ): ClassSlot[] {
   
 
@@ -44,13 +44,10 @@ console.log(
   existingSlots.length
 );
   const slots: ClassSlot[] = [];
-  const reservedKeys = new Set<string>();
-  const active = catalog.filter(c => c.isActive);
-  existingSlots.forEach(slot => {
+const reservedKeys = new Set<string>();
 
- 
-
-});
+const active =
+  catalog.filter(c => c.isActive);
   // -------------------------
   // Split by frequency mode
   // -------------------------
@@ -61,11 +58,44 @@ console.log(
   lastWeek: number;
   timesScheduled: number;
 }> = {};
+const instructorWeekReservations =
+  new Map<string, Set<number>>();
+
 const instructorStats: Record<string, {
   lastWeek: number;
   timesScheduled: number;
 }> = {};
+instructors.forEach(i => {
+  instructorWeekReservations.set(
+    i.id,
+    new Set()
+  );
+});
+existingSlots.forEach(slot => {
 
+  if (!slot.instructorId) {
+    return;
+  }
+
+  const reserved =
+    instructorWeekReservations.get(
+      slot.instructorId
+    );
+
+  if (!reserved) {
+    return;
+  }
+
+  for (
+    let offset = 0;
+    offset < slot.durationWeeks;
+    offset++
+  ) {
+    reserved.add(
+      slot.weekNumber + offset
+    );
+  }
+});
 active.forEach(cls => {
   classStats[cls.name] = {
     lastWeek: -Infinity,
@@ -83,6 +113,153 @@ catalog.forEach(cls => {
     }
   });
 });
+
+function reserveLocation(
+  slot: ClassSlot,
+  reservedKeys: Set<string>
+) {
+  for (
+    let offset = 0;
+    offset < slot.durationWeeks;
+    offset++
+  ) {
+    reservedKeys.add(
+      `${slot.weekNumber + offset}-${slot.location}`
+    );
+  }
+}
+
+function getAvailableInstructors(
+  cls: ClassDefinition,
+  week: WeekSlot,
+  instructors: Instructor[],
+  instructorTimeOff: InstructorTimeOff[]
+): Instructor[] {
+
+  
+  const weekStart =
+    new Date(week.startDate);
+
+  const weekEnd =
+    new Date(week.endDate);
+
+  return instructors.filter(i => {
+
+    // Can teach this class
+    const canTeach =
+      cls.possibleInstructors?.includes(
+        i.id
+      );
+
+    if (!canTeach) {
+      return false;
+    }
+    const reservedWeeks =
+  instructorWeekReservations.get(
+    i.id
+  );
+const canBeThere =
+  cls.defaultLocations.includes(
+    i.homeLocation as "IN" | "MI"
+  ) ||
+  i.canTravel;
+
+if (!canBeThere) {
+  return false;
+}
+const conflicts =
+  Array.from(
+    { length: cls.durationWeeks },
+    (_, offset) =>
+      week.weekNumber + offset
+  ).some(
+    weekNumber =>
+      reservedWeeks?.has(
+        weekNumber
+      )
+  );
+
+if (conflicts) {
+  return false;
+}
+
+    // PTO check
+    const onPTO =
+      instructorTimeOff.some(timeOff => {
+
+        if (
+          timeOff.instructorId !== i.id
+        ) {
+          return false;
+        }
+
+        const ptoStart =
+          new Date(timeOff.startDate);
+
+        const ptoEnd =
+          new Date(timeOff.endDate);
+
+        return (
+          weekStart <= ptoEnd &&
+          ptoStart <= weekEnd
+        );
+      });
+
+    return !onPTO;
+  });
+}
+
+
+function scoreInstructorCandidate(
+  instructor: Instructor,
+  weekNumber: number
+): number {
+
+  const stats =
+    instructorStats[instructor.id];
+
+  let score = 0;
+
+  score -= stats.timesScheduled * 10;
+
+  const reserved =
+    instructorWeekReservations.get(
+      instructor.id
+    );
+
+  if (
+    reserved?.has(weekNumber - 1)
+  ) {
+    score -= 5;
+  }
+
+  if (
+    reserved?.has(weekNumber + 1)
+  ) {
+    score -= 5;
+  }
+
+  return score;
+}
+
+function chooseInstructor(
+  available: Instructor[],
+  weekNumber: number
+): Instructor {
+
+  return available.sort(
+    (a, b) =>
+      scoreInstructorCandidate(
+        b,
+        weekNumber
+      ) -
+      scoreInstructorCandidate(
+        a,
+        weekNumber
+      )
+  )[0];
+}
+
 function minSpacingWeeks(cls: ClassDefinition) {
   if (cls.category === "NTO") return 4;
   if (cls.durationWeeks >= 2) return 3;
@@ -195,12 +372,47 @@ if (
 ) {
   continue;
 }
+const available =
+  getAvailableInstructors(
+    cls,
+    week,
+    instructors,
+    instructorTimeOff
+  );
 
+if (available.length === 0) {
+  continue;
+}
 const slot =
   buildSlot(cls, week);
 
 slots.push(slot);
+reserveLocation(
+  slot,
+  reservedKeys
+);
+const chosenInstructor =
+  chooseInstructor(
+    available,
+    slot.weekNumber
+  );
+  slot.instructorId =
+  chosenInstructor.id;
 
+  const reserved =
+  instructorWeekReservations.get(
+    chosenInstructor.id
+  );
+
+for (
+  let offset = 0;
+  offset < slot.durationWeeks;
+  offset++
+) {
+  reserved?.add(
+    slot.weekNumber + offset
+  );
+}
 
 markSlotUsage(
   slot,
@@ -210,10 +422,11 @@ markSlotUsage(
 classStats[cls.name].lastWeek = weekIndex;
 classStats[cls.name].timesScheduled++;
 
-cls.possibleInstructors?.forEach(id => {
-  instructorStats[id].lastWeek = weekIndex;
-  instructorStats[id].timesScheduled++;
-});
+instructorStats[chosenInstructor.id].lastWeek =
+  weekIndex;
+
+instructorStats[chosenInstructor.id].timesScheduled++;
+
     }
   }
 
@@ -324,12 +537,50 @@ while (
     attempts++;
     continue;
   }
+const available =
+  getAvailableInstructors(
+    chosen,
+    week,
+    instructors,
+    instructorTimeOff
+  );
+
+if (available.length === 0) {
+  i++;
+  attempts++;
+  continue;
+}
 
   const slot =
     buildSlot(chosen, week);
 
   slots.push(slot);
+  reserveLocation(
+  slot,
+  reservedKeys
+);
+const chosenInstructor =
+  chooseInstructor(
+    available,
+    slot.weekNumber
+  );
+  slot.instructorId =
+  chosenInstructor.id;
 
+  const reserved =
+  instructorWeekReservations.get(
+    chosenInstructor.id
+  );
+
+for (
+  let offset = 0;
+  offset < slot.durationWeeks;
+  offset++
+) {
+  reserved?.add(
+    slot.weekNumber + offset
+  );
+}
   
 
   markSlotUsage(
@@ -340,10 +591,10 @@ while (
   classStats[chosen.name].lastWeek = i;
   classStats[chosen.name].timesScheduled++;
 
-  chosen.possibleInstructors?.forEach(id => {
-    instructorStats[id].lastWeek = i;
-    instructorStats[id].timesScheduled++;
-  });
+  instructorStats[chosenInstructor.id].lastWeek =
+  i;
+
+instructorStats[chosenInstructor.id].timesScheduled++;
 
   foundationalCount++;
   i++;
@@ -429,6 +680,19 @@ while (
     continue;
   }
 
+const available =
+  getAvailableInstructors(
+    chosen,
+    week,
+    instructors,
+    instructorTimeOff
+  );
+
+if (available.length === 0) {
+  advancedIndex++;
+  advancedAttempts++;
+  continue;
+}
   const slot =
     buildSlot(
       chosen,
@@ -436,16 +700,33 @@ while (
     );
 
   slots.push(slot);
+  reserveLocation(
+  slot,
+  reservedKeys
+);
+const chosenInstructor =
+  chooseInstructor(
+    available,
+    slot.weekNumber
+  );
+  slot.instructorId =
+  chosenInstructor.id;
 
-  for (
-    let w = 0;
-    w < slot.durationWeeks;
-    w++
-  ) {
-    reservedKeys.add(
-      `${slot.weekNumber + w}-${location}`
-    );
-  }
+  const reserved =
+  instructorWeekReservations.get(
+    chosenInstructor.id
+  );
+
+for (
+  let offset = 0;
+  offset < slot.durationWeeks;
+  offset++
+) {
+  reserved?.add(
+    slot.weekNumber + offset
+  );
+}
+  
 
  markSlotUsage(
   slot,
@@ -457,14 +738,10 @@ while (
 
   classStats[chosen.name].timesScheduled++;
 
-  chosen.possibleInstructors?.forEach(
-    id => {
-      instructorStats[id].lastWeek =
-        advancedIndex;
+ instructorStats[chosenInstructor.id].lastWeek =
+  advancedIndex;
 
-      instructorStats[id].timesScheduled++;
-    }
-  );
+instructorStats[chosenInstructor.id].timesScheduled++;
 
   advancedCount++;
   advancedIndex++;
@@ -550,6 +827,9 @@ function markSlotUsage(
     );
   }
 }
+
+
+
 
 function buildSlot(
   cls: ClassDefinition,

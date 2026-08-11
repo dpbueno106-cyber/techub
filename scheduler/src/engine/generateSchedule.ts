@@ -118,13 +118,15 @@ export function generateSchedule(
 
   // 5. Generate normal classes around fixed placements and NTO.
   const nonNTOSlots = classSlotGenerator(
-    weeks,
-    catalog,
-    reservedForNonNTO,
-    weekUsage,
-    generationConfig,
-    slots
-  );
+  weeks,
+  catalog,
+  reservedForNonNTO,
+  weekUsage,
+  generationConfig,
+  slots,
+  instructors,
+  instructorTimeOff
+);
 
   console.log(
     "Generated non-NTO slots:",
