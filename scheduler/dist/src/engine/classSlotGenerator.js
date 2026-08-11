@@ -47,15 +47,11 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
             timesScheduled: 0
         };
     });
-    catalog.forEach(cls => {
-        cls.possibleInstructors?.forEach(id => {
-            if (!instructorStats[id]) {
-                instructorStats[id] = {
-                    lastWeek: -Infinity,
-                    timesScheduled: 0
-                };
-            }
-        });
+    instructors.forEach(i => {
+        instructorStats[i.id] = {
+            lastWeek: -Infinity,
+            timesScheduled: 0
+        };
     });
     function reserveLocation(slot, reservedKeys) {
         for (let offset = 0; offset < slot.durationWeeks; offset++) {

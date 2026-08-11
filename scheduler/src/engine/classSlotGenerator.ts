@@ -103,17 +103,12 @@ active.forEach(cls => {
   };
 });
 
-catalog.forEach(cls => {
-  cls.possibleInstructors?.forEach(id => {
-    if (!instructorStats[id]) {
-      instructorStats[id] = {
-        lastWeek: -Infinity,
-        timesScheduled: 0
-      };
-    }
-  });
+instructors.forEach(i => {
+  instructorStats[i.id] = {
+    lastWeek: -Infinity,
+    timesScheduled: 0
+  };
 });
-
 function reserveLocation(
   slot: ClassSlot,
   reservedKeys: Set<string>
