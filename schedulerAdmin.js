@@ -446,7 +446,7 @@ function initCalendar() {
       openEditModal(info.event);
     },
 
-    eventReceive(info) {
+    async eventReceive(info) {
       const e = info.event;
 
       const slot = {
