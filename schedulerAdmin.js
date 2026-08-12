@@ -419,27 +419,27 @@ function closeAddCourseModal() {
 
 function initCalendar() {
 
- adminCalendar = new FullCalendar.Calendar(calendarEl, {
-  initialView: "dayGridMonth",
-  height: "auto",
+  adminCalendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: "dayGridMonth",
+    height: "auto",
 
-  dayMaxEvents: true, // keep normal month view
+    dayMaxEvents: true, // keep normal month view
 
-  views: {
-  quarterView: {
-    type: "multiMonth",
-    duration: { months: 3 },
-    dayMaxEvents: false,
-    dayMaxEventRows: false,
-    moreLinkClick: "popover"
-  },
+    views: {
+      quarterView: {
+        type: "multiMonth",
+        duration: { months: 3 },
+        dayMaxEvents: false,
+        dayMaxEventRows: false,
+        moreLinkClick: "popover"
+      },
 
-  multiMonthYear: {
-    dayMaxEvents: false,
-    dayMaxEventRows: false,
-    moreLinkClick: "popover"
-  }
-},
+      multiMonthYear: {
+        dayMaxEvents: false,
+        dayMaxEventRows: false,
+        moreLinkClick: "popover"
+      }
+    },
 
 
     eventClick(info) {
@@ -468,10 +468,10 @@ function initCalendar() {
     }
   });
   window.changeCalendarView = function (viewName) {
-  adminCalendar.changeView(viewName);
-};
+    adminCalendar.changeView(viewName);
+  };
 
-adminCalendar.render();
+  adminCalendar.render();
 }
 
 // =========================
@@ -553,8 +553,8 @@ function buildFixedClassTitle(slot) {
   const cohort =
     slot.cohortNumber
       ? `-C${String(
-          slot.cohortNumber
-        ).padStart(2, "0")}`
+        slot.cohortNumber
+      ).padStart(2, "0")}`
       : "";
 
   return [
@@ -570,9 +570,9 @@ function buildFixedClassTitle(slot) {
 // =========================
 function renderCalendarFromSchedule(schedule, clearFirst = true) {
   console.log(
-  "Rendering schedule:",
-  schedule.length
-);
+    "Rendering schedule:",
+    schedule.length
+  );
   if (clearFirst) {
     adminCalendar.removeAllEvents();
   }
@@ -605,9 +605,9 @@ function renderCalendarFromSchedule(schedule, clearFirst = true) {
 
         adminCalendar.addEvent({
           title:
-            slot.locked
-              ? buildFixedClassTitle(slot)
-              : `${slot.className} (${slot.location})`,
+  slot.locked
+    ? buildFixedClassTitle(slot)
+    : `${slot.className} (${slot.location ?? "IN"})`,
           start: start.toLocaleDateString("en-CA"),
           end: end.toLocaleDateString("en-CA"),
           allDay: true,
@@ -630,9 +630,9 @@ function renderCalendarFromSchedule(schedule, clearFirst = true) {
 
       adminCalendar.addEvent({
         title:
-          slot.locked
-            ? buildFixedClassTitle(slot)
-            : `${slot.className} (${slot.location})`,
+  slot.locked
+    ? buildFixedClassTitle(slot)
+    : `${slot.className} (${slot.location ?? "IN"})`,
         start: start.toLocaleDateString("en-CA"),
         end: end.toLocaleDateString("en-CA"),
         allDay: true,
@@ -846,9 +846,9 @@ document
 
         importBtn.textContent =
           "Importing...";
-          showLoading(
-  "Importing fixed classes..."
-);
+        showLoading(
+          "Importing fixed classes..."
+        );
 
         const data =
           await file.arrayBuffer();
@@ -909,7 +909,7 @@ Skipped/Duplicates: ${result.skippedCount}
 `);
 
 
-        
+
         await autoSaveSchedule();
       } catch (error) {
 
@@ -959,7 +959,7 @@ async function getConfiguredYear() {
 }
 
 async function generateSchedule() {
-  
+
   if (generateScheduleBtn) {
     generateScheduleBtn.disabled = true;
     generateScheduleBtn.textContent = "Generating...";
@@ -967,8 +967,8 @@ async function generateSchedule() {
 
   try {
     showLoading(
-  "Generating schedule..."
-);
+      "Generating schedule..."
+    );
     const res = await fetch(
       `${API_URL}/schedule`,
       {
@@ -1081,15 +1081,15 @@ function exportSchedule() {
         instructors.find(
           i => i.id === props.instructorId
         );
-const startDate =
-  event.start
-    ?.toISOString()
-    .slice(0, 10) || "";
+      const startDate =
+        event.start
+          ?.toISOString()
+          .slice(0, 10) || "";
 
-const endDate =
-  event.end
-    ?.toISOString()
-    .slice(0, 10) || "";
+      const endDate =
+        event.end
+          ?.toISOString()
+          .slice(0, 10) || "";
 
       return {
 
@@ -1099,7 +1099,7 @@ const endDate =
           "Unassigned",
 
         Course:
-  event.title || props.className || "",
+          event.title || props.className || "",
 
         Acronym:
           props.classAcronym || "",
@@ -1284,20 +1284,20 @@ async function saveSchedule() {
     await getConfiguredYear();
 
   await fetch(
-  `${API_URL}/schedule/save`,
-  {
-    method: "POST",
-    headers: {
-      "Content-Type":
-        "application/json"
-    },
-    body: JSON.stringify({
-      year: await getConfiguredYear(),
-      slots:
-        serializeCalendarToSlots()
-    })
-  }
-);
+    `${API_URL}/schedule/save`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type":
+          "application/json"
+      },
+      body: JSON.stringify({
+        year: await getConfiguredYear(),
+        slots:
+          serializeCalendarToSlots()
+      })
+    }
+  );
 
   alert("Schedule saved");
 }
@@ -1330,9 +1330,9 @@ async function loadSavedSchedule() {
     return false;
   }
   console.log(
-  "Loaded saved slots:",
-  data.slots?.length
-);
+    "Loaded saved slots:",
+    data.slots?.length
+  );
 
   renderCalendarFromSchedule(
     data.slots,
@@ -1341,17 +1341,17 @@ async function loadSavedSchedule() {
 
   const firstSlot = data.slots?.[0];
 
-if (firstSlot) {
-  adminCalendar.gotoDate(
-    firstSlot.weekStartDate
+  if (firstSlot) {
+    adminCalendar.gotoDate(
+      firstSlot.weekStartDate
+    );
+  }
+  console.log(
+    "Calendar events:",
+    adminCalendar
+      .getEvents()
+      .length
   );
-}
-console.log(
-  "Calendar events:",
-  adminCalendar
-    .getEvents()
-    .length
-);
   applyInstructorFilter();
   renderInstructorWorkloadFromCalendar();
   renderScheduleAnalytics();
@@ -1680,32 +1680,32 @@ function renderCourseAnalytics() {
 
 window.addEventListener("DOMContentLoaded", () => {
   onAuthStateChanged(auth, async user => {
-    
+
     if (!user) {
       window.location.href = "index.html";
       return;
     }
-showLoading( "Loading Instructors..." );
+    showLoading("Loading Instructors...");
     await loadInstructors();
 
     buildInstructorColors();
-showLoading( "Preparing Calendar..." );
+    showLoading("Preparing Calendar...");
     initCalendar();
     loadCatalog();
     renderInstructorLegend();
     showLoading(
-  "Loading saved schedule..."
-);
+      "Loading saved schedule..."
+    );
     const loaded =
-  await loadSavedSchedule();
+      await loadSavedSchedule();
 
-if (!loaded) {
+    if (!loaded) {
 
-  console.log(
-    "No saved schedule found."
-  );
-}
-hideLoading();
+      console.log(
+        "No saved schedule found."
+      );
+    }
+    hideLoading();
     saveEventBtn.onclick = async () => {
       if (!selectedEvent) return;
       const fixedPlacementImportEl =
@@ -1721,7 +1721,10 @@ hideLoading();
 
       selectedEvent.setExtendedProp("instructorId", instructor);
       selectedEvent.setExtendedProp("location", location);
-
+      selectedEvent.setProp(
+        "title",
+        `${selectedEvent.extendedProps.className} (${location})`
+      );
       const bg = getInstructorColor(instructor);
       const text = getContrastTextColor(bg);
 
@@ -1745,7 +1748,7 @@ hideLoading();
       renderScheduleAnalytics();
       renderCourseAnalytics();
       await autoSaveSchedule();
-      
+
     };
   });
 });
