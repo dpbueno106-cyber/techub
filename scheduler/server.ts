@@ -631,6 +631,27 @@ app.post("/schedule/save", async (req, res) => {
   res.json({ success: true });
 });
 
+app.post(
+  "/fixedPlacements/manual",
+  async (req, res) => {
+
+    const placement = {
+      ...req.body,
+      locked: true
+    };
+
+    const docRef =
+      await db
+        .collection("fixedPlacements")
+        .add(placement);
+
+    res.json({
+      success: true,
+      id: docRef.id
+    });
+  }
+);
+
 app.get("/catalog", async (_req, res) => {
   try {
     const snapshot = await db

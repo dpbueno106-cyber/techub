@@ -455,8 +455,48 @@ function initCalendar() {
         location: e.extendedProps.location ?? "IN",
         instructorId: e.extendedProps.instructorId,
         durationWeeks: e.extendedProps.durationWeeks ?? 1,
-        weekStartDate: e.startStr.split("T")[0]
+        weekStartDate: e.startStr.split("T")[0],
+        locked: true
       };
+      await fetch(
+        `${API_URL}/fixedPlacements/manual`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+          body: JSON.stringify({
+            className:
+              e.extendedProps.className,
+
+            classAcronym:
+              e.extendedProps.classAcronym ?? "",
+
+            courseNumber:
+              e.extendedProps.courseNumber ?? "",
+
+            cohortNumber:
+              e.extendedProps.cohortNumber ?? "",
+
+            displayCategory:
+              e.extendedProps.displayCategory ?? "",
+
+            location:
+              e.extendedProps.location ?? "IN",
+
+            weekStartDate:
+              e.startStr.split("T")[0],
+
+            durationWeeks:
+              e.extendedProps.durationWeeks ?? 1,
+
+            instructorName: null,
+
+            locked: true
+          })
+        }
+      );
 
       e.remove();
       renderCalendarFromSchedule([slot], false);
@@ -1727,7 +1767,12 @@ window.addEventListener("DOMContentLoaded", () => {
       selectedEvent.setExtendedProp("location", location);
       selectedEvent.setProp(
         "title",
-        `${selectedEvent.extendedProps.className} (${location})`
+        selectedEvent.extendedProps.locked
+          ? buildFixedClassTitle({
+            ...selectedEvent.extendedProps,
+            location
+          })
+          : `${selectedEvent.extendedProps.className} (${location})`
       );
       const bg = getInstructorColor(instructor);
       const text = getContrastTextColor(bg);
