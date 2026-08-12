@@ -605,9 +605,9 @@ function renderCalendarFromSchedule(schedule, clearFirst = true) {
 
         adminCalendar.addEvent({
           title:
-  slot.locked
-    ? buildFixedClassTitle(slot)
-    : `${slot.className} (${slot.location ?? "IN"})`,
+            slot.locked
+              ? buildFixedClassTitle(slot)
+              : `${slot.className} (${slot.location ?? "IN"})`,
           start: start.toLocaleDateString("en-CA"),
           end: end.toLocaleDateString("en-CA"),
           allDay: true,
@@ -630,9 +630,9 @@ function renderCalendarFromSchedule(schedule, clearFirst = true) {
 
       adminCalendar.addEvent({
         title:
-  slot.locked
-    ? buildFixedClassTitle(slot)
-    : `${slot.className} (${slot.location ?? "IN"})`,
+          slot.locked
+            ? buildFixedClassTitle(slot)
+            : `${slot.className} (${slot.location ?? "IN"})`,
         start: start.toLocaleDateString("en-CA"),
         end: end.toLocaleDateString("en-CA"),
         allDay: true,
@@ -1720,6 +1720,10 @@ window.addEventListener("DOMContentLoaded", () => {
       const location = editEventLocationEl.value;
 
       selectedEvent.setExtendedProp("instructorId", instructor);
+      selectedEvent.setExtendedProp(
+        "locked",
+        selectedEvent.extendedProps.locked
+      );
       selectedEvent.setExtendedProp("location", location);
       selectedEvent.setProp(
         "title",
