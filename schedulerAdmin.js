@@ -593,14 +593,21 @@ function buildFixedClassTitle(slot) {
   const cohort =
     slot.cohortNumber
       ? `-C${String(
-        slot.cohortNumber
-      ).padStart(2, "0")}`
+          slot.cohortNumber
+        ).padStart(2, "0")}`
+      : "";
+
+  const locationText =
+    slot.className ===
+    "New Technician Orientation"
+      ? `(${slot.location})`
       : "";
 
   return [
     `${courseId}${cohort}`,
     slot.displayCategory,
-    slot.className
+    slot.className,
+    locationText
   ]
     .filter(Boolean)
     .join(" ");
