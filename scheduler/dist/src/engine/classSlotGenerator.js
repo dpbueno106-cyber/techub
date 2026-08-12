@@ -82,17 +82,6 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
                 return (weekStart <= ptoEnd &&
                     ptoStart <= weekEnd);
             });
-            if (cls.name ===
-                "Advanced Troubleshooting") {
-                console.log("INSTRUCTOR CHECK", {
-                    className: cls.name,
-                    instructor: i.id,
-                    canTeach,
-                    canBeThere,
-                    conflicts,
-                    onPTO
-                });
-            }
             return (canTeach &&
                 canBeThere &&
                 !conflicts &&

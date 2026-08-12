@@ -542,15 +542,23 @@ function makeExternalEventsDraggable() {
 
 
 function buildFixedClassTitle(slot) {
-  const prefix = [
+
+  const courseId = [
     slot.classAcronym,
     slot.courseNumber
   ]
     .filter(Boolean)
     .join("");
 
+  const cohort =
+    slot.cohortNumber
+      ? `-C${String(
+          slot.cohortNumber
+        ).padStart(2, "0")}`
+      : "";
+
   return [
-    prefix,
+    `${courseId}${cohort}`,
     slot.displayCategory,
     slot.className
   ]
