@@ -724,6 +724,16 @@ details[open] .course-summary::before {
   background: #ffdf42;
 }
 
+.version-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.delete-version-btn {
+  background: #c62828;
+  color: white;
+}
+
 .version-card button:hover {
   background: #444;
 }

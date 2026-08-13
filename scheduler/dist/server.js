@@ -106,6 +106,15 @@ app.get("/schedule/version/list", verifyAdmin_1.verifyAdmin, async (_req, res) =
         ...doc.data()
     })));
 });
+app.delete("/schedule/version/:id", async (req, res) => {
+    await firebase_1.db
+        .collection("scheduleVersions")
+        .doc(req.params.id)
+        .delete();
+    res.json({
+        success: true
+    });
+});
 app.get("/schedule/version/:id", verifyAdmin_1.verifyAdmin, async (req, res) => {
     const doc = await firebase_1.db
         .collection("scheduleVersions")

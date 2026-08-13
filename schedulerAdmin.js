@@ -220,7 +220,7 @@ async function saveCatalogClass() {
     method: "POST",
     headers: await getAuthHeaders(),
     body: JSON.stringify(payload),
-    
+
   });
 
   closeAddCourseModal();
@@ -285,7 +285,6 @@ function hideVersions() {
 }
 
 async function showVersions() {
-
   const res = await fetch(
     `${API_URL}/schedule/version/list`,
     {
@@ -295,7 +294,8 @@ async function showVersions() {
 
   const versions = await res.json();
 
-  const container = document.getElementById("versionList");
+  const container =
+    document.getElementById("versionList");
 
   container.classList.remove("hidden");
 
@@ -310,35 +310,86 @@ async function showVersions() {
   `;
 
   versions.forEach(version => {
-
-    const created = version.createdAt
-      ? new Date(
-          version.createdAt?.seconds
-            ? version.createdAt.seconds * 1000
-            : version.createdAt
-        )
-      : null;
+    const created =
+      parseVersionDate(
+        version.createdAt
+      );
 
     container.innerHTML += `
       <div class="version-card">
 
-        <strong>${version.name}</strong>
+        <strong>
+          ${version.name}
+        </strong>
 
         <br>
 
         ${created
-          ? created.toLocaleString()
-          : "Unknown date"}
+        ? created.toLocaleString()
+        : "Unknown Date"
+      }
 
         <br><br>
 
-        <button onclick="restoreVersion('${version.id}')">
-          Restore
-        </button>
+        <div class="version-actions">
+
+  <button
+    onclick="restoreVersion('${version.id}')"
+  >
+    Restore
+  </button>
+
+  <button
+    class="delete-version-btn"
+    onclick="deleteVersion('${version.id}')"
+  >
+    Delete
+  </button>
+
+</div>
 
       </div>
     `;
   });
+}
+
+function parseVersionDate(createdAt) {
+  if (!createdAt) return null;
+
+  // Firestore SDK Timestamp
+  if (createdAt.seconds != null) {
+    return new Date(createdAt.seconds * 1000);
+  }
+
+  // Firestore internal format
+  if (createdAt._seconds != null) {
+    return new Date(createdAt._seconds * 1000);
+  }
+
+  // Firestore REST API format
+  if (createdAt.timestampValue) {
+    return new Date(createdAt.timestampValue);
+  }
+
+  // Unix timestamp in milliseconds
+  if (typeof createdAt === "number") {
+    return new Date(createdAt);
+  }
+
+  // Numeric string
+  if (
+    typeof createdAt === "string" &&
+    /^\d+$/.test(createdAt)
+  ) {
+    return new Date(Number(createdAt));
+  }
+
+  // ISO string or anything Date can parse
+  const date = new Date(createdAt);
+
+  return isNaN(date.getTime())
+    ? null
+    : date;
 }
 
 function populateInstructorDropdown(
@@ -389,6 +440,28 @@ function populateInstructorDropdown(
     });
 }
 
+async function deleteVersion(versionId) {
+
+  if (!confirm("Delete this version?")) {
+    return;
+  }
+
+  const res = await fetch(
+    `${API_URL}/schedule/version/${versionId}`,
+    {
+      method: "DELETE",
+      headers: await getAuthHeaders()
+    }
+  );
+
+  if (!res.ok) {
+    alert("Failed to delete version");
+    return;
+  }
+
+  await showVersions();
+}
+
 async function saveVersion() {
 
   const saveBtn =
@@ -408,9 +481,14 @@ async function saveVersion() {
     const year =
       await getConfiguredYear();
 
-    const name =
-      `Version ${new Date()
-        .toLocaleString()}`;
+    const name = prompt(
+      "Enter a version name:",
+      `Version ${new Date().toLocaleString()}`
+    );
+
+    if (!name) {
+      return;
+    }
 
     const res = await fetch(
       `${API_URL}/schedule/version`,
@@ -648,7 +726,7 @@ function initCalendar() {
         `${API_URL}/fixedPlacements/manual`,
         {
           method: "POST",
-          headers:await getAuthHeaders(),
+          headers: await getAuthHeaders(),
           body: JSON.stringify({
             className:
               e.extendedProps.className,
@@ -776,13 +854,13 @@ function buildFixedClassTitle(slot) {
   const cohort =
     slot.cohortNumber
       ? `-C${String(
-          slot.cohortNumber
-        ).padStart(2, "0")}`
+        slot.cohortNumber
+      ).padStart(2, "0")}`
       : "";
 
   const locationText =
     slot.className ===
-    "New Technician Orientation"
+      "New Technician Orientation"
       ? `(${slot.location})`
       : "";
 
@@ -1106,7 +1184,7 @@ document
             `${API_URL}/fixedPlacements/import`,
             {
               method: "POST",
-              headers:await getAuthHeaders(),
+              headers: await getAuthHeaders(),
               body: JSON.stringify(
                 rows
               )
@@ -2009,8 +2087,9 @@ Object.assign(window, {
   restoreVersion,
   showVersions,
   saveVersion,
+  deleteVersion,
   hideVersions,
-  
+
   clearFixedPlacements,
   clearSchedule: () => {
     if (confirm("Are you sure you want to clear the schedule?")) {

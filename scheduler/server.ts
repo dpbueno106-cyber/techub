@@ -218,6 +218,22 @@ app.get(
   }
 );
 
+app.delete(
+  "/schedule/version/:id",
+  async (req, res) => {
+
+    await db
+      .collection("scheduleVersions")
+      .doc(req.params.id)
+      .delete();
+
+    res.json({
+      success: true
+    });
+  }
+);
+
+
 app.get(
   "/schedule/version/:id",
   verifyAdmin,
