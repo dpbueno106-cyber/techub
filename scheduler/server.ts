@@ -195,6 +195,53 @@ app.get(
 );
 
 app.get(
+  "/schedule/version/list",
+  verifyAdmin,
+  async (_req, res) => {
+
+    const snapshot =
+      await db
+        .collection("scheduleVersions")
+        .orderBy(
+          "createdAt",
+          "desc"
+        )
+        .limit(100)
+        .get();
+
+    res.json(
+      snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+    );
+  }
+);
+
+app.get(
+  "/schedule/version/:id",
+  verifyAdmin,
+  async (req, res) => {
+
+    const doc =
+      await db
+        .collection("scheduleVersions")
+        .doc(req.params.id)
+        .get();
+
+    if (!doc.exists) {
+
+      return res.status(404).json({
+        error: "Version not found"
+      });
+
+    }
+
+    res.json(doc.data());
+  }
+);
+
+app.get(
   "/schedule/version/:id",
   verifyAdmin,
   async (req, res) => {

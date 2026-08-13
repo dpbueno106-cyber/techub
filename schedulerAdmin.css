@@ -634,3 +634,18 @@ details[open] .course-summary::before {
   background: #222 !important;
 }
 
+#versionList {
+  margin-top: 20px;
+}
+
+.version-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.version-card button {
+  margin-top: 8px;
+}

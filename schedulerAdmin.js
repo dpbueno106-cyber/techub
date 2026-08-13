@@ -238,7 +238,98 @@ function buildInstructorColors() {
 
   console.log("Instructor colors:", instructorColors);
 }
+async function restoreVersion(
+  versionId
+) {
 
+  if (
+    !confirm(
+      "Restore this schedule version?"
+    )
+  ) {
+    return;
+  }
+
+  const res = await fetch(
+    `${API_URL}/schedule/version/${versionId}`,
+    {
+      headers:
+        await getAuthHeaders()
+    }
+  );
+
+  const version =
+    await res.json();
+
+  renderCalendarFromSchedule(
+    version.slots,
+    true
+  );
+
+  await autoSaveSchedule();
+
+  alert(
+    "Version restored"
+  );
+
+}
+
+
+async function showVersions() {
+
+  const res = await fetch(
+    `${API_URL}/schedule/version/list`,
+    {
+      headers:
+        await getAuthHeaders()
+    }
+  );
+
+  const versions =
+    await res.json();
+
+  const container =
+    document.getElementById(
+      "versionList"
+    );
+
+  container.classList.remove(
+    "hidden"
+  );
+
+  container.innerHTML = "";
+
+  versions.forEach(version => {
+
+    container.innerHTML += `
+      <div class="version-card">
+
+        <strong>
+          ${version.name}
+        </strong>
+
+        <br>
+
+        ${new Date(
+          version.createdAt
+            ?.seconds
+            ? version.createdAt.seconds * 1000
+            : version.createdAt
+        ).toLocaleString()}
+
+        <br><br>
+
+        <button
+          onclick="restoreVersion('${version.id}')"
+        >
+          Restore
+        </button>
+
+      </div>
+    `;
+  });
+
+}
 
 function populateInstructorDropdown(
   selectId,
@@ -294,13 +385,10 @@ async function saveVersion() {
     await getConfiguredYear();
 
   const name =
-    window.prompt(
-      "Version Name"
-    );
+    `Version ${new Date()
+      .toLocaleString()}`;
 
-  if (!name) return;
-
-  await fetch(
+  const res = await fetch(
     `${API_URL}/schedule/version`,
     {
       method: "POST",
@@ -315,9 +403,12 @@ async function saveVersion() {
     }
   );
 
-  alert(
-    "Version saved"
-  );
+  if (!res.ok) {
+    alert("Failed to save version");
+    return;
+  }
+
+  alert("Version saved");
 }
 // =========================
 // SERIALIZATION (PERSISTENCE)
@@ -1874,6 +1965,9 @@ Object.assign(window, {
   goBack: () => window.location.href = "adminDashboard.html",
   openEditModal,
   closeEditModal,
+  saveVersion,
+  restoreVersion,
+  showVersions,
   saveVersion,
   clearFixedPlacements,
   clearSchedule: () => {
