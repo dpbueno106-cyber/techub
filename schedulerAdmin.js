@@ -294,7 +294,7 @@ async function saveVersion() {
     await getConfiguredYear();
 
   const name =
-    prompt(
+    window.prompt(
       "Version Name"
     );
 
@@ -1874,6 +1874,7 @@ Object.assign(window, {
   goBack: () => window.location.href = "adminDashboard.html",
   openEditModal,
   closeEditModal,
+  saveVersion,
   clearFixedPlacements,
   clearSchedule: () => {
     if (confirm("Are you sure you want to clear the schedule?")) {
