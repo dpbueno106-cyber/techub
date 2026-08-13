@@ -1872,7 +1872,9 @@ function renderScheduleAnalytics() {
 
 function highlightConflicts() {
 
+  // Reset all events first
   adminCalendar.getEvents().forEach(event => {
+
     const instructor =
       event.extendedProps.instructorId;
 
@@ -1885,13 +1887,38 @@ function highlightConflicts() {
         ? "#000"
         : bg
     );
+
+    // remove conflict styling
+    event.setExtendedProp(
+      "hasConflict",
+      false
+    );
+
+    const cleanedClasses =
+      (event.classNames || [])
+        .filter(c =>
+          c !== "schedule-conflict"
+        );
+
+    event.setProp(
+      "classNames",
+      cleanedClasses
+    );
   });
 
+  // Find current conflicts
   const conflicts =
     findInstructorConflicts();
 
   conflicts.forEach(group => {
+
     group.forEach(event => {
+
+      event.setExtendedProp(
+        "hasConflict",
+        true
+      );
+
       event.setProp(
         "borderColor",
         "#ff0000"
@@ -1905,6 +1932,7 @@ function highlightConflicts() {
         ]
       );
     });
+
   });
 
   return conflicts;
@@ -1925,46 +1953,76 @@ function renderConflictSummary() {
   if (!conflicts.length) {
 
     container.innerHTML = `
-      <div class="success-card">
-        ✅ No instructor conflicts
+      <div class="conflict-success">
+        ✅ No Instructor Conflicts
       </div>
     `;
 
     return;
   }
 
-  container.innerHTML =
-    `<h3>Instructor Conflicts (${conflicts.length})</h3>`;
+  container.innerHTML = `
+
+    <div class="conflict-header">
+
+      <h2>
+        ⚠️ Instructor Conflicts
+      </h2>
+
+      <span>
+        ${conflicts.length} Found
+      </span>
+
+    </div>
+
+    <div class="conflict-grid"></div>
+
+  `;
+
+  const grid =
+    container.querySelector(
+      ".conflict-grid"
+    );
 
   conflicts.forEach(group => {
 
     const first = group[0];
 
-    const instructor =
+    const instructorName =
       instructors.find(
         i =>
           i.id ===
           first.extendedProps.instructorId
-      )?.name ||
+      )?.name
+      ||
       first.extendedProps.instructorId;
 
-    container.innerHTML += `
+    grid.innerHTML += `
       <div class="conflict-card">
 
-        <strong>${instructor}</strong>
+        <div class="conflict-card-header">
 
-        <br>
+          <span class="conflict-name">
+            ${instructorName}
+          </span>
 
-        Week:
-        ${first.extendedProps.weekStartDate}
+          <span class="conflict-week">
+            ${first.extendedProps.weekStartDate}
+          </span>
 
-        <ul>
-          ${group.map(e => `
-            <li>
-              ${e.extendedProps.className}
-            </li>
+        </div>
+
+        <div class="conflict-list">
+
+          ${group.map(event => `
+            <div class="conflict-course">
+
+              ${event.extendedProps.className}
+
+            </div>
           `).join("")}
-        </ul>
+
+        </div>
 
       </div>
     `;
