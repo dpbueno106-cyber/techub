@@ -289,71 +289,56 @@ async function showVersions() {
   const res = await fetch(
     `${API_URL}/schedule/version/list`,
     {
-      headers:
-        await getAuthHeaders()
+      headers: await getAuthHeaders()
     }
   );
 
-  const versions =
-    await res.json();
+  const versions = await res.json();
 
-  const container =
-    document.getElementById(
-      "versionList"
-    );
+  const container = document.getElementById("versionList");
 
-  container.classList.remove(
-    "hidden"
-  );
+  container.classList.remove("hidden");
 
   container.innerHTML = `
-  <div class="version-header">
+    <div class="version-header">
+      <h3>Schedule Versions</h3>
 
-    <h3>
-      Schedule Versions
-    </h3>
+      <button onclick="hideVersions()">
+        Close
+      </button>
+    </div>
+  `;
 
-    <button
-      onclick="hideVersions()"
-    >
-      Close
-    </button>
-
-  </div>
-`;
-const created =
-  version.createdAt?.seconds
-    ? new Date(
-        version.createdAt.seconds * 1000
-      )
-    : new Date(
-        version.createdAt
-      );
   versions.forEach(version => {
+
+    const created = version.createdAt
+      ? new Date(
+          version.createdAt?.seconds
+            ? version.createdAt.seconds * 1000
+            : version.createdAt
+        )
+      : null;
 
     container.innerHTML += `
       <div class="version-card">
 
-        <strong>
-          ${version.name}
-        </strong>
+        <strong>${version.name}</strong>
 
         <br>
 
-        ${created.toLocaleString()}
+        ${created
+          ? created.toLocaleString()
+          : "Unknown date"}
 
         <br><br>
 
-        <button
-          onclick="restoreVersion('${version.id}')"
-        >
+        <button onclick="restoreVersion('${version.id}')">
           Restore
         </button>
 
       </div>
     `;
   });
-
 }
 
 function populateInstructorDropdown(

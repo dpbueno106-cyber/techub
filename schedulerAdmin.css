@@ -643,10 +643,12 @@ details[open] .course-summary::before {
 
   background: #1e1e1e;
   border: 1px solid #333;
-
   border-radius: 10px;
 
   padding: 15px;
+
+  max-height: 450px;
+  overflow-y: auto;
 }
 
 .version-header {
@@ -702,11 +704,24 @@ details[open] .course-summary::before {
   color: #ffd400;
 }
 
-.version-card button {
-  background: #333;
-  color: white;
+.version-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 
-  margin-right: 8px;
+  background: #222222;
+
+  border-left: 5px solid #ffd400;
+
+  border-radius: 8px;
+
+  padding: 12px;
+
+  margin-bottom: 8px;
+}
+
+.version-card button:hover {
+  background: #ffdf42;
 }
 
 .version-card button:hover {
@@ -726,7 +741,26 @@ details[open] .course-summary::before {
     transform 0.2s ease;
 }
 
+#saveVersionBtn {
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
 #saveVersionBtn:disabled {
-  opacity: 0.5;
-  transform: scale(0.98);
+  opacity: 0.55;
+  transform: scale(0.97);
+  filter: brightness(0.8);
+}
+
+.version-card strong {
+  display: block;
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+
+.version-date {
+  color: #9ca3af;
+  font-size: 12px;
+  margin-bottom: 10px;
 }
