@@ -7,6 +7,7 @@ let draggableInstance = null;
 let selectedEvent = null;
 let instructors = [];
 let instructorColors = {};
+let generationConfig = {};
 
 /*const defaultInstructorNames = [
   "Aaron", "Jesse", "Marc", "Leon",
@@ -227,6 +228,18 @@ async function saveCatalogClass() {
   loadCatalog();
 }
 
+async function loadGenerationConfig() {
+
+  const response = await fetch(
+    `${API_URL}/config/generation`,
+    {
+      headers: await getAuthHeaders()
+    }
+  );
+
+  generationConfig =
+    await response.json();
+}
 
 function buildInstructorColors() {
   instructorColors = {};
@@ -765,6 +778,8 @@ function initCalendar() {
       renderInstructorWorkloadFromCalendar();
       renderScheduleAnalytics();
       renderCourseAnalytics();
+      highlightConflicts();
+      renderConflictSummary();
       autoSaveSchedule();
     }
   });
@@ -1348,6 +1363,8 @@ async function generateSchedule() {
     renderInstructorWorkloadFromCalendar();
     renderScheduleAnalytics();
     renderCourseAnalytics();
+    highlightConflicts();
+    renderConflictSummary();
     await autoSaveSchedule();
 
     console.log(
@@ -1658,6 +1675,8 @@ async function loadSavedSchedule() {
   renderInstructorWorkloadFromCalendar();
   renderScheduleAnalytics();
   renderCourseAnalytics();
+  highlightConflicts();
+  renderConflictSummary();
 
   return true;
 }
@@ -1851,6 +1870,138 @@ function renderScheduleAnalytics() {
 `;
 }
 
+function highlightConflicts() {
+
+  adminCalendar.getEvents().forEach(event => {
+    const instructor =
+      event.extendedProps.instructorId;
+
+    const bg =
+      getInstructorColor(instructor);
+
+    event.setProp(
+      "borderColor",
+      event.extendedProps.locked
+        ? "#000"
+        : bg
+    );
+  });
+
+  const conflicts =
+    findInstructorConflicts();
+
+  conflicts.forEach(group => {
+    group.forEach(event => {
+      event.setProp(
+        "borderColor",
+        "#ff0000"
+      );
+
+      event.setProp(
+        "classNames",
+        [
+          ...(event.classNames || []),
+          "schedule-conflict"
+        ]
+      );
+    });
+  });
+
+  return conflicts;
+}
+
+function renderConflictSummary() {
+
+  const conflicts =
+    findInstructorConflicts();
+
+  const container =
+    document.getElementById(
+      "scheduleConflicts"
+    );
+
+  if (!container) return;
+
+  if (!conflicts.length) {
+
+    container.innerHTML = `
+      <div class="success-card">
+        ✅ No instructor conflicts
+      </div>
+    `;
+
+    return;
+  }
+
+  container.innerHTML =
+    `<h3>Instructor Conflicts (${conflicts.length})</h3>`;
+
+  conflicts.forEach(group => {
+
+    const first = group[0];
+
+    const instructor =
+      instructors.find(
+        i =>
+          i.id ===
+          first.extendedProps.instructorId
+      )?.name ||
+      first.extendedProps.instructorId;
+
+    container.innerHTML += `
+      <div class="conflict-card">
+
+        <strong>${instructor}</strong>
+
+        <br>
+
+        Week:
+        ${first.extendedProps.weekStartDate}
+
+        <ul>
+          ${group.map(e => `
+            <li>
+              ${e.extendedProps.className}
+            </li>
+          `).join("")}
+        </ul>
+
+      </div>
+    `;
+  });
+}
+
+function findInstructorConflicts() {
+  const conflicts = [];
+  const scheduleMap = new Map();
+
+  getLogicalScheduleEvents().forEach(event => {
+    const instructorId =
+      event.extendedProps.instructorId;
+
+    if (!instructorId) return;
+
+    const week =
+      event.extendedProps.weekStartDate;
+
+    const key =
+      `${instructorId}|${week}`;
+
+    if (!scheduleMap.has(key)) {
+      scheduleMap.set(key, []);
+    }
+
+    scheduleMap.get(key).push(event);
+  });
+
+  scheduleMap.forEach(events => {
+    if (events.length > 1) {
+      conflicts.push(events);
+    }
+  });
+
+  return conflicts;
+}
 
 function renderCourseAnalytics() {
 
@@ -1998,6 +2149,7 @@ window.addEventListener("DOMContentLoaded", () => {
     showLoading(
       "Loading saved schedule..."
     );
+    await loadGenerationConfig();
     const loaded =
       await loadSavedSchedule();
 
@@ -2047,6 +2199,8 @@ window.addEventListener("DOMContentLoaded", () => {
       renderInstructorWorkloadFromCalendar();
       renderScheduleAnalytics();
       renderCourseAnalytics();
+      highlightConflicts();
+      renderConflictSummary();
       await autoSaveSchedule();
 
     };
@@ -2058,6 +2212,8 @@ window.addEventListener("DOMContentLoaded", () => {
       renderInstructorWorkloadFromCalendar();
       renderScheduleAnalytics();
       renderCourseAnalytics();
+      highlightConflicts();
+      renderConflictSummary();
       await autoSaveSchedule();
 
     };
@@ -2097,6 +2253,8 @@ Object.assign(window, {
       renderInstructorWorkloadFromCalendar();
       renderScheduleAnalytics();
       renderCourseAnalytics();
+      highlightConflicts();
+      renderConflictSummary();
       autoSaveSchedule();
     }
   }

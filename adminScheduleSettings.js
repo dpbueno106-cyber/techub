@@ -28,6 +28,9 @@ async function loadSettings() {
   document.getElementById("ntoStartDay").value =
     config.nto.startDay ?? "Tuesday";
 
+document.getElementById("preventConflicts").checked =
+  config.preventConflicts ?? false;
+
   document.querySelectorAll(".ntoLocation").forEach(cb => {
     cb.checked = config.nto.locations.includes(cb.value);
   });
@@ -54,7 +57,7 @@ document.getElementById("saveSettingsBtn")
     const config = {
       year: Number(document.getElementById("year").value),
       totalClasses: Number(document.getElementById("totalClasses").value),
-
+      preventConflicts: document.getElementById("preventConflicts").checked ?? false,
       categoryCaps: {
         Foundational: foundationalPct / 100,
         Advanced: 1 - foundationalPct / 100

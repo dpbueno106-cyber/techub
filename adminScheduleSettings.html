@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Schedule Generator Settings</title>
   <link rel="stylesheet" href="adminScheduleSettings.css" />
 </head>
+
 <body>
 
   <div class="topBar">
@@ -28,15 +30,16 @@
         <input type="number" id="totalClasses" min="1" />
       </label>
       <label for="maxClassesPerWeek">
-  Max Classes Per Week
-</label>
+        Max Classes Per Week
+      </label>
 
-<input
-  id="maxClassesPerWeek"
-  type="number"
-  min="1"
-  max="10"
-/>
+      <input id="maxClassesPerWeek" type="number" min="1" max="10" />
+
+      <label>
+        <input type="checkbox" id="preventConflicts" />
+        Prevent Saving Schedules With Instructor Conflicts
+      </label>
+      
     </section>
 
     <section>
@@ -104,4 +107,5 @@
 
   <script src="adminScheduleSettings.js"></script>
 </body>
+
 </html>
