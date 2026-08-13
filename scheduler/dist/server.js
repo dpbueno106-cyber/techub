@@ -9,6 +9,7 @@ const cors_1 = __importDefault(require("cors"));
 const generateSchedule_1 = require("./src/engine/generateSchedule");
 const firestoreLoaders_1 = require("./src/firestoreLoaders");
 const firebase_1 = require("./firebase");
+const auditLog_1 = require("./src/auditLog");
 const app = (0, express_1.default)();
 app.disable("x-powered-by");
 app.use(express_1.default.json());
@@ -185,6 +186,13 @@ app.post("/fixedPlacements/import", verifyAdmin_1.verifyAdmin, async (req, res) 
             .get();
         console.log("TOTAL DOCS AFTER IMPORT:", verify.size);
         console.log("FINAL PLACEMENTS COUNT:", placements.length);
+        await (0, auditLog_1.auditLog)(req.user.email, "FIXED_PLACEMENTS_IMPORTED", {
+            totalRows,
+            recognizedCount,
+            customCourseCount,
+            importedCount,
+            skippedCount: totalRows - importedCount
+        });
         res.json({
             success: true,
             totalRows,
@@ -208,6 +216,9 @@ app.delete("/catalog/:id", verifyAdmin_1.verifyAdmin, async (req, res) => {
     try {
         await firebase_1.db.collection("catalog").doc(id).update({
             isActive: false
+        });
+        await (0, auditLog_1.auditLog)(req.user.email, "CATALOG_DELETED", {
+            catalogId: id
         });
         res.json({ success: true });
     }
@@ -236,6 +247,9 @@ app.delete("/fixedPlacements/:id", verifyAdmin_1.verifyAdmin, async (req, res) =
             .collection("fixedPlacements")
             .doc(req.params.id)
             .delete();
+        await (0, auditLog_1.auditLog)(req.user.email, "FIXED_PLACEMENT_DELETED", {
+            placementId: req.params.id
+        });
         res.json({
             success: true
         });
@@ -261,6 +275,17 @@ app.post("/config/generation", verifyAdmin_1.verifyAdmin, async (req, res) => {
             error: "Failed to save config"
         });
     }
+});
+app.get("/auditLogs", verifyAdmin_1.verifyAdmin, async (_req, res) => {
+    const snapshot = await firebase_1.db
+        .collection("auditLogs")
+        .orderBy("timestamp", "desc")
+        .limit(500)
+        .get();
+    res.json(snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    })));
 });
 app.get("/config/generation", async (_req, res) => {
     try {
@@ -341,6 +366,11 @@ app.post("/fixedPlacements/manual", verifyAdmin_1.verifyAdmin, async (req, res) 
     const docRef = await firebase_1.db
         .collection("fixedPlacements")
         .add(placement);
+    await (0, auditLog_1.auditLog)(req.user.email, "MANUAL_FIXED_PLACEMENT_CREATED", {
+        className: placement.className,
+        location: placement.location,
+        weekStartDate: placement.weekStartDate
+    });
     res.json({
         success: true,
         id: docRef.id
@@ -379,6 +409,11 @@ app.post("/catalog", verifyAdmin_1.verifyAdmin, async (req, res) => {
             frequencyWeight,
             isActive: true,
             createdAt: new Date()
+        });
+        await (0, auditLog_1.auditLog)(req.user.email, "CATALOG_CREATED", {
+            name,
+            category,
+            durationWeeks
         });
         res.json({ success: true });
     }

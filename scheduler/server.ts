@@ -10,6 +10,7 @@ import {
   loadInstructorsFromFirestore
 } from "./src/firestoreLoaders";
 import { db } from "./firebase";
+import { auditLog } from "./src/auditLog";
 const app = express();
 app.disable("x-powered-by");
 app.use(express.json());
@@ -428,6 +429,18 @@ let importedCount = 0;
         "FINAL PLACEMENTS COUNT:",
         placements.length
       );
+      await auditLog(
+  (req as any).user.email,
+  "FIXED_PLACEMENTS_IMPORTED",
+  {
+    totalRows,
+    recognizedCount,
+    customCourseCount,
+    importedCount,
+    skippedCount:
+      totalRows - importedCount
+  }
+);
       res.json({
   success: true,
   totalRows,
@@ -460,7 +473,13 @@ app.delete("/catalog/:id", verifyAdmin, async (req, res) => {
     await db.collection("catalog").doc(id).update({
       isActive: false
     });
-
+    await auditLog(
+  (req as any).user.email,
+  "CATALOG_DELETED",
+  {
+    catalogId: id
+  }
+);
     res.json({ success: true });
   } catch (err) {
     console.error("Failed to delete catalog item", err);
@@ -501,7 +520,14 @@ app.delete("/fixedPlacements/:id", verifyAdmin, async (req, res) => {
       .collection("fixedPlacements")
       .doc(req.params.id)
       .delete();
-
+    await auditLog(
+  (req as any).user.email,
+  "FIXED_PLACEMENT_DELETED",
+  {
+    placementId:
+      req.params.id
+  }
+);
     res.json({
       success: true
     });
@@ -532,6 +558,31 @@ app.post("/config/generation", verifyAdmin, async (req, res) => {
     });
   }
 });
+
+
+app.get(
+  "/auditLogs",
+  verifyAdmin,
+  async (_req, res) => {
+
+    const snapshot =
+      await db
+        .collection("auditLogs")
+        .orderBy(
+          "timestamp",
+          "desc"
+        )
+        .limit(500)
+        .get();
+
+    res.json(
+      snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+    );
+  }
+);
 
 app.get("/config/generation", async (_req, res) => {
   try {
@@ -648,7 +699,20 @@ app.post(
       await db
         .collection("fixedPlacements")
         .add(placement);
+    await auditLog(
+  (req as any).user.email,
+  "MANUAL_FIXED_PLACEMENT_CREATED",
+  {
+    className:
+      placement.className,
 
+    location:
+      placement.location,
+
+    weekStartDate:
+      placement.weekStartDate
+  }
+);
     res.json({
       success: true,
       id: docRef.id
@@ -704,7 +768,17 @@ app.post("/catalog", verifyAdmin, async (req, res) => {
       isActive: true,
       createdAt: new Date()
     });
-
+    
+    await auditLog(
+      
+  (req as any).user.email,
+  "CATALOG_CREATED",
+  {
+    name,
+    category,
+    durationWeeks
+  }
+);
     res.json({ success: true });
   } catch {
     res.status(500).json({ error: "Failed to save catalog class" });

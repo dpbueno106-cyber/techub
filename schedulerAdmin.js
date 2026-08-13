@@ -75,6 +75,7 @@ import {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
+
 const firebaseConfig = {
   apiKey: "AIzaSyD9i5yfE80MAsiri8SwiRCFParRb9jPyzY",
   authDomain: "techub-login-system.firebaseapp.com",
@@ -216,7 +217,8 @@ async function saveCatalogClass() {
   await fetch(`${API_URL}/catalog`, {
     method: "POST",
     headers: await getAuthHeaders(),
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
+    
   });
 
   closeAddCourseModal();
@@ -1319,10 +1321,7 @@ async function autoSaveSchedule() {
       `${API_URL}/schedule/save`,
       {
         method: "POST",
-        headers: {
-          "Content-Type":
-            "application/json"
-        },
+        headers: await getAuthHeaders(),
         body: JSON.stringify({
           year,
           slots:
@@ -1352,10 +1351,7 @@ async function saveSchedule() {
     `${API_URL}/schedule/save`,
     {
       method: "POST",
-      headers: {
-        "Content-Type":
-          "application/json"
-      },
+      headers: await getAuthHeaders(),
       body: JSON.stringify({
         year: await getConfiguredYear(),
         slots:
