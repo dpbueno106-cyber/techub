@@ -168,6 +168,89 @@ app.post(
   }
 );
 
+app.get(
+  "/schedule/version/list",
+  verifyAdmin,
+  async (_req, res) => {
+
+    const snapshot =
+      await db
+        .collection(
+          "scheduleVersions"
+        )
+        .orderBy(
+          "createdAt",
+          "desc"
+        )
+        .limit(50)
+        .get();
+
+    res.json(
+      snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+    );
+  }
+);
+
+app.get(
+  "/schedule/version/:id",
+  verifyAdmin,
+  async (req, res) => {
+
+    const doc =
+      await db
+        .collection(
+          "scheduleVersions"
+        )
+        .doc(req.params.id)
+        .get();
+
+    if (!doc.exists) {
+      return res
+        .status(404)
+        .json({
+          error:
+            "Version not found"
+        });
+    }
+
+    res.json(doc.data());
+  }
+);
+
+app.post(
+  "/schedule/version",
+  verifyAdmin,
+  async (req, res) => {
+
+    const { name, year, slots } =
+      req.body;
+
+    const doc =
+      await db
+        .collection(
+          "scheduleVersions"
+        )
+        .add({
+          name,
+          year,
+          slots,
+          createdBy:
+            (req as any)
+              .user.email,
+          createdAt:
+            new Date()
+        });
+
+    res.json({
+      success: true,
+      id: doc.id
+    });
+  }
+);
+
 app.delete(
   "/instructorTimeOff/:id",
   async (req, res) => {
