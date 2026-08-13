@@ -1,3 +1,5 @@
+import { verifyAdmin }
+  from "./src/middleware/verifyAdmin";
 import express from "express";
 import cors from "cors";
 import type { FixedPlacement, InstructorTimeOff } from "./src/types";
@@ -186,7 +188,7 @@ app.delete(
 );
 app.post(
   "/fixedPlacements/import",
-
+  verifyAdmin,
   async (req, res) => {
     console.log(
       "IMPORT BODY:",
@@ -451,7 +453,7 @@ let importedCount = 0;
 );
 
 
-app.delete("/catalog/:id", async (req, res) => {
+app.delete("/catalog/:id", verifyAdmin, async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -470,6 +472,7 @@ app.delete("/catalog/:id", async (req, res) => {
 
 app.delete(
   "/fixedPlacements",
+  verifyAdmin,
   async (_req, res) => {
 
     const snap =
@@ -491,7 +494,7 @@ app.delete(
   }
 );
 
-app.delete("/fixedPlacements/:id", async (req, res) => {
+app.delete("/fixedPlacements/:id", verifyAdmin, async (req, res) => {
   try {
 
     await db
@@ -513,7 +516,7 @@ app.delete("/fixedPlacements/:id", async (req, res) => {
   }
 });
 
-app.post("/config/generation", async (req, res) => {
+app.post("/config/generation", verifyAdmin, async (req, res) => {
   try {
     await db
       .collection("config")
@@ -633,6 +636,7 @@ app.post("/schedule/save", async (req, res) => {
 
 app.post(
   "/fixedPlacements/manual",
+  verifyAdmin,
   async (req, res) => {
 
     const placement = {
@@ -670,7 +674,7 @@ app.get("/catalog", async (_req, res) => {
   }
 });
 
-app.post("/catalog", async (req, res) => {
+app.post("/catalog", verifyAdmin, async (req, res) => {
   try {
     const {
       name,

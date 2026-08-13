@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const verifyAdmin_1 = require("./src/middleware/verifyAdmin");
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const generateSchedule_1 = require("./src/engine/generateSchedule");
@@ -91,7 +92,7 @@ app.delete("/instructorTimeOff/:id", async (req, res) => {
         success: true
     });
 });
-app.post("/fixedPlacements/import", async (req, res) => {
+app.post("/fixedPlacements/import", verifyAdmin_1.verifyAdmin, async (req, res) => {
     console.log("IMPORT BODY:", JSON.stringify(req.body, null, 2));
     try {
         console.log("IMPORT REQUEST BODY:", req.body);
@@ -202,7 +203,7 @@ app.post("/fixedPlacements/import", async (req, res) => {
         });
     }
 });
-app.delete("/catalog/:id", async (req, res) => {
+app.delete("/catalog/:id", verifyAdmin_1.verifyAdmin, async (req, res) => {
     const { id } = req.params;
     try {
         await firebase_1.db.collection("catalog").doc(id).update({
@@ -216,7 +217,7 @@ app.delete("/catalog/:id", async (req, res) => {
     }
 });
 //this is for clearing all fixed placements from the database
-app.delete("/fixedPlacements", async (_req, res) => {
+app.delete("/fixedPlacements", verifyAdmin_1.verifyAdmin, async (_req, res) => {
     const snap = await firebase_1.db
         .collection("fixedPlacements")
         .get();
@@ -229,7 +230,7 @@ app.delete("/fixedPlacements", async (_req, res) => {
         success: true
     });
 });
-app.delete("/fixedPlacements/:id", async (req, res) => {
+app.delete("/fixedPlacements/:id", verifyAdmin_1.verifyAdmin, async (req, res) => {
     try {
         await firebase_1.db
             .collection("fixedPlacements")
@@ -246,7 +247,7 @@ app.delete("/fixedPlacements/:id", async (req, res) => {
         });
     }
 });
-app.post("/config/generation", async (req, res) => {
+app.post("/config/generation", verifyAdmin_1.verifyAdmin, async (req, res) => {
     try {
         await firebase_1.db
             .collection("config")
@@ -332,6 +333,19 @@ app.post("/schedule/save", async (req, res) => {
     });
     res.json({ success: true });
 });
+app.post("/fixedPlacements/manual", verifyAdmin_1.verifyAdmin, async (req, res) => {
+    const placement = {
+        ...req.body,
+        locked: true
+    };
+    const docRef = await firebase_1.db
+        .collection("fixedPlacements")
+        .add(placement);
+    res.json({
+        success: true,
+        id: docRef.id
+    });
+});
 app.get("/catalog", async (_req, res) => {
     try {
         const snapshot = await firebase_1.db
@@ -347,7 +361,7 @@ app.get("/catalog", async (_req, res) => {
         res.status(500).json({ error: "Failed to load catalog" });
     }
 });
-app.post("/catalog", async (req, res) => {
+app.post("/catalog", verifyAdmin_1.verifyAdmin, async (req, res) => {
     try {
         const { name, category, durationWeeks, defaultLocations, frequencyMode, frequencyWeight } = req.body;
         if (!name ||

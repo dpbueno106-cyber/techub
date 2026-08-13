@@ -87,6 +87,29 @@ const auth = getAuth(app);
 // =========================
 // INSTRUCTOR HELPERS
 // =========================
+
+async function getAuthHeaders() {
+
+  const user = auth.currentUser;
+
+  if (!user) {
+    throw new Error(
+      "User not authenticated"
+    );
+  }
+
+  const token =
+    await user.getIdToken();
+
+  return {
+    "Content-Type":
+      "application/json",
+
+    Authorization:
+      `Bearer ${token}`
+  };
+}
+
 function showLoading(
   message =
     "Loading..."
@@ -133,7 +156,8 @@ async function clearFixedPlacements() {
   const res = await fetch(
     `${API_URL}/fixedPlacements/`,
     {
-      method: "DELETE"
+      method: "DELETE",
+      headers: await getAuthHeaders()
     }
   );
 
@@ -191,10 +215,7 @@ async function saveCatalogClass() {
 
   await fetch(`${API_URL}/catalog`, {
     method: "POST",
-    headers: {
-      "Content-Type":
-        "application/json"
-    },
+    headers: await getAuthHeaders(),
     body: JSON.stringify(payload)
   });
 
@@ -462,10 +483,7 @@ function initCalendar() {
         `${API_URL}/fixedPlacements/manual`,
         {
           method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json"
-          },
+          headers:await getAuthHeaders(),
           body: JSON.stringify({
             className:
               e.extendedProps.className,
@@ -544,7 +562,7 @@ async function loadCatalog() {
         return;
       }
 
-      await fetch(`${API_URL}/catalog/${cls.id}`, { method: "DELETE" });
+      await fetch(`${API_URL}/catalog/${cls.id}`, { method: "DELETE", headers: await getAuthHeaders() });
       loadCatalog();
     });
 
@@ -923,10 +941,7 @@ document
             `${API_URL}/fixedPlacements/import`,
             {
               method: "POST",
-              headers: {
-                "Content-Type":
-                  "application/json"
-              },
+              headers:await getAuthHeaders(),
               body: JSON.stringify(
                 rows
               )
@@ -989,7 +1004,10 @@ async function getConfiguredYear() {
 
   const response =
     await fetch(
-      `${API_URL}/config/generation`
+      `${API_URL}/config/generation`,
+      {
+        headers: await getAuthHeaders()
+      }
     );
 
   if (!response.ok) {
