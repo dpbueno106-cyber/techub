@@ -649,7 +649,7 @@ details[open] .course-summary::before {
 }
 
 .version-card button {
-  background: #2563eb;
+  background: #2d2d2d;
   color: white;
   border: none;
   padding: 6px 12px;
@@ -658,5 +658,5 @@ details[open] .course-summary::before {
 }
 
 .version-card button:hover {
-  background: #1d4ed8;
+  background: #444;
 }
