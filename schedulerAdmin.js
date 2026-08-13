@@ -134,6 +134,8 @@ function showLoading(
   );
 }
 
+
+
 function hideLoading() {
 
   document
@@ -286,7 +288,37 @@ function populateInstructorDropdown(
     });
 }
 
+async function saveVersion() {
 
+  const year =
+    await getConfiguredYear();
+
+  const name =
+    prompt(
+      "Version Name"
+    );
+
+  if (!name) return;
+
+  await fetch(
+    `${API_URL}/schedule/version`,
+    {
+      method: "POST",
+      headers:
+        await getAuthHeaders(),
+      body: JSON.stringify({
+        name,
+        year,
+        slots:
+          serializeCalendarToSlots()
+      })
+    }
+  );
+
+  alert(
+    "Version saved"
+  );
+}
 // =========================
 // SERIALIZATION (PERSISTENCE)
 // =========================

@@ -38,6 +38,9 @@
     <span id="fixedPlacementCount"></span>
     <button onclick="window.location.href='adminInstructorTimeOff.html'" class="secondary">Manage Instructor Time
       Off</button>
+    <button onclick="saveVersion()">
+      Save Version
+    </button>
   </div>
 
   <!--  MAIN LAYOUT -->
@@ -45,22 +48,22 @@
 
     <!--  CALENDAR (75%) -->
     <div class="calendarContainer">
-      
-  <div class="viewSwitcher">
 
-  <button onclick="changeCalendarView('dayGridMonth')">
-  Month
-</button>
+      <div class="viewSwitcher">
 
-<button onclick="changeCalendarView('quarterView')">
-  Quarter
-</button>
+        <button onclick="changeCalendarView('dayGridMonth')">
+          Month
+        </button>
 
-<button onclick="changeCalendarView('multiMonthYear')">
-  Year
-</button>
+        <button onclick="changeCalendarView('quarterView')">
+          Quarter
+        </button>
 
-</div>
+        <button onclick="changeCalendarView('multiMonthYear')">
+          Year
+        </button>
+
+      </div>
       <div id="calendar"></div>
       <h3 class="dashboard-section">
         Instructor Workload
@@ -177,23 +180,23 @@
     </div>
   </div>
   <div id="loadingOverlay" class="loadingOverlay hidden">
-  <div class="loadingContent">
+    <div class="loadingContent">
 
-    <div class="spinner"></div>
+      <div class="spinner"></div>
 
-    <h2>Building Schedule...</h2>
+      <h2>Building Schedule...</h2>
 
-    <p id="loadingMessage">
-      Loading instructor assignments
-    </p>
+      <p id="loadingMessage">
+        Loading instructor assignments
+      </p>
 
+    </div>
   </div>
-</div>
 
   <script>document.getElementById("manageFixedPlacementsBtn").addEventListener("click", () => { window.location.href = "adminFixedPlacements.html"; });</script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/multimonth@6.1.11/index.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/multimonth@6.1.11/index.global.min.js"></script>
   <script type="module" src="schedulerAdmin.js"></script>
-  
+
 </body>
