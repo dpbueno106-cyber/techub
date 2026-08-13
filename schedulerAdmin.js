@@ -2025,6 +2025,7 @@ Object.assign(window, {
   showVersions,
   saveVersion,
   hideVersions,
+  
   clearFixedPlacements,
   clearSchedule: () => {
     if (confirm("Are you sure you want to clear the schedule?")) {
