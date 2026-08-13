@@ -639,13 +639,24 @@ details[open] .course-summary::before {
 }
 
 .version-card {
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+  background: #1f2937;
+  color: #f9fafb;
+  border: 1px solid #374151;
+  border-radius: 10px;
   padding: 12px;
   margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.2);
 }
 
 .version-card button {
-  margin-top: 8px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.version-card button:hover {
+  background: #1d4ed8;
 }

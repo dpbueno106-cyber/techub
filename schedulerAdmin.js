@@ -274,6 +274,15 @@ async function restoreVersion(
 
 }
 
+function hideVersions() {
+
+  document
+    .getElementById("versionList")
+    .classList.add(
+      "hidden"
+    );
+
+}
 
 async function showVersions() {
 
@@ -297,8 +306,29 @@ async function showVersions() {
     "hidden"
   );
 
-  container.innerHTML = "";
+  container.innerHTML = `
+  <div class="version-header">
 
+    <h3>
+      Schedule Versions
+    </h3>
+
+    <button
+      onclick="hideVersions()"
+    >
+      Close
+    </button>
+
+  </div>
+`;
+const created =
+  version.createdAt?.seconds
+    ? new Date(
+        version.createdAt.seconds * 1000
+      )
+    : new Date(
+        version.createdAt
+      );
   versions.forEach(version => {
 
     container.innerHTML += `
@@ -310,12 +340,7 @@ async function showVersions() {
 
         <br>
 
-        ${new Date(
-          version.createdAt
-            ?.seconds
-            ? version.createdAt.seconds * 1000
-            : version.createdAt
-        ).toLocaleString()}
+        ${created.toLocaleString()}
 
         <br><br>
 
@@ -381,34 +406,64 @@ function populateInstructorDropdown(
 
 async function saveVersion() {
 
-  const year =
-    await getConfiguredYear();
+  const saveBtn =
+    document.getElementById(
+      "saveVersionBtn"
+    );
 
-  const name =
-    `Version ${new Date()
-      .toLocaleString()}`;
+  try {
 
-  const res = await fetch(
-    `${API_URL}/schedule/version`,
-    {
-      method: "POST",
-      headers:
-        await getAuthHeaders(),
-      body: JSON.stringify({
-        name,
-        year,
-        slots:
-          serializeCalendarToSlots()
-      })
+    saveBtn.disabled = true;
+
+    saveBtn.style.opacity = "0.5";
+
+    saveBtn.textContent =
+      "Saving...";
+
+    const year =
+      await getConfiguredYear();
+
+    const name =
+      `Version ${new Date()
+        .toLocaleString()}`;
+
+    const res = await fetch(
+      `${API_URL}/schedule/version`,
+      {
+        method: "POST",
+        headers:
+          await getAuthHeaders(),
+        body: JSON.stringify({
+          name,
+          year,
+          slots:
+            serializeCalendarToSlots()
+        })
+      }
+    );
+
+    if (!res.ok) {
+      throw new Error(
+        "Save failed"
+      );
     }
-  );
 
-  if (!res.ok) {
-    alert("Failed to save version");
-    return;
+    alert(
+      "Version saved"
+    );
+
+    await showVersions();
+
+  } finally {
+
+    saveBtn.disabled = false;
+
+    saveBtn.style.opacity = "";
+
+    saveBtn.textContent =
+      "Save Version";
+
   }
-
-  alert("Version saved");
 }
 // =========================
 // SERIALIZATION (PERSISTENCE)
@@ -1969,6 +2024,7 @@ Object.assign(window, {
   restoreVersion,
   showVersions,
   saveVersion,
+  hideVersions,
   clearFixedPlacements,
   clearSchedule: () => {
     if (confirm("Are you sure you want to clear the schedule?")) {
