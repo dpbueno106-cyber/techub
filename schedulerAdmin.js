@@ -10,6 +10,7 @@ let instructorColors = {};
 let generationConfig = {};
 let undoStack = [];
 let redoStack = [];
+let currentScheduleVersion = null;
 
 /*const defaultInstructorNames = [
   "Aaron", "Jesse", "Marc", "Leon",
@@ -211,7 +212,7 @@ function redoSchedule() {
     redoStack.pop();
 
   restoreHistoryState(next);
-    updateHistoryButtons();
+  updateHistoryButtons();
 
   autoSaveSchedule();
 }
@@ -375,8 +376,11 @@ async function restoreVersion(
     }
   );
 
-  const version =
-    await res.json();
+  res.json({
+    year,
+    slots,
+    version: schedule.version || 1
+  });
 
   renderCalendarFromSchedule(
     version.slots,
@@ -669,11 +673,11 @@ function serializeCalendarToSlots() {
     } = event.extendedProps;
 
     const key = [
-  className,
-  location,
-  weekStartDate,
-  instructorId || ""
-].join("|");
+      className,
+      location,
+      weekStartDate,
+      instructorId || ""
+    ].join("|");
 
     if (
       slots.some(
@@ -818,30 +822,30 @@ function initCalendar() {
     eventStartEditable: true,
     eventDurationEditable: false,
     dayMaxEvents: true, // keep normal month view
-   
 
- eventDrop: async (info) => {
-  
 
-  const event = info.event;
-  
-  event.setExtendedProp(
-    "weekStartDate",
-    info.event.startStr.split("T")[0]
-  );
+    eventDrop: async (info) => {
 
-  highlightConflicts();
-  renderConflictSummary();
-  renderInstructorWorkloadFromCalendar();
-  renderScheduleAnalytics();
-  renderCourseAnalytics();
 
-  await autoSaveSchedule();
-},
-eventDragStart() {
-  saveHistoryState();
-},
-  
+      const event = info.event;
+
+      event.setExtendedProp(
+        "weekStartDate",
+        info.event.startStr.split("T")[0]
+      );
+
+      highlightConflicts();
+      renderConflictSummary();
+      renderInstructorWorkloadFromCalendar();
+      renderScheduleAnalytics();
+      renderCourseAnalytics();
+
+      await autoSaveSchedule();
+    },
+    eventDragStart() {
+      saveHistoryState();
+    },
+
     views: {
       quarterView: {
         type: "multiMonth",
@@ -876,7 +880,7 @@ eventDragStart() {
         weekStartDate: e.startStr.split("T")[0],
         locked: false
       };
-      
+
       await fetch(
         `${API_URL}/fixedPlacements/manual`,
         {
@@ -1442,7 +1446,8 @@ async function generateSchedule() {
     );
 
     const data = await res.json();
-
+    currentScheduleVersion =
+      data.version || 1;
     console.log(
       "Schedule API response:",
       data
@@ -1724,6 +1729,8 @@ async function autoSaveSchedule() {
         headers: await getAuthHeaders(),
         body: JSON.stringify({
           year,
+          version:
+            currentScheduleVersion,
           slots:
             serializeCalendarToSlots()
         })
@@ -1754,6 +1761,7 @@ async function saveSchedule() {
       headers: await getAuthHeaders(),
       body: JSON.stringify({
         year: await getConfiguredYear(),
+        version: currentScheduleVersion,
         slots:
           serializeCalendarToSlots()
       })

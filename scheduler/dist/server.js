@@ -88,17 +88,6 @@ app.get("/schedule/version/list", verifyAdmin_1.verifyAdmin, async (_req, res) =
     const snapshot = await firebase_1.db
         .collection("scheduleVersions")
         .orderBy("createdAt", "desc")
-        .limit(50)
-        .get();
-    res.json(snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-    })));
-});
-app.get("/schedule/version/list", verifyAdmin_1.verifyAdmin, async (_req, res) => {
-    const snapshot = await firebase_1.db
-        .collection("scheduleVersions")
-        .orderBy("createdAt", "desc")
         .limit(100)
         .get();
     res.json(snapshot.docs.map(doc => ({
@@ -106,7 +95,7 @@ app.get("/schedule/version/list", verifyAdmin_1.verifyAdmin, async (_req, res) =
         ...doc.data()
     })));
 });
-app.delete("/schedule/version/:id", async (req, res) => {
+app.delete("/schedule/version/:id", verifyAdmin_1.verifyAdmin, async (req, res) => {
     await firebase_1.db
         .collection("scheduleVersions")
         .doc(req.params.id)
@@ -122,20 +111,6 @@ app.get("/schedule/version/:id", verifyAdmin_1.verifyAdmin, async (req, res) => 
         .get();
     if (!doc.exists) {
         return res.status(404).json({
-            error: "Version not found"
-        });
-    }
-    res.json(doc.data());
-});
-app.get("/schedule/version/:id", verifyAdmin_1.verifyAdmin, async (req, res) => {
-    const doc = await firebase_1.db
-        .collection("scheduleVersions")
-        .doc(req.params.id)
-        .get();
-    if (!doc.exists) {
-        return res
-            .status(404)
-            .json({
             error: "Version not found"
         });
     }
@@ -158,7 +133,7 @@ app.post("/schedule/version", verifyAdmin_1.verifyAdmin, async (req, res) => {
         id: doc.id
     });
 });
-app.delete("/instructorTimeOff/:id", async (req, res) => {
+app.delete("/instructorTimeOff/:id", verifyAdmin_1.verifyAdmin, async (req, res) => {
     await firebase_1.db
         .collection("instructorTimeOff")
         .doc(req.params.id)
@@ -419,18 +394,57 @@ app.get("/schedule/load", async (req, res) => {
     const year = req.query.year;
     const doc = await firebase_1.db.collection("schedules").doc(String(year)).get();
     if (!doc.exists) {
-        return res.json({ slots: [] });
+        return res.json({
+            slots: [],
+            version: 0
+        });
     }
-    res.json(doc.data());
+    const data = doc.data();
+    res.json({
+        ...data,
+        version: data?.version ?? 0
+    });
 });
-app.post("/schedule/save", async (req, res) => {
-    const { year, slots } = req.body;
-    await firebase_1.db.collection("schedules").doc(String(year)).set({
+app.post("/schedule/save", verifyAdmin_1.verifyAdmin, async (req, res) => {
+    const { year, slots, version } = req.body;
+    const ref = firebase_1.db.collection("schedules")
+        .doc(String(year));
+    const doc = await ref.get();
+    const current = doc.exists
+        ? doc.data()
+        : null;
+    const currentVersion = current?.version ?? 0;
+    if (version !== currentVersion) {
+        return res.status(409).json({
+            error: "Schedule modified by another user"
+        });
+    }
+    const nextVersion = currentVersion + 1;
+    if (!Array.isArray(slots)) {
+        return res.status(400).json({
+            error: "Invalid schedule"
+        });
+    }
+    if (slots.length === 0 &&
+        process.env.NODE_ENV === "production") {
+        console.warn("Empty schedule save attempted");
+    }
+    await ref.set({
         year,
         slots,
+        version: nextVersion,
+        updatedBy: req.user.email,
         updatedAt: new Date()
     });
-    res.json({ success: true });
+    await (0, auditLog_1.auditLog)(req.user.email, "SCHEDULE_SAVED", {
+        year,
+        version: nextVersion,
+        slotCount: slots.length
+    });
+    res.json({
+        success: true,
+        version: nextVersion
+    });
 });
 app.post("/fixedPlacements/manual", verifyAdmin_1.verifyAdmin, async (req, res) => {
     const placement = {

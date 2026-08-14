@@ -168,31 +168,6 @@ app.post(
   }
 );
 
-app.get(
-  "/schedule/version/list",
-  verifyAdmin,
-  async (_req, res) => {
-
-    const snapshot =
-      await db
-        .collection(
-          "scheduleVersions"
-        )
-        .orderBy(
-          "createdAt",
-          "desc"
-        )
-        .limit(50)
-        .get();
-
-    res.json(
-      snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }))
-    );
-  }
-);
 
 app.get(
   "/schedule/version/list",
@@ -220,6 +195,7 @@ app.get(
 
 app.delete(
   "/schedule/version/:id",
+  verifyAdmin,
   async (req, res) => {
 
     await db
@@ -257,31 +233,7 @@ app.get(
   }
 );
 
-app.get(
-  "/schedule/version/:id",
-  verifyAdmin,
-  async (req, res) => {
 
-    const doc =
-      await db
-        .collection(
-          "scheduleVersions"
-        )
-        .doc(req.params.id)
-        .get();
-
-    if (!doc.exists) {
-      return res
-        .status(404)
-        .json({
-          error:
-            "Version not found"
-        });
-    }
-
-    res.json(doc.data());
-  }
-);
 
 app.post(
   "/schedule/version",
@@ -316,6 +268,7 @@ app.post(
 
 app.delete(
   "/instructorTimeOff/:id",
+  verifyAdmin,
   async (req, res) => {
 
     await db
@@ -813,23 +766,102 @@ app.get("/schedule/load", async (req, res) => {
   const doc = await db.collection("schedules").doc(String(year)).get();
 
   if (!doc.exists) {
-    return res.json({ slots: [] });
-  }
-
-  res.json(doc.data());
-});
-
-app.post("/schedule/save", async (req, res) => {
-  const { year, slots } = req.body;
-
-  await db.collection("schedules").doc(String(year)).set({
-    year,
-    slots,
-    updatedAt: new Date()
+  return res.json({
+    slots: [],
+    version: 0
   });
+}
+const data = doc.data();
 
-  res.json({ success: true });
+res.json({
+  ...data,
+  version:
+    data?.version ?? 0
 });
+
+  
+});
+
+app.post(
+  "/schedule/save",
+  verifyAdmin,
+  async (req, res) => {
+
+    const {
+      year,
+      slots,
+      version
+    } = req.body;
+
+    const ref =
+      db.collection("schedules")
+        .doc(String(year));
+
+    const doc =
+      await ref.get();
+
+    const current =
+      doc.exists
+        ? doc.data()
+        : null;
+
+    const currentVersion =
+      current?.version ?? 0;
+
+    if (
+      version !== currentVersion
+    ) {
+      return res.status(409).json({
+        error:
+          "Schedule modified by another user"
+      });
+    }
+
+    const nextVersion =
+      currentVersion + 1;
+if (!Array.isArray(slots)) {
+  return res.status(400).json({
+    error: "Invalid schedule"
+  });
+}
+
+if (
+  slots.length === 0 &&
+  process.env.NODE_ENV === "production"
+) {
+  console.warn(
+    "Empty schedule save attempted"
+  );
+}
+
+    await ref.set({
+  year,
+  slots,
+  version: nextVersion,
+  updatedBy:
+    (req as any).user.email,
+  updatedAt:
+    new Date()
+});
+await auditLog(
+  (req as any).user.email,
+  "SCHEDULE_SAVED",
+  {
+    year,
+    version: nextVersion,
+    slotCount:
+      slots.length
+  }
+);
+    res.json({
+      success: true,
+      version: nextVersion
+    });
+    
+
+  }
+  
+);
 
 app.post(
   "/fixedPlacements/manual",
