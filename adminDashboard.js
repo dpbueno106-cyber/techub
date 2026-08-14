@@ -4,7 +4,11 @@ import {
   collection,
   getDocs,
   doc,
-  setDoc
+  setDoc,
+  getDoc,
+  onSnapshot,
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 import {
   getAuth,
