@@ -12,7 +12,7 @@ let undoStack = [];
 let redoStack = [];
 let currentScheduleVersion = null;
 let scheduleMetadata = {};
-let schedulerListenerStarted = false;
+let scheduleListenerStarted = false;
 
 /*const defaultInstructorNames = [
   "Aaron", "Jesse", "Marc", "Leon",
@@ -94,6 +94,8 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
+
 
 // =========================
 // INSTRUCTOR HELPERS
@@ -1846,7 +1848,7 @@ setSaveStatus(
 
 await loadSavedSchedule();
 
-return;
+
 setSaveStatus(
   "Saved",
   "#16a34a"
@@ -2742,7 +2744,6 @@ Object.assign(window, {
   saveVersion,
   deleteVersion,
   hideVersions,
-
   clearFixedPlacements,
   clearSchedule: () => {
     if (confirm("Are you sure you want to clear the schedule?")) {
