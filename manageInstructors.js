@@ -6,6 +6,8 @@ import {
   doc,
   setDoc,
   query,
+  getDoc,
+  onSnapshot,
   where
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 import {
