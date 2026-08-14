@@ -17,10 +17,12 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: [
-      "http://localhost:5500",
-      "https://dpbueno106-cyber.github.io"
-    ]
+   origin: [
+  "http://localhost:5500",
+  "https://dpbueno106-cyber.github.io",
+  "https://techubtraining.com",
+  "https://www.techubtraining.com"
+]
   })
 );
 
