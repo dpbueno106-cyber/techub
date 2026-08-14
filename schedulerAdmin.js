@@ -1722,21 +1722,34 @@ async function autoSaveSchedule() {
     const year =
       await getConfiguredYear();
 
-    await fetch(
-      `${API_URL}/schedule/save`,
-      {
-        method: "POST",
-        headers: await getAuthHeaders(),
-        body: JSON.stringify({
-          year,
-          version:
-            currentScheduleVersion,
-          slots:
-            serializeCalendarToSlots()
-        })
-      }
-    );
+    const response =
+  await fetch(
+    `${API_URL}/schedule/save`,
+    {
+      method: "POST",
+      headers: await getAuthHeaders(),
+      body: JSON.stringify({
+        year,
+        version:
+          currentScheduleVersion,
+        slots:
+          serializeCalendarToSlots()
+      })
+    }
+  );
+  
+  if (response.status === 409) {
 
+  alert(
+    "This schedule was modified by another user. Reload the page."
+  );
+
+  return;
+}
+const result =
+  await response.json();
+currentScheduleVersion =
+  result.version;
     console.log(
       "Schedule auto-saved"
     );
@@ -1794,7 +1807,8 @@ async function loadSavedSchedule() {
 
   const data =
     await res.json();
-
+currentScheduleVersion =
+  data.version ?? 0;
   if (!data.slots?.length) {
     return false;
   }
