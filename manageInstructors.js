@@ -169,13 +169,19 @@ onAuthStateChanged(auth, async user => {
     return;
   }
 
-  const token = await user.getIdTokenResult();
 
-  if (!token.claims.admin) {
-    alert("Admins only.");
-    window.location.href = "adminScheduleManagement.html";
-    return;
-  }
+  const userDoc = await getDoc(
+  doc(db, "users", user.uid)
+);
+
+if (
+  userDoc.data()?.role !== "admin"
+) {
+  alert("Access denied");
+  window.location.href = "index.html";
+  return;
+}
+  
 
   loadInstructors();
 });
