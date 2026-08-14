@@ -694,14 +694,40 @@ function closeAddCourseModal() {
 // CALENDAR INIT
 // =========================
 
+
+
+
+
+
 function initCalendar() {
 
   adminCalendar = new FullCalendar.Calendar(calendarEl, {
     initialView: "dayGridMonth",
     height: "auto",
-
+    editable: true,
+    eventStartEditable: true,
+    eventDurationEditable: false,
     dayMaxEvents: true, // keep normal month view
+   
 
+ eventDrop: async (info) => {
+
+  const event = info.event;
+
+  event.setExtendedProp(
+    "weekStartDate",
+    info.event.startStr.split("T")[0]
+  );
+
+  highlightConflicts();
+  renderConflictSummary();
+  renderInstructorWorkloadFromCalendar();
+  renderScheduleAnalytics();
+  renderCourseAnalytics();
+
+  await autoSaveSchedule();
+},
+  
     views: {
       quarterView: {
         type: "multiMonth",
@@ -733,7 +759,7 @@ function initCalendar() {
         instructorId: e.extendedProps.instructorId,
         durationWeeks: e.extendedProps.durationWeeks ?? 1,
         weekStartDate: e.startStr.split("T")[0],
-        locked: true
+        locked: false
       };
       await fetch(
         `${API_URL}/fixedPlacements/manual`,
@@ -767,7 +793,7 @@ function initCalendar() {
 
             instructorName: null,
 
-            locked: true
+            locked: false
           })
         }
       );
