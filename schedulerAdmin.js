@@ -1943,6 +1943,35 @@ function renderConflictSummary() {
   const conflicts =
     findInstructorConflicts();
 
+  const totalClasses =
+    conflicts.reduce(
+      (sum, group) =>
+        sum + group.length,
+      0
+    );
+
+  const affectedInstructors =
+    new Set(
+      conflicts.map(
+        c => c[0].extendedProps.instructorId
+      )
+    ).size;
+
+  const totalEvents =
+    getLogicalScheduleEvents().length;
+
+  const healthScore =
+  totalEvents === 0
+    ? 100
+    : Math.max(
+        0,
+        Math.round(
+          (1 -
+            conflicts.length /
+            totalEvents) * 100
+        )
+      );
+
   const container =
     document.getElementById(
       "scheduleConflicts"
@@ -1950,34 +1979,116 @@ function renderConflictSummary() {
 
   if (!container) return;
 
-  if (!conflicts.length) {
-
-    container.innerHTML = `
-      <div class="conflict-success">
-        ✅ No Instructor Conflicts
-      </div>
-    `;
-
-    return;
-  }
+ if (!conflicts.length) {
 
   container.innerHTML = `
+    <div class="conflict-kpi-grid">
 
-    <div class="conflict-header">
+      <div class="conflict-kpi danger">
+        <div class="kpi-header">SCHEDULER</div>
+        <div class="kpi-value">0</div>
+        <div class="kpi-label">Conflict Count</div>
+      </div>
 
-      <h2>
-        ⚠️ Instructor Conflicts
-      </h2>
+      <div class="conflict-kpi warning">
+        <div class="kpi-header">SCHEDULER</div>
+        <div class="kpi-value">0</div>
+        <div class="kpi-label">Instructors Impacted</div>
+      </div>
 
-      <span>
-        ${conflicts.length} Found
-      </span>
+      <div class="conflict-kpi info">
+        <div class="kpi-header">SCHEDULER</div>
+        <div class="kpi-value">0</div>
+        <div class="kpi-label">Classes Impacted</div>
+      </div>
+
+      <div class="conflict-kpi success">
+        <div class="kpi-header">SCHEDULER</div>
+        <div class="kpi-value">100%</div>
+        <div class="kpi-label">Schedule Health</div>
+      </div>
 
     </div>
 
-    <div class="conflict-grid"></div>
-
+    <div class="conflict-success">
+      ✅ Schedule Clear
+    </div>
   `;
+
+  return;
+}
+
+  container.innerHTML = `
+  <div class="conflict-kpi-grid">
+
+    <div class="conflict-kpi danger">
+
+      <div class="kpi-header">
+        SCHEDULER
+      </div>
+
+      <div class="kpi-value">
+        ${conflicts.length}
+      </div>
+
+      <div class="kpi-label">
+        Conflict Count
+      </div>
+
+    </div>
+
+    <div class="conflict-kpi warning">
+
+      <div class="kpi-header">
+        SCHEDULER
+      </div>
+
+      <div class="kpi-value">
+        ${affectedInstructors}
+      </div>
+
+      <div class="kpi-label">
+        Instructors Impacted
+      </div>
+
+    </div>
+
+    <div class="conflict-kpi info">
+
+      <div class="kpi-header">
+        SCHEDULER
+      </div>
+
+      <div class="kpi-value">
+        ${totalClasses}
+      </div>
+
+      <div class="kpi-label">
+        Classes Impacted
+      </div>
+
+    </div>
+
+    <div class="conflict-kpi success">
+
+      <div class="kpi-header">
+        SCHEDULER
+      </div>
+
+      <div class="kpi-value">
+        ${healthScore}%
+      </div>
+
+      <div class="kpi-label">
+        Schedule Readiness
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="conflict-grid"></div>
+`;
 
   const grid =
     container.querySelector(
@@ -2030,10 +2141,12 @@ function renderConflictSummary() {
 }
 
 function findInstructorConflicts() {
+
   const conflicts = [];
   const scheduleMap = new Map();
 
   getLogicalScheduleEvents().forEach(event => {
+
     const instructorId =
       event.extendedProps.instructorId;
 
@@ -2053,9 +2166,19 @@ function findInstructorConflicts() {
   });
 
   scheduleMap.forEach(events => {
-    if (events.length > 1) {
+
+    const uniqueCourses =
+      new Set(
+        events.map(
+          e => e.extendedProps.className
+        )
+      );
+
+    // only conflict if different courses exist
+    if (uniqueCourses.size > 1) {
       conflicts.push(events);
     }
+
   });
 
   return conflicts;

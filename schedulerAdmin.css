@@ -738,6 +738,80 @@ details[open] .course-summary::before {
   background: #444;
 }
 
+.conflict-success {
+
+  background:
+    linear-gradient(
+      180deg,
+      #16351b,
+      #102814
+    );
+
+  border-left: 5px solid #4caf50;
+
+  border-radius: 8px;
+
+  padding: 16px;
+
+  color: #81c784;
+
+  font-weight: 700;
+
+  margin-top: 16px;
+
+  text-align: center;
+}
+
+.conflict-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.conflict-card {
+
+  background: #222222;
+
+  border-left: 5px solid #ff5b5b;
+
+  border-radius: 8px;
+
+  padding: 14px;
+}
+
+.conflict-card-header {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  margin-bottom: 10px;
+}
+
+.conflict-name {
+
+  font-weight: 700;
+
+  color: #ffffff;
+}
+
+.conflict-week {
+
+  color: #aaaaaa;
+
+  font-size: .9rem;
+}
+
+.conflict-course {
+
+  background: #323232;
+
+  padding: 8px;
+
+  margin-top: 6px;
+
+  border-radius: 4px;
+}
+
 .conflict-kpi.success {
 
   background: #14351b;
@@ -758,14 +832,18 @@ details[open] .course-summary::before {
 }
 
 .conflict-kpi {
-
   position: relative;
 
-  background: #1c1c1c;
+  background:
+    linear-gradient(
+      180deg,
+      #232323 0%,
+      #171717 100%
+    );
 
   border: 2px solid #ffcd11;
 
-  border-radius: 8px;
+  border-radius: 6px;
 
   padding: 24px;
 
@@ -774,7 +852,18 @@ details[open] .course-summary::before {
   overflow: hidden;
 
   box-shadow:
-    0 6px 22px rgba(0,0,0,.35);
+    0 4px 14px rgba(0,0,0,.35);
+
+  transition:
+    transform .15s ease,
+    box-shadow .15s ease;
+}
+
+.conflict-kpi:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 8px 20px rgba(0,0,0,.45);
 }
 
 /* CAT yellow stripe */
@@ -795,13 +884,14 @@ details[open] .course-summary::before {
 
 .kpi-value {
 
-  font-size: 3rem;
+  font-size: 3.5rem;
 
   font-weight: 800;
 
-  color: #ffcd11;
-
   line-height: 1;
+
+  text-shadow:
+    0 0 10px rgba(255,255,255,.08);
 }
 
 .kpi-label {
@@ -819,21 +909,6 @@ details[open] .course-summary::before {
   font-weight: 600;
 }
 
-.conflict-kpi.danger .kpi-value {
-  color: #ff5b5b;
-}
-
-.conflict-kpi.warning .kpi-value {
-  color: #ffcd11;
-}
-
-.conflict-kpi.info .kpi-value {
-  color: #4fc3f7;
-}
-
-.conflict-kpi.success .kpi-value {
-  color: #81c784;
-}
 
 .conflict-kpi.danger .kpi-value {
   color: #ff5b5b;
@@ -854,13 +929,17 @@ details[open] .course-summary::before {
 
 .kpi-header {
 
-  font-size: .75rem;
+  color: #7f7f7f;
 
-  color: #999;
+  font-size: .7rem;
 
-  letter-spacing: 2px;
+  font-weight: 600;
 
-  margin-bottom: 8px;
+  letter-spacing: 3px;
+
+  text-transform: uppercase;
+
+  margin-bottom: 12px;
 }
 
 .schedule-conflict {
