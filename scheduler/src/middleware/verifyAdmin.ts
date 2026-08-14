@@ -6,9 +6,13 @@ export async function verifyAdmin(
   res: any,
   next: any
 ) {
+  req.user = {
+    uid: "temporary",
+    email: "meeting@techubtraining.com"
+  };
+
   return next();
 }
-
 /* export async function verifyAdmin(
   req: any,
   res: any,
