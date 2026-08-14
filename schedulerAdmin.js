@@ -143,6 +143,12 @@ function restoreHistoryState(state) {
 
 function undoSchedule() {
 
+  console.log(
+    "Before undo",
+    "Undo:", undoStack.length,
+    "Redo:", redoStack.length
+  );
+
   if (undoStack.length === 0) return;
 
   const currentState =
@@ -156,9 +162,15 @@ function undoSchedule() {
     undoStack.pop();
 
   restoreHistoryState(previousState);
-  autoSaveSchedule();
-updateHistoryButtons();
 
+  console.log(
+    "After undo",
+    "Undo:", undoStack.length,
+    "Redo:", redoStack.length
+  );
+
+  autoSaveSchedule();
+  updateHistoryButtons();
 }
 
 function saveHistoryState() {
@@ -174,6 +186,12 @@ function saveHistoryState() {
   if (undoStack.length > 50) {
     undoStack.shift();
   }
+
+  console.log(
+    "Saved history",
+    "Undo:", undoStack.length,
+    "Redo:", redoStack.length
+  );
 
   updateHistoryButtons();
 }
@@ -650,7 +668,12 @@ function serializeCalendarToSlots() {
       weekStartDate
     } = event.extendedProps;
 
-    const key = `${className}-${location}-${weekStartDate}`;
+    const key = [
+  className,
+  location,
+  weekStartDate,
+  instructorId || ""
+].join("|");
 
     if (
       slots.some(
@@ -841,6 +864,7 @@ eventDragStart() {
     },
 
     async eventReceive(info) {
+      saveHistoryState();
       const e = info.event;
 
       const slot = {
@@ -852,6 +876,7 @@ eventDragStart() {
         weekStartDate: e.startStr.split("T")[0],
         locked: false
       };
+      
       await fetch(
         `${API_URL}/fixedPlacements/manual`,
         {
