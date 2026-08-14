@@ -20,7 +20,8 @@ let scheduleMetadata = {};
 
 const API_URL = window.location.hostname.includes("localhost")
   ? "http://localhost:3000"
-  : "https://techub-9gis.onrender.com";
+  : "https://api.techubtraining.com";
+
 
 // =========================
 // DOM REFERENCES (EXPLICIT)

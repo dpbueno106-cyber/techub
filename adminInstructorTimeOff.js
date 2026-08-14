@@ -1,9 +1,7 @@
-const API_URL =
-    window.location.hostname.includes(
-        "localhost"
-    )
-        ? "http://localhost:3000"
-        : "https://techub-9gis.onrender.com";
+const API_URL = window.location.hostname.includes("localhost")
+  ? "http://localhost:3000"
+  : "https://api.techubtraining.com";
+
 
 window.addEventListener(
     "DOMContentLoaded",
