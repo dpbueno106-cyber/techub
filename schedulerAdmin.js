@@ -1961,9 +1961,9 @@ function renderConflictSummary() {
     getLogicalScheduleEvents().length;
 
   const healthScore =
-  totalEvents === 0
-    ? 100
-    : Math.max(
+    totalEvents === 0
+      ? 100
+      : Math.max(
         0,
         Math.round(
           (1 -
@@ -1979,9 +1979,9 @@ function renderConflictSummary() {
 
   if (!container) return;
 
- if (!conflicts.length) {
+  if (!conflicts.length) {
 
-  container.innerHTML = `
+    container.innerHTML = `
     <div class="conflict-kpi-grid">
 
       <div class="conflict-kpi danger">
@@ -2011,12 +2011,12 @@ function renderConflictSummary() {
     </div>
 
     <div class="conflict-success">
-      ✅ Schedule Clear
+      Schedule Clear
     </div>
   `;
 
-  return;
-}
+    return;
+  }
 
   container.innerHTML = `
   <div class="conflict-kpi-grid">
@@ -2080,8 +2080,8 @@ function renderConflictSummary() {
       </div>
 
       <div class="kpi-label">
-        Schedule Readiness
-      </div>
+  Schedule Health
+</div>
 
     </div>
 
