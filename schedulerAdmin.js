@@ -1768,8 +1768,12 @@ setSaveStatus(
   "#dc2626"
 );
   alert(
-    "This schedule was modified by another user. Reload the page."
-  );
+  "The schedule was updated by another user. Loading latest version."
+);
+
+await loadSavedSchedule();
+
+return;
 setSaveStatus(
   "Saved",
   "#16a34a"
