@@ -32,12 +32,17 @@ onAuthStateChanged(auth, async user => {
     return;
   }
 
-  const token = await user.getIdTokenResult();
-  if (!token.claims.admin) {
-    alert("Access denied");
-    window.location.href = "index.html";
-    return;
-  }
+const userDoc = await getDoc(
+  doc(db, "users", user.uid)
+);
+
+if (
+  userDoc.data()?.role !== "admin"
+) {
+  alert("Access denied");
+  window.location.href = "index.html";
+  return;
+}
 
   if (welcome) {
     welcome.textContent = "Welcome, " + user.email;
