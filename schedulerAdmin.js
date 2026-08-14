@@ -11,6 +11,7 @@ let generationConfig = {};
 let undoStack = [];
 let redoStack = [];
 let currentScheduleVersion = null;
+let scheduleMetadata = {};
 
 /*const defaultInstructorNames = [
   "Aaron", "Jesse", "Marc", "Leon",
@@ -369,25 +370,23 @@ async function restoreVersion(
   }
 
   const res = await fetch(
-    `${API_URL}/schedule/version/${versionId}`,
-    {
-      headers:
-        await getAuthHeaders()
-    }
-  );
+  `${API_URL}/schedule/version/${versionId}`,
+  {
+    headers:
+      await getAuthHeaders()
+  }
+);
 
-  res.json({
-    year,
-    slots,
-    version: schedule.version || 1
-  });
+const version =
+  await res.json();
 
-  renderCalendarFromSchedule(
-    version.slots,
-    true
-  );
+renderCalendarFromSchedule(
+  version.slots,
+  true
+);
 
-  await autoSaveSchedule();
+await autoSaveSchedule();
+
 
   alert(
     "Version restored"
@@ -1446,8 +1445,7 @@ async function generateSchedule() {
     );
 
     const data = await res.json();
-    currentScheduleVersion =
-      data.version || 1;
+   
     console.log(
       "Schedule API response:",
       data
@@ -1721,7 +1719,10 @@ async function autoSaveSchedule() {
 
     const year =
       await getConfiguredYear();
-
+setSaveStatus(
+  "Saving...",
+  "#f59e0b"
+);
     const response =
   await fetch(
     `${API_URL}/schedule/save`,
@@ -1739,11 +1740,17 @@ async function autoSaveSchedule() {
   );
   
   if (response.status === 409) {
-
+setSaveStatus(
+  "Save Failed",
+  "#dc2626"
+);
   alert(
     "This schedule was modified by another user. Reload the page."
   );
-
+setSaveStatus(
+  "Saved",
+  "#16a34a"
+);
   return;
 }
 const result =
@@ -1766,22 +1773,30 @@ currentScheduleVersion =
 async function saveSchedule() {
   const year =
     await getConfiguredYear();
-
+const response =
   await fetch(
     `${API_URL}/schedule/save`,
     {
       method: "POST",
       headers: await getAuthHeaders(),
       body: JSON.stringify({
-        year: await getConfiguredYear(),
-        version: currentScheduleVersion,
+        year,
+        version:
+          currentScheduleVersion,
         slots:
           serializeCalendarToSlots()
       })
     }
   );
 
-  alert("Schedule saved");
+const result =
+  await response.json();
+
+currentScheduleVersion =
+  result.version;
+
+alert("Schedule saved");
+
 }
 
 editEventInstructorEl.onchange = () => {
@@ -1797,6 +1812,28 @@ editEventInstructorEl.onchange = () => {
   selectedEvent.setProp("textColor", text);
 };
 
+function renderScheduleInfo() {
+
+  const el =
+    document.getElementById(
+      "scheduleInfo"
+    );
+
+  if (!el) return;
+
+  if (!scheduleMetadata.updatedAt)
+    return;
+
+  el.innerHTML = `
+    Last Updated:
+    ${scheduleMetadata.updatedBy}
+    <br>
+    ${new Date(
+      scheduleMetadata.updatedAt
+    ).toLocaleString()}
+  `;
+}
+
 async function loadSavedSchedule() {
   const year =
     await getConfiguredYear();
@@ -1807,6 +1844,12 @@ async function loadSavedSchedule() {
 
   const data =
     await res.json();
+    scheduleMetadata = {
+  updatedBy:
+    data.updatedBy,
+  updatedAt:
+    data.updatedAt
+};
 currentScheduleVersion =
   data.version ?? 0;
   if (!data.slots?.length) {
@@ -1841,6 +1884,8 @@ currentScheduleVersion =
   renderCourseAnalytics();
   highlightConflicts();
   renderConflictSummary();
+  renderScheduleInfo();
+
 
   return true;
 }

@@ -887,6 +887,17 @@ details[open] .course-summary::before {
   cursor: not-allowed;
 }
 
+#saveStatus {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  color: white;
+  background: #374151;
+  z-index: 9999;
+}
+
 .kpi-value {
 
   font-size: 3.5rem;
