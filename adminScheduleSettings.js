@@ -1,10 +1,48 @@
+import {
+  getAuth
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+
+import {
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+
+const auth = getAuth();
+
 const API_URL = window.location.hostname.includes("localhost")
   ? "http://localhost:3000"
   : "https://api.techubtraining.com";
 
 
+async function getAuthHeaders() {
+
+  const user = auth.currentUser;
+
+  if (!user) {
+    throw new Error(
+      "User not authenticated"
+    );
+  }
+
+  const token =
+    await user.getIdToken();
+
+  return {
+    "Content-Type":
+      "application/json",
+
+    Authorization:
+      `Bearer ${token}`
+  };
+}
+
 async function loadSettings() {
-  const res = await fetch(`${API_URL}/config/generation`);
+  const res = await fetch(
+  `${API_URL}/config/generation`,
+  {
+    headers:
+      await getAuthHeaders()
+  }
+);
   const config = await res.json();
 
   document.getElementById("year").value = config.year;
@@ -87,14 +125,22 @@ document.getElementById("saveSettingsBtn")
       return;
     }
 
-    const res = await fetch(`${API_URL}/config/generation`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(config)
-    });
+   const res = await fetch(
+  `${API_URL}/config/generation`,
+  {
+    method: "POST",
+    headers:
+      await getAuthHeaders(),
+    body: JSON.stringify(config)
+  }
+);
 
     document.getElementById("status").innerText =
       res.ok ? "Settings saved" : "Save failed";
   });
 
 loadSettings();
+
+
+
+

@@ -1811,6 +1811,17 @@ function formatFirestoreDate(date) {
     .toLocaleString();
 }
 
+
+function setSaveStatus(message, color) {
+  const status =
+    document.getElementById("saveStatus");
+
+  if (!status) return;
+
+  status.textContent = message;
+  status.style.color = color;
+}
+
 async function autoSaveSchedule() {
 
   try {
