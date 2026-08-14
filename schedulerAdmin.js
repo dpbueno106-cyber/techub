@@ -173,6 +173,26 @@ function undoSchedule() {
     undoStack.pop();
 
   restoreHistoryState(previousState);
+  autoSaveSchedule();
+updateHistoryButtons();
+
+}
+
+function saveHistoryState() {
+
+  undoStack.push(
+    JSON.stringify(
+      serializeCalendarToSlots()
+    )
+  );
+
+  redoStack = [];
+
+  if (undoStack.length > 50) {
+    undoStack.shift();
+  }
+
+  updateHistoryButtons();
 }
 
 function redoSchedule() {
@@ -190,6 +210,7 @@ function redoSchedule() {
     redoStack.pop();
 
   restoreHistoryState(next);
+    updateHistoryButtons();
 
   autoSaveSchedule();
 }
@@ -378,6 +399,7 @@ function hideVersions() {
     );
 
 }
+
 
 async function showVersions() {
   const res = await fetch(
@@ -793,10 +815,10 @@ function initCalendar() {
    
 
  eventDrop: async (info) => {
-  saveHistoryState();
+  
 
   const event = info.event;
-
+  
   event.setExtendedProp(
     "weekStartDate",
     info.event.startStr.split("T")[0]
@@ -809,6 +831,9 @@ function initCalendar() {
   renderCourseAnalytics();
 
   await autoSaveSchedule();
+},
+eventDragStart() {
+  saveHistoryState();
 },
   
     views: {
@@ -2551,7 +2576,6 @@ Object.assign(window, {
       renderCourseAnalytics();
       highlightConflicts();
       renderConflictSummary();
-      saveHistoryState();
       autoSaveSchedule();
     }
   }
