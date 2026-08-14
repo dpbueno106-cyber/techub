@@ -13,6 +13,7 @@ let redoStack = [];
 let currentScheduleVersion = null;
 let scheduleMetadata = {};
 let scheduleListenerStarted = false;
+let isSavingSchedule = false;
 
 /*const defaultInstructorNames = [
   "Aaron", "Jesse", "Marc", "Leon",
@@ -156,6 +157,10 @@ async function startScheduleListener() {
     snapshot => {
 
       if (!snapshot.exists()) {
+        return;
+      }
+
+      if (isSavingSchedule) {
         return;
       }
 
@@ -363,13 +368,18 @@ async function clearFixedPlacements() {
 }
 
 async function loadInstructors() {
-  const db = getFirestore();
 
-  const snap = await getDocs(collection(db, "instructors"));
+  const snap = await getDocs(
+    collection(db, "instructors")
+  );
 
-  instructors = snap.docs.map(doc => doc.data());
+  instructors =
+    snap.docs.map(doc => doc.data());
 
-  console.log("Loaded instructors:", instructors);
+  console.log(
+    "Loaded instructors:",
+    instructors
+  );
 }
 
 async function saveCatalogClass() {
@@ -730,22 +740,26 @@ async function saveVersion() {
 // =========================
 
 function serializeCalendarToSlots() {
+
   const slots = [];
+
   getLogicalScheduleEvents().forEach(event => {
-    const locked = event.extendedProps.locked ?? false;
+
     const {
       className,
       classAcronym,
       courseNumber,
       cohortNumber,
       displayCategory,
-
       category,
       location,
       instructorId,
       durationWeeks,
       weekStartDate
     } = event.extendedProps;
+
+    const locked =
+      event.extendedProps.locked ?? false;
 
     const key = [
       className,
@@ -754,23 +768,26 @@ function serializeCalendarToSlots() {
       instructorId || ""
     ].join("|");
 
-    if (
-      slots.some(
-        s =>
-          `${s.className}-${s.location}-${s.weekStartDate}` === key
-      )
-    ) {
+    const alreadyExists =
+      slots.some(s =>
+        [
+          s.className,
+          s.location,
+          s.weekStartDate,
+          s.instructorId || ""
+        ].join("|") === key
+      );
+
+    if (alreadyExists) {
       return;
     }
 
     slots.push({
       className,
-
       classAcronym,
       courseNumber,
       cohortNumber,
       displayCategory,
-
       category,
       location,
       instructorId,
@@ -778,6 +795,7 @@ function serializeCalendarToSlots() {
       durationWeeks,
       locked
     });
+
   });
 
   return slots;
@@ -1001,7 +1019,7 @@ function initCalendar() {
       renderCourseAnalytics();
       highlightConflicts();
       renderConflictSummary();
-      autoSaveSchedule();
+      await autoSaveSchedule();
     }
   });
   window.changeCalendarView = function (viewName) {
@@ -1826,50 +1844,44 @@ async function autoSaveSchedule() {
 
   try {
 
+    isSavingSchedule = true;
+
     const year =
       await getConfiguredYear();
-setSaveStatus(
-  "Saving...",
-  "#f59e0b"
-);
+
     const response =
-  await fetch(
-    `${API_URL}/schedule/save`,
-    {
-      method: "POST",
-      headers: await getAuthHeaders(),
-      body: JSON.stringify({
-        year,
-        version:
-          currentScheduleVersion,
-        slots:
-          serializeCalendarToSlots()
-      })
+      await fetch(
+        `${API_URL}/schedule/save`,
+        {
+          method: "POST",
+          headers:
+            await getAuthHeaders(),
+          body: JSON.stringify({
+            year,
+            version:
+              currentScheduleVersion,
+            slots:
+              serializeCalendarToSlots()
+          })
+        }
+      );
+
+    if (response.status === 409) {
+
+      await loadSavedSchedule();
+      return;
+
     }
-  );
-  
-  if (response.status === 409) {
-setSaveStatus(
-  "Save Failed",
-  "#dc2626"
-);
-  alert(
-  "The schedule was updated by another user. Loading latest version."
-);
-
-await loadSavedSchedule();
-
-
-setSaveStatus(
-  "Saved",
-  "#16a34a"
-);
+if (!response.ok) {
+  alert("Failed to save schedule");
   return;
 }
-const result =
-  await response.json();
-currentScheduleVersion =
-  result.version;
+    const result =
+      await response.json();
+
+    currentScheduleVersion =
+      result.version;
+
     console.log(
       "Schedule auto-saved"
     );
@@ -1880,6 +1892,13 @@ currentScheduleVersion =
       "Auto-save failed:",
       error
     );
+
+  } finally {
+
+    setTimeout(() => {
+      isSavingSchedule = false;
+    }, 1000);
+
   }
 }
 
