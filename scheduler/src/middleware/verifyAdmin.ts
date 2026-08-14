@@ -1,5 +1,5 @@
 import { getAuth } from "firebase-admin/auth";
-
+import { getFirestore } from "firebase-admin/firestore";
 export async function verifyAdmin(
   req: any,
   res: any,
@@ -26,11 +26,20 @@ export async function verifyAdmin(
       await getAuth()
         .verifyIdToken(token);
 
-    if (!decoded.admin) {
-      return res.status(403).json({
-        error: "Admin access required"
-      });
-    }
+    
+
+const userDoc = await getFirestore()
+  .collection("users")
+  .doc(decoded.uid)
+  .get();
+
+if (
+  userDoc.data()?.role !== "admin"
+) {
+  return res.status(403).json({
+    error: "Admin access required"
+  });
+}
 
     req.user = decoded;
 
