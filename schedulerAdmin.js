@@ -8,6 +8,8 @@ let selectedEvent = null;
 let instructors = [];
 let instructorColors = {};
 let generationConfig = {};
+let undoStack = [];
+let redoStack = [];
 
 /*const defaultInstructorNames = [
   "Aaron", "Jesse", "Marc", "Leon",
@@ -110,6 +112,88 @@ async function getAuthHeaders() {
     Authorization:
       `Bearer ${token}`
   };
+}
+
+function saveHistoryState() {
+
+  undoStack.push(
+    JSON.stringify(
+      serializeCalendarToSlots()
+    )
+  );
+
+  // once a new action happens,
+  // future redo history is invalid
+  redoStack = [];
+
+  // keeps history from growing forever
+  if (undoStack.length > 50) {
+    undoStack.shift();
+  }
+}
+
+function updateHistoryButtons() {
+
+  document.getElementById("undoBtn").disabled =
+    undoStack.length === 0;
+
+  document.getElementById("redoBtn").disabled =
+    redoStack.length === 0;
+}
+
+function restoreHistoryState(state) {
+
+  const slots = JSON.parse(state);
+
+  renderCalendarFromSchedule(
+    slots,
+    true
+  );
+
+  applyInstructorFilter();
+  renderInstructorWorkloadFromCalendar();
+  renderScheduleAnalytics();
+  renderCourseAnalytics();
+  highlightConflicts();
+  renderConflictSummary();
+}
+
+function undoSchedule() {
+
+  if (!undoStack.length) return;
+
+  const current =
+    JSON.stringify(
+      serializeCalendarToSlots()
+    );
+
+  redoStack.push(current);
+
+  const previous =
+    undoStack.pop();
+
+  restoreHistoryState(previous);
+
+  autoSaveSchedule();
+}
+
+function redoSchedule() {
+
+  if (!redoStack.length) return;
+
+  const current =
+    JSON.stringify(
+      serializeCalendarToSlots()
+    );
+
+  undoStack.push(current);
+
+  const next =
+    redoStack.pop();
+
+  restoreHistoryState(next);
+
+  autoSaveSchedule();
 }
 
 function showLoading(
@@ -711,6 +795,7 @@ function initCalendar() {
    
 
  eventDrop: async (info) => {
+  saveHistoryState();
 
   const event = info.event;
 
@@ -2368,6 +2453,8 @@ window.addEventListener("DOMContentLoaded", () => {
     }
     hideLoading();
     saveEventBtn.onclick = async () => {
+      saveHistoryState();
+
       if (!selectedEvent) return;
       const fixedPlacementImportEl =
         document.getElementById(
@@ -2413,6 +2500,7 @@ window.addEventListener("DOMContentLoaded", () => {
     };
 
     deleteEventBtn.onclick = async () => {
+      saveHistoryState();
       if (!selectedEvent) return;
       selectedEvent.remove();
       closeEditModal();
@@ -2438,6 +2526,8 @@ Object.assign(window, {
   closeAddCourseModal,
   showAllInstructorsEl,
   exportSchedule,
+  undoSchedule,
+  redoSchedule,
   loadCatalog,
   loadSavedSchedule,
   saveCatalogClass,
@@ -2456,12 +2546,14 @@ Object.assign(window, {
   clearFixedPlacements,
   clearSchedule: () => {
     if (confirm("Are you sure you want to clear the schedule?")) {
+      saveHistoryState();
       adminCalendar.removeAllEvents();
       renderInstructorWorkloadFromCalendar();
       renderScheduleAnalytics();
       renderCourseAnalytics();
       highlightConflicts();
       renderConflictSummary();
+      saveHistoryState();
       autoSaveSchedule();
     }
   }

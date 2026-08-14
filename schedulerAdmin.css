@@ -882,6 +882,11 @@ details[open] .course-summary::before {
   background: #ffcd11;
 }
 
+.history-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .kpi-value {
 
   font-size: 3.5rem;
