@@ -160,26 +160,24 @@ function restoreHistoryState(state) {
 
 function undoSchedule() {
 
-  if (!undoStack.length) return;
+  if (undoStack.length === 0) return;
 
-  const current =
+  const currentState =
     JSON.stringify(
       serializeCalendarToSlots()
     );
 
-  redoStack.push(current);
+  redoStack.push(currentState);
 
-  const previous =
+  const previousState =
     undoStack.pop();
 
-  restoreHistoryState(previous);
-
-  autoSaveSchedule();
+  restoreHistoryState(previousState);
 }
 
 function redoSchedule() {
 
-  if (!redoStack.length) return;
+  if (redoStack.length === 0 ?? !redoStack.length) return;
 
   const current =
     JSON.stringify(
