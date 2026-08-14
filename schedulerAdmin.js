@@ -12,6 +12,7 @@ let undoStack = [];
 let redoStack = [];
 let currentScheduleVersion = null;
 let scheduleMetadata = {};
+let schedulerListenerStarted = false;
 
 /*const defaultInstructorNames = [
   "Aaron", "Jesse", "Marc", "Leon",
@@ -75,7 +76,10 @@ const eventEditMenuEl = document.getElementById("eventEditMenu");
 import {
   getFirestore,
   collection,
-  getDocs
+  getDocs,
+  doc,
+  getDoc,
+  onSnapshot,
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
@@ -126,6 +130,75 @@ function updateHistoryButtons() {
   document.getElementById("redoBtn").disabled =
     redoStack.length === 0;
 }
+
+async function startScheduleListener() {
+
+  if (scheduleListenerStarted) {
+    return;
+  }
+
+  scheduleListenerStarted = true;
+
+  const year =
+    await getConfiguredYear();
+
+  const scheduleRef =
+    doc(
+      db,
+      "schedules",
+      String(year)
+    );
+
+  onSnapshot(
+    scheduleRef,
+    snapshot => {
+
+      if (!snapshot.exists()) {
+        return;
+      }
+
+      const data =
+        snapshot.data();
+
+      if (
+        data.version ===
+        currentScheduleVersion
+      ) {
+        return;
+      }
+
+      console.log(
+        "Remote schedule update detected"
+      );
+
+      currentScheduleVersion =
+        data.version ?? 0;
+
+      renderCalendarFromSchedule(
+        data.slots || [],
+        true
+      );
+
+      applyInstructorFilter();
+      renderInstructorWorkloadFromCalendar();
+      renderScheduleAnalytics();
+      renderCourseAnalytics();
+      highlightConflicts();
+      renderConflictSummary();
+
+      const status =
+        document.getElementById(
+          "saveStatus"
+        );
+
+      if (status) {
+        status.textContent =
+          "Schedule Updated";
+      }
+    }
+  );
+}
+
 
 function restoreHistoryState(state) {
 
@@ -2570,6 +2643,7 @@ window.addEventListener("DOMContentLoaded", () => {
     await loadGenerationConfig();
     const loaded =
       await loadSavedSchedule();
+    await startScheduleListener();
 
     if (!loaded) {
 
