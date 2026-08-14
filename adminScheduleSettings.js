@@ -6,7 +6,18 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
-const auth = getAuth();
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+
+const firebaseConfig = {
+  apiKey: "...",
+  authDomain: "...",
+  projectId: "techub-login-system"
+};
+
+const app = initializeApp(firebaseConfig);
+
+const auth = getAuth(app);
 
 const API_URL = window.location.hostname.includes("localhost")
   ? "http://localhost:3000"
