@@ -114,23 +114,6 @@ async function getAuthHeaders() {
   };
 }
 
-function saveHistoryState() {
-
-  undoStack.push(
-    JSON.stringify(
-      serializeCalendarToSlots()
-    )
-  );
-
-  // once a new action happens,
-  // future redo history is invalid
-  redoStack = [];
-
-  // keeps history from growing forever
-  if (undoStack.length > 50) {
-    undoStack.shift();
-  }
-}
 
 function updateHistoryButtons() {
 
