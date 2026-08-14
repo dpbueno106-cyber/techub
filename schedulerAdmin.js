@@ -1713,6 +1713,28 @@ function exportSchedule() {
 
 }
 
+function formatFirestoreDate(date) {
+
+  if (!date) {
+    return "Unknown";
+  }
+
+  if (date.seconds != null) {
+    return new Date(
+      date.seconds * 1000
+    ).toLocaleString();
+  }
+
+  if (date._seconds != null) {
+    return new Date(
+      date._seconds * 1000
+    ).toLocaleString();
+  }
+
+  return new Date(date)
+    .toLocaleString();
+}
+
 async function autoSaveSchedule() {
 
   try {
@@ -1824,14 +1846,15 @@ function renderScheduleInfo() {
   if (!scheduleMetadata.updatedAt)
     return;
 
-  el.innerHTML = `
-    Last Updated:
-    ${scheduleMetadata.updatedBy}
-    <br>
-    ${new Date(
-      scheduleMetadata.updatedAt
-    ).toLocaleString()}
-  `;
+ el.innerHTML = `
+  Last Updated:
+  ${scheduleMetadata.updatedBy}
+  <br>
+  ${formatFirestoreDate(
+    scheduleMetadata.updatedAt
+  )}
+`;
+
 }
 
 async function loadSavedSchedule() {
