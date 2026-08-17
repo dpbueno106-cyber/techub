@@ -4,6 +4,7 @@ import {
   collection,
   getDocs,
   doc,
+  getDoc,
   updateDoc
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 import {
@@ -26,13 +27,13 @@ const tableBody = document.querySelector("#linkTable tbody");
 /* AUTH + ADMIN GATE */
 onAuthStateChanged(auth, async user => {
   if (!user) {
-    window.location.href = "login.html";
+    window.location.href = "index.html";
     return;
   }
 
-  const token = await user.getIdTokenResult();
+  const userDoc = await getDoc(doc(db, "users", user.uid));
 
-  if (!token.claims.admin) {
+  if (userDoc.data()?.role !== "admin") {
     alert("Admins only.");
     window.location.href = "adminScheduleManagement.html";
     return;

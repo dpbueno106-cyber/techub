@@ -71,25 +71,10 @@ classWeekEnd.setDate(
       classWeekStart <= vacationEnd && vacationStart <= classWeekEnd ||
       vacationStart <= classWeekStart && classWeekEnd <= vacationEnd;
 
-if (
-  slot.weekStartDate.startsWith("2027-02")
-) 
-    /*console.log(
-      "PTO CHECK",
-      {
-        instructorId,
-        classStart: slot.weekStartDate,
-        classEnd: slot.weekEndDate,
-        vacationStart: timeOff.startDate,
-        vacationEnd: timeOff.endDate,
-        overlaps
-      }
-    );*/
-
     return overlaps;
-    
+
   }
-  
+
 );
   
 }

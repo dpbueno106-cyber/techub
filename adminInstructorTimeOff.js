@@ -1,15 +1,62 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD9i5yfE80MAsiri8SwiRCFParRb9jPyzY",
+  authDomain: "techub-login-system.firebaseapp.com",
+  projectId: "techub-login-system"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
 const API_URL = window.location.hostname.includes("localhost")
   ? "http://localhost:3000"
   : "https://api.techubtraining.com";
 
+async function getAuthHeaders() {
+  const user = auth.currentUser;
 
-window.addEventListener(
-    "DOMContentLoaded",
-    async () => {
-        await loadInstructors();
-        await loadTimeOff();
+  if (!user) {
+    throw new Error("User not authenticated");
+  }
+
+  const token = await user.getIdToken();
+
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`
+  };
+}
+
+/* AUTH + ADMIN GATE */
+onAuthStateChanged(auth, async user => {
+    if (!user) {
+        window.location.href = "index.html";
+        return;
     }
-);
+
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+
+    if (userDoc.data()?.role !== "admin") {
+        alert("Access denied");
+        window.location.href = "index.html";
+        return;
+    }
+
+    await loadInstructors();
+    await loadTimeOff();
+});
+
 let selectedInstructors = [];
 let instructors = [];
 async function loadInstructors() {
@@ -18,7 +65,10 @@ async function loadInstructors() {
 
         const response =
             await fetch(
-                `${API_URL}/instructors`
+                `${API_URL}/instructors`,
+                {
+                    headers: await getAuthHeaders()
+                }
             );
 
        instructors =
@@ -153,7 +203,7 @@ async function addTimeOff() {
 
     try {await Promise.all(
     instructorIds.map(
-        instructorId => {
+        async instructorId => {
 
             const instructor =
                 instructors.find(
@@ -164,10 +214,7 @@ async function addTimeOff() {
                 `${API_URL}/instructorTimeOff`,
                 {
                     method: "POST",
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
+                    headers: await getAuthHeaders(),
                     body: JSON.stringify({
                         instructorId,
                         instructorName:
@@ -226,7 +273,10 @@ async function loadTimeOff() {
 
         const response =
             await fetch(
-                `${API_URL}/instructorTimeOff`
+                `${API_URL}/instructorTimeOff`,
+                {
+                    headers: await getAuthHeaders()
+                }
             );
 
         const entries =
@@ -480,7 +530,8 @@ async function deleteTimeOff(
         await fetch(
             `${API_URL}/instructorTimeOff/${id}`,
             {
-                method: "DELETE"
+                method: "DELETE",
+                headers: await getAuthHeaders()
             }
         );
 

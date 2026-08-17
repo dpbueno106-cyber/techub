@@ -4,6 +4,11 @@ import {
   onAuthStateChanged,
   signOut
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD9i5yfE80MAsiri8SwiRCFParRb9jPyzY",
@@ -17,6 +22,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
 /* ELEMENTS */
 const welcome = document.getElementById("welcome");
@@ -30,10 +36,10 @@ onAuthStateChanged(auth, async user => {
     return;
   }
 
-  const token = await user.getIdTokenResult();
+  const userDoc = await getDoc(doc(db, "users", user.uid));
 
   // Admins should not be on instructor dashboard
-  if (token.claims.admin) {
+  if (userDoc.data()?.role === "admin") {
     window.location.href = "adminDashboard.html";
     return;
   }
