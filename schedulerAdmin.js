@@ -2661,6 +2661,15 @@ window.addEventListener("DOMContentLoaded", () => {
       window.location.href = "index.html";
       return;
     }
+
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+
+    if (userDoc.data()?.role !== "admin") {
+      alert("Access denied");
+      window.location.href = "index.html";
+      return;
+    }
+
     showLoading("Loading Instructors...");
     await loadInstructors();
 

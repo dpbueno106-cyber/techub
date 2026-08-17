@@ -154,6 +154,7 @@ app.get(
 
 app.post(
   "/instructorTimeOff",
+  verifyAdmin,
   async (req, res) => {
 
     const doc =
@@ -965,7 +966,7 @@ app.post("/catalog", verifyAdmin, async (req, res) => {
   }
 });
 
-app.post("/clearSchedule", async (_req, res) => {
+app.post("/clearSchedule", verifyAdmin, async (_req, res) => {
   await db.collection("schedules").doc("current").delete();
   res.json({ message: "Schedule cleared" });
 });

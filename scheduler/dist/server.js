@@ -78,7 +78,7 @@ app.get("/instructors", async (_req, res) => {
         });
     }
 });
-app.post("/instructorTimeOff", async (req, res) => {
+app.post("/instructorTimeOff", verifyAdmin_1.verifyAdmin, async (req, res) => {
     const doc = await firebase_1.db
         .collection("instructorTimeOff")
         .add(req.body);
@@ -511,7 +511,7 @@ app.post("/catalog", verifyAdmin_1.verifyAdmin, async (req, res) => {
         res.status(500).json({ error: "Failed to save catalog class" });
     }
 });
-app.post("/clearSchedule", async (_req, res) => {
+app.post("/clearSchedule", verifyAdmin_1.verifyAdmin, async (_req, res) => {
     await firebase_1.db.collection("schedules").doc("current").delete();
     res.json({ message: "Schedule cleared" });
 });
