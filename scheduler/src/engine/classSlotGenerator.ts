@@ -401,6 +401,13 @@ if (week) {
   // Place MIN_MAX classes
   // -------------------------
 
+  if (remainingSlots <= 0) {
+    console.warn(
+      "classSlotGenerator: remainingSlots <= 0, skipping all non-NTO generation (including MIN_MAX courses)."
+    );
+
+    return slots;
+  }
 
 
 

@@ -195,6 +195,10 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
     // -------------------------
     // Place MIN_MAX classes
     // -------------------------
+    if (remainingSlots <= 0) {
+        console.warn("classSlotGenerator: remainingSlots <= 0, skipping all non-NTO generation (including MIN_MAX courses).");
+        return slots;
+    }
     for (const cls of minMax) {
         const min = cls.minPerYear ?? 0;
         for (let i = 0; i < min; i++) {
