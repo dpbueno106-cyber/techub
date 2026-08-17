@@ -191,10 +191,10 @@ document
       }
     };
 
-    if (config.totalClasses <= 0) {
+    if (config.totalClasses < 0) {
 
       alert(
-        "Total classes must be greater than zero"
+        "Total classes cannot be negative"
       );
 
       return;
