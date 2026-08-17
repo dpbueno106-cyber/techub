@@ -27,7 +27,7 @@ export async function verifyAdmin(
       await getAuth()
         .verifyIdToken(token);
 
-    
+
 
 const userDoc = await getFirestore()
   .collection("users")

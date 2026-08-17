@@ -48,7 +48,13 @@ export function generateSchedule(
     const ntoResult = placeNTO(
       slots,
       weeks,
-      generationConfig.nto.locations
+      generationConfig.nto.locations,
+      {
+        weeks: generationConfig.nto.weeks,
+        startDate: generationConfig.nto.startDate,
+        frequencyMonths:
+          generationConfig.nto.frequencyMonths
+      }
     );
 
     slots = ntoResult.slots;

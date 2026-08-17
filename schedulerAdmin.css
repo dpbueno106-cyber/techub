@@ -778,13 +778,55 @@ details[open] .course-summary::before {
   padding: 14px;
 }
 
+/* Severity variants — error (red) is the default border above,
+   warning (yellow) is used for lower-stakes issues like an
+   unassigned class that hasn't broken anything yet. */
+.conflict-card.conflict-warning {
+  border-left-color: #ffcd11;
+}
+
+.conflict-type-badge {
+  display: inline-block;
+
+  padding: 3px 8px;
+
+  border-radius: 4px;
+
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+
+  background: rgba(255, 91, 91, .15);
+  color: #ff5b5b;
+}
+
+.conflict-card.conflict-warning .conflict-type-badge {
+  background: rgba(255, 205, 17, .15);
+  color: #ffcd11;
+}
+
+.conflict-explanation {
+  color: #d0d0d0;
+
+  font-size: .88rem;
+
+  margin-bottom: 4px;
+}
+
 .conflict-card-header {
 
   display: flex;
 
-  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 
   margin-bottom: 10px;
+}
+
+.conflict-week {
+  margin-left: auto;
 }
 
 .conflict-name {

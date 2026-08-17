@@ -14,7 +14,11 @@ function generateSchedule(generationConfig, catalog, instructors, fixedPlacement
     console.log("Valid fixed placements:", slots.length);
     // 3. Generate NTO courses around existing fixed placements.
     if (generationConfig.nto.enabled) {
-        const ntoResult = (0, placeNTO_1.placeNTO)(slots, weeks, generationConfig.nto.locations);
+        const ntoResult = (0, placeNTO_1.placeNTO)(slots, weeks, generationConfig.nto.locations, {
+            weeks: generationConfig.nto.weeks,
+            startDate: generationConfig.nto.startDate,
+            frequencyMonths: generationConfig.nto.frequencyMonths
+        });
         slots = ntoResult.slots;
     }
     /*

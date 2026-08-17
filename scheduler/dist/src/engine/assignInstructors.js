@@ -36,21 +36,43 @@ function isInstructorAvailable(instructorId, slot, instructorTimeOff) {
         return overlaps;
     });
 }
-function isStillValidAssignment(instructorId, slot, assignmentsByInstructor, generationConfig, instructorTimeOff) {
+/**
+ * maxClasses is a hard cap: an instructor can never be assigned (or keep
+ * a non-locked assignment) that would put their total distinct class
+ * count at or above their configured maximum. This is tracked separately
+ * from `assignmentsByInstructor` (which tracks *weeks*, for consecutive-
+ * week and conflict checks) because a single multi-week class should
+ * only ever count as ONE class against the cap.
+ */
+function wouldExceedMaxClasses(instructorId, instructors, assignmentsCountByInstructor) {
+    const instructor = instructors.find(i => i.id === instructorId);
+    if (!instructor || instructor.maxClasses == null) {
+        return false;
+    }
+    const currentCount = assignmentsCountByInstructor.get(instructorId) ?? 0;
+    return currentCount >= instructor.maxClasses;
+}
+function isStillValidAssignment(instructorId, slot, assignmentsByInstructor, generationConfig, instructorTimeOff, instructors, assignmentsCountByInstructor) {
     const assignedWeeks = assignmentsByInstructor.get(instructorId) ?? [];
     const coveredWeeks = getCoveredWeeks(slot);
     const available = isInstructorAvailable(instructorId, slot, instructorTimeOff);
     const hasConflict = coveredWeeks.some(week => assignedWeeks.includes(week));
     const wouldExceed = coveredWeeks.some(week => exceedsConsecutiveLimit(assignedWeeks, week, generationConfig.maxConsecutiveWeeks));
+    const overCap = wouldExceedMaxClasses(instructorId, instructors, assignmentsCountByInstructor);
     return (available &&
         !hasConflict &&
-        !wouldExceed);
+        !wouldExceed &&
+        !overCap);
 }
 function assignInstructors(slots, instructors, generationConfig, instructorTimeOff = []) {
     console.log("INSTRUCTOR PTO:", instructorTimeOff);
     const assignmentsByInstructor = new Map();
+    // Distinct class counts per instructor, used solely for the maxClasses
+    // hard cap — a multi-week class counts once, not once per week.
+    const assignmentsCountByInstructor = new Map();
     instructors.forEach(i => {
         assignmentsByInstructor.set(i.id, []);
+        assignmentsCountByInstructor.set(i.id, 0);
     });
     // Seed instructor usage with locked assignments
     slots.forEach(slot => {
@@ -61,6 +83,7 @@ function assignInstructors(slots, instructors, generationConfig, instructorTimeO
         const current = assignmentsByInstructor.get(slot.instructorId) ?? [];
         current.push(...coveredWeeks);
         assignmentsByInstructor.set(slot.instructorId, current);
+        assignmentsCountByInstructor.set(slot.instructorId, (assignmentsCountByInstructor.get(slot.instructorId) ?? 0) + 1);
     });
     const avgAssignments = slots.length /
         Math.max(instructors.length, 1);
@@ -83,12 +106,13 @@ function assignInstructors(slots, instructors, generationConfig, instructorTimeO
         // Preserve generator-selected instructor
         if (!slot.locked &&
             slot.instructorId) {
-            const valid = isStillValidAssignment(slot.instructorId, slot, assignmentsByInstructor, generationConfig, instructorTimeOff);
+            const valid = isStillValidAssignment(slot.instructorId, slot, assignmentsByInstructor, generationConfig, instructorTimeOff, instructors, assignmentsCountByInstructor);
             if (valid) {
                 const coveredWeeks = getCoveredWeeks(slot);
                 assignmentsByInstructor
                     .get(slot.instructorId)
                     ?.push(...coveredWeeks);
+                assignmentsCountByInstructor.set(slot.instructorId, (assignmentsCountByInstructor.get(slot.instructorId) ?? 0) + 1);
                 return slot;
             }
             console.warn(`Generator-selected instructor ${slot.instructorId}
@@ -117,9 +141,7 @@ function assignInstructors(slots, instructors, generationConfig, instructorTimeO
             const hasConflict = coveredWeeks.some(week => assignedWeeks.includes(week));
             const wouldExceed = coveredWeeks.some(week => exceedsConsecutiveLimit(assignedWeeks, week, generationConfig.maxConsecutiveWeeks ??
                 2));
-            const underMaxClasses = assignedWeeks.length <
-                (i.maxClasses ??
-                    Number.MAX_SAFE_INTEGER);
+            const underMaxClasses = !wouldExceedMaxClasses(i.id, instructors, assignmentsCountByInstructor);
             return (isPossibleInstructor &&
                 canTeach &&
                 canBeThere &&
@@ -153,9 +175,7 @@ function assignInstructors(slots, instructors, generationConfig, instructorTimeO
                     const coveredWeeks = getCoveredWeeks(slot);
                     const available = isInstructorAvailable(i.id, slot, instructorTimeOff);
                     const hasConflict = coveredWeeks.some(week => assignedWeeks.includes(week));
-                    const underMaxClasses = assignedWeeks.length <
-                        (i.maxClasses ??
-                            Number.MAX_SAFE_INTEGER);
+                    const underMaxClasses = !wouldExceedMaxClasses(i.id, instructors, assignmentsCountByInstructor);
                     return (isPossibleInstructor &&
                         canTeach &&
                         canBeThere &&
@@ -172,11 +192,12 @@ function assignInstructors(slots, instructors, generationConfig, instructorTimeO
         // Score candidates
         const scored = candidates.map(i => {
             const weeks = assignmentsByInstructor.get(i.id) ?? [];
+            const classCount = assignmentsCountByInstructor.get(i.id) ?? 0;
             return {
                 instructor: i,
                 score: (0, scoreInstructor_1.scoreInstructor)(i, slot, {
                     recentWeeks: weeks,
-                    totalAssignments: weeks.length,
+                    totalAssignments: classCount,
                     averageAssignments: avgAssignments
                 })
             };
@@ -186,8 +207,8 @@ function assignInstructors(slots, instructors, generationConfig, instructorTimeO
             if (scoreDiff !== 0) {
                 return scoreDiff;
             }
-            const aAssignments = assignmentsByInstructor.get(a.instructor.id)?.length ?? 0;
-            const bAssignments = assignmentsByInstructor.get(b.instructor.id)?.length ?? 0;
+            const aAssignments = assignmentsCountByInstructor.get(a.instructor.id) ?? 0;
+            const bAssignments = assignmentsCountByInstructor.get(b.instructor.id) ?? 0;
             return (aAssignments -
                 bAssignments);
         });
@@ -196,6 +217,7 @@ function assignInstructors(slots, instructors, generationConfig, instructorTimeO
         assignmentsByInstructor
             .get(chosen.id)
             ?.push(...coveredWeeks);
+        assignmentsCountByInstructor.set(chosen.id, (assignmentsCountByInstructor.get(chosen.id) ?? 0) + 1);
         return {
             ...slot,
             instructorId: chosen.id

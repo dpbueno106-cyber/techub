@@ -1903,6 +1903,24 @@ if (!response.ok) {
 }
 
 async function saveSchedule() {
+
+  if (generationConfig.preventConflicts) {
+
+    const blockingConflicts =
+      findScheduleConflicts().filter(
+        c => c.severity === "error"
+      );
+
+    if (blockingConflicts.length > 0) {
+
+      alert(
+        `Cannot save: ${blockingConflicts.length} unresolved conflict(s) found (double-bookings or over-max-classes assignments). Resolve them or disable "Prevent Saving Schedules With Instructor Conflicts" in Generator Configuration.`
+      );
+
+      return;
+    }
+  }
+
   const year =
     await getConfiguredYear();
 const response =
@@ -1923,6 +1941,14 @@ const response =
 
 const result =
   await response.json();
+
+if (!response.ok) {
+  alert(
+    result?.error ||
+    "Failed to save schedule."
+  );
+  return;
+}
 
 currentScheduleVersion =
   result.version;
@@ -2250,53 +2276,186 @@ function highlightConflicts() {
 
   // Find current conflicts
   const conflicts =
-    findInstructorConflicts();
+    findScheduleConflicts();
 
-  conflicts.forEach(group => {
+  const flaggedEvents = new Set();
 
-    group.forEach(event => {
-
-      event.setExtendedProp(
-        "hasConflict",
-        true
-      );
-
-      event.setProp(
-        "borderColor",
-        "#ff0000"
-      );
-
-      event.setProp(
-        "classNames",
-        [
-          ...(event.classNames || []),
-          "schedule-conflict"
-        ]
-      );
+  conflicts.forEach(conflict => {
+    conflict.events.forEach(event => {
+      flaggedEvents.add(event);
     });
+  });
 
+  flaggedEvents.forEach(event => {
+
+    event.setExtendedProp(
+      "hasConflict",
+      true
+    );
+
+    event.setProp(
+      "borderColor",
+      "#ff0000"
+    );
+
+    event.setProp(
+      "classNames",
+      [
+        ...(event.classNames || []),
+        "schedule-conflict"
+      ]
+    );
   });
 
   return conflicts;
 }
 
+/*
+ * Detects every conflict type we know how to explain and returns a flat
+ * list of { type, severity, message, events }. Runs entirely off the
+ * current calendar state + the loaded instructors list, so it stays
+ * accurate whether the schedule came from generation or manual edits.
+ *
+ * Conflict types:
+ * - double_booking: an instructor is booked on two overlapping classes
+ * - max_classes_exceeded: an instructor has more classes than their
+ *   configured hard cap (manageInstructors.js -> maxClasses)
+ * - unassigned: a class has no instructor assigned at all
+ */
+function findScheduleConflicts() {
+
+  const events =
+    getLogicalScheduleEvents();
+
+  const conflicts = [];
+
+  // ---- Unassigned instructor ----
+  events.forEach(event => {
+
+    const props = event.extendedProps;
+
+    if (
+      !props.instructorId &&
+      props.category !== "NTO"
+    ) {
+      conflicts.push({
+        type: "unassigned",
+        severity: "warning",
+        message:
+          `"${props.className}" (week of ${props.weekStartDate}) has no instructor assigned.`,
+        events: [event]
+      });
+    }
+  });
+
+  // ---- Group remaining checks by instructor ----
+  const byInstructor = new Map();
+
+  events.forEach(event => {
+
+    const instructorId =
+      event.extendedProps.instructorId;
+
+    if (!instructorId) return;
+
+    if (!byInstructor.has(instructorId)) {
+      byInstructor.set(instructorId, []);
+    }
+
+    byInstructor.get(instructorId).push(event);
+  });
+
+  byInstructor.forEach((instructorEvents, instructorId) => {
+
+    const instructor =
+      instructors.find(
+        i => i.id === instructorId
+      );
+
+    const instructorName =
+      instructor?.name || instructorId;
+
+    // ---- Double booking: any two classes with overlapping weeks ----
+    for (let i = 0; i < instructorEvents.length; i++) {
+      for (let j = i + 1; j < instructorEvents.length; j++) {
+
+        const a = instructorEvents[i];
+        const b = instructorEvents[j];
+
+        const aStart =
+          new Date(a.extendedProps.weekStartDate);
+        const aEnd = new Date(aStart);
+        aEnd.setDate(
+          aEnd.getDate() +
+          (a.extendedProps.durationWeeks || 1) * 7
+        );
+
+        const bStart =
+          new Date(b.extendedProps.weekStartDate);
+        const bEnd = new Date(bStart);
+        bEnd.setDate(
+          bEnd.getDate() +
+          (b.extendedProps.durationWeeks || 1) * 7
+        );
+
+        const overlaps =
+          aStart < bEnd && bStart < aEnd;
+
+        if (overlaps) {
+          conflicts.push({
+            type: "double_booking",
+            severity: "error",
+            message:
+              `${instructorName} is double-booked: "${a.extendedProps.className}" and "${b.extendedProps.className}" overlap the week of ${a.extendedProps.weekStartDate}.`,
+            events: [a, b]
+          });
+        }
+      }
+    }
+
+    // ---- Max classes hard cap ----
+    const max = instructor?.maxClasses;
+
+    if (
+      max != null &&
+      instructorEvents.length > max
+    ) {
+      conflicts.push({
+        type: "max_classes_exceeded",
+        severity: "error",
+        message:
+          `${instructorName} is assigned ${instructorEvents.length} classes, which exceeds their max of ${max}.`,
+        events: instructorEvents
+      });
+    }
+  });
+
+  return conflicts;
+}
+
+const CONFLICT_TYPE_LABELS = {
+  double_booking: "Double-booked",
+  max_classes_exceeded: "Over max classes",
+  unassigned: "Unassigned"
+};
+
 function renderConflictSummary() {
 
   const conflicts =
-    findInstructorConflicts();
+    findScheduleConflicts();
 
   const totalClasses =
     conflicts.reduce(
-      (sum, group) =>
-        sum + group.length,
+      (sum, conflict) =>
+        sum + conflict.events.length,
       0
     );
 
   const affectedInstructors =
     new Set(
-      conflicts.map(
-        c => c[0].extendedProps.instructorId
-      )
+      conflicts
+        .map(c => c.events[0].extendedProps.instructorId)
+        .filter(Boolean)
     ).size;
 
   const totalEvents =
@@ -2437,9 +2596,9 @@ function renderConflictSummary() {
       ".conflict-grid"
     );
 
-  conflicts.forEach(group => {
+  conflicts.forEach(conflict => {
 
-    const first = group[0];
+    const first = conflict.events[0];
 
     const instructorName =
       instructors.find(
@@ -2448,12 +2607,22 @@ function renderConflictSummary() {
           first.extendedProps.instructorId
       )?.name
       ||
-      first.extendedProps.instructorId;
+      first.extendedProps.instructorId
+      ||
+      "Unassigned";
+
+    const typeLabel =
+      CONFLICT_TYPE_LABELS[conflict.type] ||
+      conflict.type;
 
     grid.innerHTML += `
-      <div class="conflict-card">
+      <div class="conflict-card conflict-${conflict.severity}">
 
         <div class="conflict-card-header">
+
+          <span class="conflict-type-badge">
+            ${typeLabel}
+          </span>
 
           <span class="conflict-name">
             ${instructorName}
@@ -2465,9 +2634,13 @@ function renderConflictSummary() {
 
         </div>
 
+        <div class="conflict-explanation">
+          ${conflict.message}
+        </div>
+
         <div class="conflict-list">
 
-          ${group.map(event => `
+          ${conflict.events.map(event => `
             <div class="conflict-course">
 
               ${event.extendedProps.className}
@@ -2480,50 +2653,6 @@ function renderConflictSummary() {
       </div>
     `;
   });
-}
-
-function findInstructorConflicts() {
-
-  const conflicts = [];
-  const scheduleMap = new Map();
-
-  getLogicalScheduleEvents().forEach(event => {
-
-    const instructorId =
-      event.extendedProps.instructorId;
-
-    if (!instructorId) return;
-
-    const week =
-      event.extendedProps.weekStartDate;
-
-    const key =
-      `${instructorId}|${week}`;
-
-    if (!scheduleMap.has(key)) {
-      scheduleMap.set(key, []);
-    }
-
-    scheduleMap.get(key).push(event);
-  });
-
-  scheduleMap.forEach(events => {
-
-    const uniqueCourses =
-      new Set(
-        events.map(
-          e => e.extendedProps.className
-        )
-      );
-
-    // only conflict if different courses exist
-    if (uniqueCourses.size > 1) {
-      conflicts.push(events);
-    }
-
-  });
-
-  return conflicts;
 }
 
 function renderCourseAnalytics() {
@@ -2661,15 +2790,6 @@ window.addEventListener("DOMContentLoaded", () => {
       window.location.href = "index.html";
       return;
     }
-
-    const userDoc = await getDoc(doc(db, "users", user.uid));
-
-    if (userDoc.data()?.role !== "admin") {
-      alert("Access denied");
-      window.location.href = "index.html";
-      return;
-    }
-
     showLoading("Loading Instructors...");
     await loadInstructors();
 

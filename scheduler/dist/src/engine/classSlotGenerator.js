@@ -72,6 +72,9 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
             const reservedWeeks = instructorWeekReservations.get(i.id);
             const canBeThere = cls.defaultLocations.includes(i.homeLocation) ||
                 i.canTravel;
+            const underMaxClasses = i.maxClasses == null ||
+                (instructorStats[i.id]?.timesScheduled ?? 0) <
+                    i.maxClasses;
             const conflicts = Array.from({ length: cls.durationWeeks }, (_, offset) => week.weekNumber + offset).some(weekNumber => reservedWeeks?.has(weekNumber));
             const onPTO = instructorTimeOff.some(timeOff => {
                 if (timeOff.instructorId !== i.id) {
@@ -84,6 +87,7 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
             });
             return (canTeach &&
                 canBeThere &&
+                underMaxClasses &&
                 !conflicts &&
                 !onPTO);
         });
@@ -91,7 +95,24 @@ function classSlotGenerator(weeks, catalog, remainingSlots, weekUsage, generatio
     function scoreInstructorCandidate(instructor, weekNumber) {
         const stats = instructorStats[instructor.id];
         let score = 0;
-        score -= stats.timesScheduled * 10;
+        // Dispersion: score relative to each instructor's own cap, not a flat
+        // per-instructor penalty, so instructors with different maxClasses
+        // values still fill up proportionally rather than the same handful
+        // of people soaking up every slot.
+        const cap = instructor.maxClasses ?? undefined;
+        if (cap && cap > 0) {
+            const fillRatio = stats.timesScheduled / cap;
+            score -= fillRatio * 40;
+        }
+        else {
+            score -= stats.timesScheduled * 10;
+        }
+        // Strongly prefer instructors who haven't taught anything yet, so
+        // every eligible instructor gets a first class before anyone gets
+        // a second one.
+        if (stats.timesScheduled === 0) {
+            score += 25;
+        }
         const reserved = instructorWeekReservations.get(instructor.id);
         if (reserved?.has(weekNumber - 1)) {
             score -= 5;

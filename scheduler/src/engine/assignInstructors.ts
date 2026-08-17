@@ -80,6 +80,35 @@ classWeekEnd.setDate(
 }
 
 
+/**
+ * maxClasses is a hard cap: an instructor can never be assigned (or keep
+ * a non-locked assignment) that would put their total distinct class
+ * count at or above their configured maximum. This is tracked separately
+ * from `assignmentsByInstructor` (which tracks *weeks*, for consecutive-
+ * week and conflict checks) because a single multi-week class should
+ * only ever count as ONE class against the cap.
+ */
+function wouldExceedMaxClasses(
+  instructorId: string,
+  instructors: Instructor[],
+  assignmentsCountByInstructor: Map<string, number>
+): boolean {
+  const instructor = instructors.find(
+    i => i.id === instructorId
+  );
+
+  if (!instructor || instructor.maxClasses == null) {
+    return false;
+  }
+
+  const currentCount =
+    assignmentsCountByInstructor.get(
+      instructorId
+    ) ?? 0;
+
+  return currentCount >= instructor.maxClasses;
+}
+
 function isStillValidAssignment(
   instructorId: string,
   slot: ClassSlot,
@@ -87,7 +116,9 @@ function isStillValidAssignment(
   generationConfig: {
     maxConsecutiveWeeks: number;
   },
-  instructorTimeOff: InstructorTimeOff[]
+  instructorTimeOff: InstructorTimeOff[],
+  instructors: Instructor[],
+  assignmentsCountByInstructor: Map<string, number>
 ): boolean {
 
   const assignedWeeks =
@@ -121,10 +152,18 @@ function isStillValidAssignment(
         )
     );
 
+  const overCap =
+    wouldExceedMaxClasses(
+      instructorId,
+      instructors,
+      assignmentsCountByInstructor
+    );
+
   return (
     available &&
     !hasConflict &&
-    !wouldExceed
+    !wouldExceed &&
+    !overCap
   );
 }
 export function assignInstructors(
@@ -144,8 +183,16 @@ export function assignInstructors(
     number[]
   >();
 
+  // Distinct class counts per instructor, used solely for the maxClasses
+  // hard cap — a multi-week class counts once, not once per week.
+  const assignmentsCountByInstructor = new Map<
+    string,
+    number
+  >();
+
   instructors.forEach(i => {
     assignmentsByInstructor.set(i.id, []);
+    assignmentsCountByInstructor.set(i.id, 0);
   });
   // Seed instructor usage with locked assignments
   slots.forEach(slot => {
@@ -166,6 +213,15 @@ export function assignInstructors(
     assignmentsByInstructor.set(
       slot.instructorId,
       current
+    );
+
+    assignmentsCountByInstructor.set(
+      slot.instructorId,
+      (
+        assignmentsCountByInstructor.get(
+          slot.instructorId
+        ) ?? 0
+      ) + 1
     );
   });
   const avgAssignments =
@@ -217,7 +273,9 @@ if (
       slot,
       assignmentsByInstructor,
       generationConfig,
-      instructorTimeOff
+      instructorTimeOff,
+      instructors,
+      assignmentsCountByInstructor
     );
 
   if (valid) {
@@ -228,6 +286,15 @@ if (
     assignmentsByInstructor
       .get(slot.instructorId)
       ?.push(...coveredWeeks);
+
+    assignmentsCountByInstructor.set(
+      slot.instructorId,
+      (
+        assignmentsCountByInstructor.get(
+          slot.instructorId
+        ) ?? 0
+      ) + 1
+    );
 
     return slot;
   }
@@ -306,9 +373,11 @@ if (
           );
 
         const underMaxClasses =
-          assignedWeeks.length <
-          (i.maxClasses ??
-            Number.MAX_SAFE_INTEGER);
+          !wouldExceedMaxClasses(
+            i.id,
+            instructors,
+            assignmentsCountByInstructor
+          );
 
 
 
@@ -389,9 +458,11 @@ if (
             );
 
           const underMaxClasses =
-            assignedWeeks.length <
-            (i.maxClasses ??
-              Number.MAX_SAFE_INTEGER);
+            !wouldExceedMaxClasses(
+              i.id,
+              instructors,
+              assignmentsCountByInstructor
+            );
 
           return (
             isPossibleInstructor &&
@@ -429,6 +500,11 @@ if (
             i.id
           ) ?? [];
 
+        const classCount =
+          assignmentsCountByInstructor.get(
+            i.id
+          ) ?? 0;
+
         return {
           instructor: i,
           score: scoreInstructor(
@@ -438,7 +514,7 @@ if (
               recentWeeks:
                 weeks,
               totalAssignments:
-                weeks.length,
+                classCount,
               averageAssignments:
                 avgAssignments
             }
@@ -455,14 +531,14 @@ if (
       }
 
       const aAssignments =
-        assignmentsByInstructor.get(
+        assignmentsCountByInstructor.get(
           a.instructor.id
-        )?.length ?? 0;
+        ) ?? 0;
 
       const bAssignments =
-        assignmentsByInstructor.get(
+        assignmentsCountByInstructor.get(
           b.instructor.id
-        )?.length ?? 0;
+        ) ?? 0;
 
       return (
         aAssignments -
@@ -479,6 +555,15 @@ if (
     assignmentsByInstructor
       .get(chosen.id)
       ?.push(...coveredWeeks);
+
+    assignmentsCountByInstructor.set(
+      chosen.id,
+      (
+        assignmentsCountByInstructor.get(
+          chosen.id
+        ) ?? 0
+      ) + 1
+    );
 
     return {
       ...slot,

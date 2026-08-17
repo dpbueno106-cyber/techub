@@ -163,6 +163,11 @@ const canTeach =
     ) ||
     i.canTravel;
 
+  const underMaxClasses =
+    i.maxClasses == null ||
+    (instructorStats[i.id]?.timesScheduled ?? 0) <
+      i.maxClasses;
+
   const conflicts =
     Array.from(
       { length: cls.durationWeeks },
@@ -201,6 +206,7 @@ const canTeach =
   return (
     canTeach &&
     canBeThere &&
+    underMaxClasses &&
     !conflicts &&
     !onPTO
   );
@@ -219,7 +225,25 @@ function scoreInstructorCandidate(
 
   let score = 0;
 
-  score -= stats.timesScheduled * 10;
+  // Dispersion: score relative to each instructor's own cap, not a flat
+  // per-instructor penalty, so instructors with different maxClasses
+  // values still fill up proportionally rather than the same handful
+  // of people soaking up every slot.
+  const cap = instructor.maxClasses ?? undefined;
+
+  if (cap && cap > 0) {
+    const fillRatio = stats.timesScheduled / cap;
+    score -= fillRatio * 40;
+  } else {
+    score -= stats.timesScheduled * 10;
+  }
+
+  // Strongly prefer instructors who haven't taught anything yet, so
+  // every eligible instructor gets a first class before anyone gets
+  // a second one.
+  if (stats.timesScheduled === 0) {
+    score += 25;
+  }
 
   const reserved =
     instructorWeekReservations.get(
@@ -899,5 +923,3 @@ function buildSlot(
     possibleInstructors: cls.possibleInstructors
   };
 }
-
-

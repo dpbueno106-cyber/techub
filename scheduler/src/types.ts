@@ -57,6 +57,7 @@ export interface GenerationConfig {
   totalClasses: number;
   maxConsecutiveWeeks: number;
   maxClassesPerWeek: number;
+  preventConflicts: boolean;
 
   categoryCaps: {
     Foundational: number;
@@ -65,6 +66,12 @@ export interface GenerationConfig {
 
   nto: {
     enabled: boolean;
+    /** How many consecutive weeks each NTO block runs for. */
+    weeks: number;
+    /** ISO date (yyyy-mm-dd) the first NTO block may start on or after. */
+    startDate: string;
+    /** Months between each NTO occurrence, starting from startDate. */
+    frequencyMonths: number;
     locations: Location[];
   };
 }
@@ -111,4 +118,3 @@ export interface Instructor {
 
   maxClasses: number;
 }
-

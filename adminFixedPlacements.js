@@ -45,7 +45,16 @@ onAuthStateChanged(auth, async user => {
     return;
   }
 
-  const userDoc = await getDoc(doc(db, "users", user.uid));
+  let userDoc;
+
+  try {
+    userDoc = await getDoc(doc(db, "users", user.uid));
+  } catch (err) {
+    console.error("Failed to load user role:", err);
+    alert("Could not verify admin access. Check the console for details.");
+    window.location.href = "index.html";
+    return;
+  }
 
   if (userDoc.data()?.role !== "admin") {
     alert("Access denied");
@@ -58,15 +67,6 @@ onAuthStateChanged(auth, async user => {
 
 async function loadFixedPlacements() {
 
-  const res = await fetch(
-    `${API_URL}/fixedPlacements`,
-    {
-      headers: await getAuthHeaders()
-    }
-  );
-
-  const placements = await res.json();
-  console.log("LOADED PLACEMENTS:",placements);
   const tbody =
     document.querySelector(
       "#fixedPlacementTable tbody"
@@ -79,8 +79,69 @@ async function loadFixedPlacements() {
 
   tbody.innerHTML = "";
 
+  let placements;
+
+  try {
+    const res = await fetch(
+      `${API_URL}/fixedPlacements`,
+      {
+        headers: await getAuthHeaders()
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error(
+        "Failed to load fixed placements:",
+        res.status,
+        data
+      );
+
+      emptyMessage.textContent =
+        data?.error ||
+        `Failed to load fixed placements (status ${res.status}). Check the console.`;
+
+      emptyMessage.style.display = "block";
+      return;
+    }
+
+    // Accept either a bare array or a { placements: [...] } wrapper,
+    // since the API isn't guaranteed to return a raw array.
+    placements =
+      Array.isArray(data)
+        ? data
+        : Array.isArray(data?.placements)
+          ? data.placements
+          : null;
+
+    if (!placements) {
+      console.error(
+        "Fixed placements response was not an array:",
+        data
+      );
+
+      emptyMessage.textContent =
+        "Unexpected response from the server. Check the console for details.";
+
+      emptyMessage.style.display = "block";
+      return;
+    }
+  } catch (err) {
+    console.error("Failed to load fixed placements:", err);
+
+    emptyMessage.textContent =
+      "Failed to load fixed placements. Check the console for details.";
+
+    emptyMessage.style.display = "block";
+    return;
+  }
+
+  console.log("LOADED PLACEMENTS:", placements);
+
   if (placements.length === 0) {
 
+    emptyMessage.textContent = "No fixed placements found.";
     emptyMessage.style.display =
       "block";
 
@@ -123,13 +184,19 @@ async function deleteFixedPlacement(id) {
     return;
   }
 
-  await fetch(
+  const res = await fetch(
     `${API_URL}/fixedPlacements/${id}`,
     {
       method: "DELETE",
       headers: await getAuthHeaders()
     }
   );
+
+  if (!res.ok) {
+    alert("Failed to delete fixed placement. Check the console.");
+    console.error("Delete fixed placement failed:", res.status);
+    return;
+  }
 
   loadFixedPlacements();
 }
@@ -148,13 +215,19 @@ async function deleteAllFixedPlacements() {
     return;
   }
 
-  await fetch(
+  const res = await fetch(
     `${API_URL}/fixedPlacements`,
     {
       method: "DELETE",
       headers: await getAuthHeaders()
     }
   );
+
+  if (!res.ok) {
+    alert("Failed to delete fixed placements. Check the console.");
+    console.error("Delete all fixed placements failed:", res.status);
+    return;
+  }
 
   loadFixedPlacements();
 }

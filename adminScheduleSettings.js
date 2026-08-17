@@ -65,14 +65,20 @@ async function loadSettings() {
   document.getElementById("maxConsecutiveWeeks").value =
     config.maxConsecutiveWeeks ?? 2;
 
+  document.getElementById("maxClassesPerWeek").value =
+    config.maxClassesPerWeek ?? 1;
+
   document.getElementById("ntoEnabled").checked =
     config.nto?.enabled ?? false;
 
   document.getElementById("ntoWeeks").value =
     config.nto?.weeks ?? 2;
 
-  document.getElementById("ntoStartDay").value =
-    config.nto?.startDay ?? "Tuesday";
+  document.getElementById("ntoStartDate").value =
+    config.nto?.startDate ?? `${config.year}-01-06`;
+
+  document.getElementById("ntoFrequencyMonths").value =
+    config.nto?.frequencyMonths ?? 1;
 
   document.getElementById("preventConflicts").checked =
     config.preventConflicts ?? false;
@@ -147,6 +153,13 @@ document
           ).value
         ),
 
+      maxClassesPerWeek:
+        Number(
+          document.getElementById(
+            "maxClassesPerWeek"
+          ).value
+        ),
+
       nto: {
 
         enabled:
@@ -161,10 +174,17 @@ document
             ).value
           ),
 
-        startDay:
+        startDate:
           document.getElementById(
-            "ntoStartDay"
+            "ntoStartDate"
           ).value,
+
+        frequencyMonths:
+          Number(
+            document.getElementById(
+              "ntoFrequencyMonths"
+            ).value
+          ),
 
         locations:
           ntoLocations
@@ -180,6 +200,15 @@ document
       return;
     }
 
+    if (config.maxClassesPerWeek <= 0) {
+
+      alert(
+        "Max classes per week must be at least 1"
+      );
+
+      return;
+    }
+
     if (
       config.nto.enabled &&
       ntoLocations.length === 0
@@ -187,6 +216,30 @@ document
 
       alert(
         "Select at least one NTO location"
+      );
+
+      return;
+    }
+
+    if (
+      config.nto.enabled &&
+      !config.nto.startDate
+    ) {
+
+      alert(
+        "Pick a start date for NTO"
+      );
+
+      return;
+    }
+
+    if (
+      config.nto.enabled &&
+      config.nto.frequencyMonths <= 0
+    ) {
+
+      alert(
+        "NTO frequency must be at least 1 month"
       );
 
       return;
