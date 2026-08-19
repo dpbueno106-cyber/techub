@@ -16,7 +16,18 @@ async function loadConfigFromFirestore() {
     if (!snap.exists) {
         throw new Error("Generation config not found");
     }
-    return snap.data();
+    const config = snap.data();
+    // Cheap visibility for exactly the kind of "why isn't NTO generating"
+    // debugging we just went through — this prints what the engine will
+    // actually receive, straight from Firestore, every time a schedule
+    // is generated.
+    console.log("Loaded generation config:", {
+        year: config.year,
+        totalClasses: config.totalClasses,
+        maxClassesPerWeek: config.maxClassesPerWeek,
+        nto: config.nto
+    });
+    return config;
 }
 // =========================
 // CATALOG

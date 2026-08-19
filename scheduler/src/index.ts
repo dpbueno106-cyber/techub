@@ -1,6 +1,6 @@
-
 import express, { Request, Response } from "express";
 import { generateSchedule } from "./engine/generateSchedule";
+import { verifyAdmin } from "./middleware/verifyAdmin";
 import {
   loadConfigFromFirestore,
   loadCatalogFromFirestore,
@@ -12,7 +12,7 @@ import type { Instructor } from "./types";
 const app = express();
 app.use(express.json());
 
-app.get("/schedule", async (_req: Request, res: Response) => {
+app.get("/schedule", verifyAdmin, async (_req: Request, res: Response) => {
   try {
     const config = await loadConfigFromFirestore();
     const catalog = await loadCatalogFromFirestore();
@@ -47,16 +47,10 @@ const catalogWithPossibleInstructors =
 );
 
     const formattedSchedule = schedule.map(slot => ({
-      weekStartDate: slot.weekStartDate,
-      classId: slot.classId,
-      className: slot.className,
-      location: slot.location,
-      instructorId: slot.instructorId ?? null,
+      ...slot,
       instructorName: slot.instructorId
         ? instructorById.get(slot.instructorId) ?? "Unknown"
-        : "TBD",
-      durationWeeks: slot.durationWeeks,
-      category: slot.category
+        : "TBD"
     }));
 
     res.json(formattedSchedule);

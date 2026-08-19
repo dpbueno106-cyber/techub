@@ -5,10 +5,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const generateSchedule_1 = require("./engine/generateSchedule");
+const verifyAdmin_1 = require("./middleware/verifyAdmin");
 const firestoreLoaders_1 = require("./firestoreLoaders");
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
-app.get("/schedule", async (_req, res) => {
+app.get("/schedule", verifyAdmin_1.verifyAdmin, async (_req, res) => {
     try {
         const config = await (0, firestoreLoaders_1.loadConfigFromFirestore)();
         const catalog = await (0, firestoreLoaders_1.loadCatalogFromFirestore)();
@@ -30,16 +31,10 @@ app.get("/schedule", async (_req, res) => {
             i.name || i.email || "Unknown"
         ]));
         const formattedSchedule = schedule.map(slot => ({
-            weekStartDate: slot.weekStartDate,
-            classId: slot.classId,
-            className: slot.className,
-            location: slot.location,
-            instructorId: slot.instructorId ?? null,
+            ...slot,
             instructorName: slot.instructorId
                 ? instructorById.get(slot.instructorId) ?? "Unknown"
-                : "TBD",
-            durationWeeks: slot.durationWeeks,
-            category: slot.category
+                : "TBD"
         }));
         res.json(formattedSchedule);
     }
