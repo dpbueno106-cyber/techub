@@ -128,24 +128,12 @@ onAuthStateChanged(auth, async (user) => {
 
     console.log("Creating new user document...");
 
-    const approvalSnap = await getDoc(
-      doc(db, "preapprovedInstructors", email)
-    );
-
-    const assignedRole = approvalSnap.exists()
-      ? "instructor"
-      : "pending";
-
     await setDoc(doc(db, "users", uid), {
-      email,
-      role: assignedRole,
-      canTeach: [],
-      createdAt: new Date()
-    });
-
-    if (approvalSnap.exists()) {
-      await deleteDoc(doc(db, "preapprovedInstructors", email));
-    }
+  email,
+  role: "pending",
+  canTeach: [],
+  createdAt: new Date()
+});
 
     snap = await getDoc(doc(db, "users", uid));
   }
