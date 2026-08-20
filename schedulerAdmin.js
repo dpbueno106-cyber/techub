@@ -456,22 +456,22 @@ async function restoreVersion(
   }
 
   const res = await fetch(
-  `${API_URL}/schedule/version/${versionId}`,
-  {
-    headers:
-      await getAuthHeaders()
-  }
-);
+    `${API_URL}/schedule/version/${versionId}`,
+    {
+      headers:
+        await getAuthHeaders()
+    }
+  );
 
-const version =
-  await res.json();
+  const version =
+    await res.json();
 
-renderCalendarFromSchedule(
-  version.slots,
-  true
-);
+  renderCalendarFromSchedule(
+    version.slots,
+    true
+  );
 
-await autoSaveSchedule();
+  await autoSaveSchedule();
 
 
   alert(
@@ -1242,6 +1242,37 @@ function renderInstructorLegend() {
 
     row.style.cursor = "pointer";
 
+    let holdTimer;
+
+    row.addEventListener("dblclick", () => {
+      hiddenInstructors.clear();
+      renderInstructorLegend();
+      applyInstructorFilter();
+    });
+
+    row.addEventListener("mousedown", () => {
+      holdTimer = setTimeout(() => {
+
+        hiddenInstructors = new Set(
+          instructors
+            .filter(i => i.id !== instructor.id)
+            .map(i => i.id)
+        );
+
+        renderInstructorLegend();
+        applyInstructorFilter();
+
+      }, 700); // hold for 0.7 seconds
+    });
+
+    row.addEventListener("mouseup", () => {
+      clearTimeout(holdTimer);
+    });
+
+    row.addEventListener("mouseleave", () => {
+      clearTimeout(holdTimer);
+    });
+
     row.onclick = () => {
       if (hiddenInstructors.has(instructor.id)) {
         hiddenInstructors.delete(instructor.id);
@@ -1540,7 +1571,7 @@ async function generateSchedule() {
     );
 
     const data = await res.json();
-   
+
     console.log(
       "Schedule API response:",
       data
@@ -1873,10 +1904,10 @@ async function autoSaveSchedule() {
       return;
 
     }
-if (!response.ok) {
-  alert("Failed to save schedule");
-  return;
-}
+    if (!response.ok) {
+      alert("Failed to save schedule");
+      return;
+    }
     const result =
       await response.json();
 
@@ -1924,37 +1955,37 @@ async function saveSchedule() {
 
   const year =
     await getConfiguredYear();
-const response =
-  await fetch(
-    `${API_URL}/schedule/save`,
-    {
-      method: "POST",
-      headers: await getAuthHeaders(),
-      body: JSON.stringify({
-        year,
-        version:
-          currentScheduleVersion,
-        slots:
-          serializeCalendarToSlots()
-      })
-    }
-  );
+  const response =
+    await fetch(
+      `${API_URL}/schedule/save`,
+      {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({
+          year,
+          version:
+            currentScheduleVersion,
+          slots:
+            serializeCalendarToSlots()
+        })
+      }
+    );
 
-const result =
-  await response.json();
+  const result =
+    await response.json();
 
-if (!response.ok) {
-  alert(
-    result?.error ||
-    "Failed to save schedule."
-  );
-  return;
-}
+  if (!response.ok) {
+    alert(
+      result?.error ||
+      "Failed to save schedule."
+    );
+    return;
+  }
 
-currentScheduleVersion =
-  result.version;
+  currentScheduleVersion =
+    result.version;
 
-alert("Schedule saved");
+  alert("Schedule saved");
 
 }
 
@@ -1983,7 +2014,7 @@ function renderScheduleInfo() {
   if (!scheduleMetadata.updatedAt)
     return;
 
- el.innerHTML = `
+  el.innerHTML = `
   Last Updated:
   ${scheduleMetadata.updatedBy}
   <br>
@@ -2004,14 +2035,14 @@ async function loadSavedSchedule() {
 
   const data =
     await res.json();
-    scheduleMetadata = {
-  updatedBy:
-    data.updatedBy,
-  updatedAt:
-    data.updatedAt
-};
-currentScheduleVersion =
-  data.version ?? 0;
+  scheduleMetadata = {
+    updatedBy:
+      data.updatedBy,
+    updatedAt:
+      data.updatedAt
+  };
+  currentScheduleVersion =
+    data.version ?? 0;
   if (!data.slots?.length) {
     return false;
   }
