@@ -1,6 +1,10 @@
 import type { WeekSlot, ClassSlot, Location } from "../types";
 
-
+/**
+ * Configuration for how NTO (New Technician Orientation) blocks are
+ * generated across the year. All three fields are admin-configurable
+ * from the generation settings screen.
+ */
 export interface NTOPlacementConfig {
   /** How many consecutive weeks each NTO block runs for. Default 2. */
   weeks: number;
@@ -8,8 +12,28 @@ export interface NTOPlacementConfig {
   /** ISO date (yyyy-mm-dd) the FIRST NTO block may start on or after. */
   startDate: string;
 
-
+  /**
+   * How many months apart each NTO occurrence is placed, starting from
+   * startDate. 1 = monthly, 2 = every other month, etc.
+   */
   frequencyMonths: number;
+}
+
+// All date parsing/formatting in this file goes through these two
+// helpers so everything is anchored to LOCAL midnight consistently.
+// Mixing bare `new Date("2027-01-08")` (parsed as UTC midnight) with
+// `new Date("2027-01-08T00:00:00")` (parsed as local midnight) can
+// silently shift comparisons by hours depending on server timezone,
+// which is exactly the kind of thing that causes off-by-one-day bugs.
+function parseLocalDate(dateStr: string): Date {
+  return new Date(`${dateStr}T00:00:00`);
+}
+
+function formatLocalDate(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 function addMonths(date: Date, months: number): Date {
@@ -18,9 +42,19 @@ function addMonths(date: Date, months: number): Date {
   return result;
 }
 
-/*
+/**
+ * Injects NTO slots into an existing schedule. NTO is additive: it does
+ * NOT replace existing slots, and — intentionally — it does NOT avoid
+ * weeks that already have other (non-NTO) classes in them. NTO is meant
+ * to run alongside a full slate of other courses taught by other
+ * instructors, so sharing a week with a fixed/generated class is fine.
+ * Instructor-level double-booking is still prevented separately, later,
+ * by assignInstructors.ts.
+ *
  * Rules:
- * - The first NTO block starts on/after config.startDate
+ * - The first NTO block starts on/after config.startDate — including
+ *   a mid-week date (e.g. a Tuesday), in which case it lands in
+ *   whichever Monday-starting grid week that date falls inside.
  * - Subsequent blocks are targeted config.frequencyMonths apart
  * - Each block is config.weeks consecutive weeks (DST-safe adjacency)
  * - Skips actual holiday/blocked weeks (these come from placeHolidays,
@@ -37,7 +71,10 @@ export function placeNTO(
 
   const slots: ClassSlot[] = [...existingSlots];
 
- 
+  // Tracks weeks NTO itself has claimed, so back-to-back NTO occurrences
+  // can't overlap each other. This deliberately does NOT include weeks
+  // used by other (non-NTO) classes — NTO is allowed to run alongside
+  // other courses.
   const usedWeeks = new Set<number>();
 
   const blockLength = Math.max(1, config?.weeks ?? 2);
@@ -48,8 +85,8 @@ export function placeNTO(
     .filter(w => !w.blocked)
     .sort(
       (a, b) =>
-        new Date(a.startDate).getTime() -
-        new Date(b.startDate).getTime()
+        parseLocalDate(a.startDate).getTime() -
+        parseLocalDate(b.startDate).getTime()
     );
 
   if (sortedWeeks.length === 0 || !config?.startDate) {
@@ -60,9 +97,9 @@ export function placeNTO(
   }
 
   const scheduleYear =
-    new Date(sortedWeeks[0].startDate).getFullYear();
+    parseLocalDate(sortedWeeks[0].startDate).getFullYear();
 
-  let targetDate = new Date(`${config.startDate}T00:00:00`);
+  let targetDate = parseLocalDate(config.startDate);
   let occurrence = 0;
 
   // Walk forward by frequencyMonths from startDate for as long as we're
@@ -75,9 +112,14 @@ export function placeNTO(
       // (but not including) the NEXT occurrence's target date.
       const windowEnd = addMonths(targetDate, frequencyMonths);
 
+      // Match on the week's END date, not its start — the week grid is
+      // always Monday-based, but startDate can legitimately be a
+      // mid-week date (e.g. NTO starting on a Tuesday). Using startDate
+      // here would skip the very week the target date falls inside,
+      // since Monday < Tuesday, and jump straight to the following week.
       const searchStartIndex = sortedWeeks.findIndex(
         w =>
-          new Date(w.startDate).getTime() >=
+          parseLocalDate(w.endDate).getTime() >=
           targetDate.getTime()
       );
 
@@ -93,7 +135,7 @@ export function placeNTO(
         ) {
 
           const candidateStart =
-            new Date(sortedWeeks[idx].startDate).getTime();
+            parseLocalDate(sortedWeeks[idx].startDate).getTime();
 
           if (candidateStart >= windowEnd.getTime()) {
             break;
@@ -110,8 +152,8 @@ export function placeNTO(
               if (i === 0) return true;
 
               const diffDays =
-                (new Date(w.startDate).getTime() -
-                  new Date(block[i - 1].startDate).getTime()) /
+                (parseLocalDate(w.startDate).getTime() -
+                  parseLocalDate(block[i - 1].startDate).getTime()) /
                 (1000 * 60 * 60 * 24);
 
               // DST-safe definition of "the immediately following week"
@@ -159,15 +201,15 @@ export function placeNTO(
       if (!placed) {
         if (searchStartIndex < 0) {
           console.warn(
-            `placeNTO: No available (non-holiday) week on/after ${targetDate.toISOString().slice(0, 10)} for occurrence ${occurrence + 1}.`
+            `placeNTO: No available (non-holiday) week on/after ${formatLocalDate(targetDate)} for occurrence ${occurrence + 1}.`
           );
         } else if (!sawConsecutiveOption) {
           console.warn(
-            `placeNTO: Could not find ${blockLength} consecutive non-holiday weeks between ${targetDate.toISOString().slice(0, 10)} and ${windowEnd.toISOString().slice(0, 10)} (occurrence ${occurrence + 1}).`
+            `placeNTO: Could not find ${blockLength} consecutive non-holiday weeks between ${formatLocalDate(targetDate)} and ${formatLocalDate(windowEnd)} (occurrence ${occurrence + 1}).`
           );
         } else {
           console.warn(
-            `placeNTO: Every candidate week between ${targetDate.toISOString().slice(0, 10)} and ${windowEnd.toISOString().slice(0, 10)} overlaps a previous NTO occurrence; skipping occurrence ${occurrence + 1}.`
+            `placeNTO: Every candidate week between ${formatLocalDate(targetDate)} and ${formatLocalDate(windowEnd)} overlaps a previous NTO occurrence; skipping occurrence ${occurrence + 1}.`
           );
         }
       }
