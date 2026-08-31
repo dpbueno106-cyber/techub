@@ -5,7 +5,9 @@ import {
   getDocs,
   doc,
   setDoc,
-  getDoc
+  getDoc,
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 import {
   getAuth,
@@ -92,7 +94,7 @@ async function loadInstructorsAndInvites() {
 
   const signedUpEmails = new Set();
 
-  // ✅ use instructors collection
+  //  use instructors collection
   instructorsSnap.forEach(docSnap => {
     const data = docSnap.data();
     if (data.email) {
@@ -109,8 +111,17 @@ async function loadInstructorsAndInvites() {
     }
   });
 
-  renderPendingInvites(pendingInvites);
-  renderInstructors(instructorsSnap);
+  const capabilities =
+    await loadCapabilities();
+
+  renderPendingInvites(
+    pendingInvites
+  );
+
+  renderInstructors(
+    instructorsSnap,
+    capabilities
+  );
 }
 
 // =========================
@@ -132,7 +143,10 @@ function renderPendingInvites(pendingInvites) {
 // =========================
 // RENDER INSTRUCTORS
 // =========================
-function renderInstructors(instructorsSnap) {
+function renderInstructors(
+  instructorsSnap,
+  capabilities
+) {
   instructorList.innerHTML = "";
 
   instructorsSnap.forEach(docSnap => {
@@ -143,73 +157,164 @@ function renderInstructors(instructorsSnap) {
     div.classList.add("instructor-card");
 
     div.innerHTML = `
-      <h3>${data.email}</h3>
+  <h3>
+    ${data.name ?? data.email ?? uid}
+  </h3>
 
-      <div class="capabilities">
-        ${buildCapabilitiesHTML()}
-      </div>
+  <div class="emailText">
+    ${data.email ?? ""}
+  </div>
 
-      <button class="saveBtn">Save Changes</button>
-    `;
+  <div class="profileSection">
 
-    // ✅ pre-check saved capabilities
-    const checkboxes = div.querySelectorAll("input");
-    checkboxes.forEach(cb => {
-      if (data.capabilities?.includes(cb.value)) {
-        cb.checked = true;
-      }
-    });
+    <label>Name</label>
+    <input
+      class="nameInput"
+      value="${data.name ?? ""}"
+    >
 
-    // ✅ save capabilities
-    const saveBtn = div.querySelector(".saveBtn");
-    saveBtn.addEventListener("click", async () => {
-      const selected = [...div.querySelectorAll("input:checked")]
-        .map(cb => cb.value);
+    <label>Home Location</label>
 
-      await setDoc(
-        doc(db, "instructors", uid),
-        { capabilities: selected },
-        { merge: true }
+    <select class="locationInput">
+      <option
+        value="IN"
+        ${data.homeLocation === "IN" ? "selected" : ""}
+      >
+        IN
+      </option>
+
+      <option
+        value="MI"
+        ${data.homeLocation === "MI" ? "selected" : ""}
+      >
+        MI
+      </option>
+    </select>
+
+    <label>Max Classes</label>
+
+    <input
+      type="number"
+      class="maxClassesInput"
+      value="${data.maxClasses ?? 20}"
+    >
+
+    <label>
+      <input
+        type="checkbox"
+        class="travelInput"
+        ${data.canTravel ? "checked" : ""}
+      >
+      Can Travel
+    </label>
+
+  </div>
+
+  <div class="capabilities"></div>
+
+  <button class="saveBtn">
+    Save Changes
+  </button>
+`;
+    const capabilitiesContainer =
+      div.querySelector(
+        ".capabilities"
       );
 
-      alert("Saved");
+    capabilities.forEach(cap => {
+
+      const label =
+        document.createElement(
+          "label"
+        );
+
+      label.style.display =
+        "block";
+
+      const checkbox =
+        document.createElement(
+          "input"
+        );
+
+      checkbox.type =
+        "checkbox";
+
+      checkbox.value =
+        cap;
+
+      checkbox.checked =
+        data.capabilities?.includes(cap) ??
+        false;
+
+      label.appendChild(
+        checkbox
+      );
+
+      label.append(
+        ` ${cap}`
+      );
+
+      capabilitiesContainer.appendChild(
+        label
+      );
     });
 
+
+
+
+    //  save capabilities
+    const saveBtn = div.querySelector(".saveBtn");
+
+saveBtn.addEventListener("click", async () => {
+
+  const selected = [
+    ...div.querySelectorAll(
+      '.capabilities input:checked'
+    )
+  ].map(cb => cb.value);
+
+  await setDoc(
+    doc(db, "instructors", uid),
+    {
+      name:
+        div.querySelector(".nameInput").value,
+
+      homeLocation:
+        div.querySelector(".locationInput").value,
+
+      maxClasses:
+        Number(
+          div.querySelector(".maxClassesInput").value
+        ),
+
+      canTravel:
+        div.querySelector(".travelInput").checked,
+
+      capabilities: selected
+    },
+    { merge: true }
+  );
+
+  alert("Saved");
+});
     instructorList.appendChild(div);
   });
 }
-
 // =========================
 // CAPABILITIES TEMPLATE
 // =========================
-function buildCapabilitiesHTML() {
-  const items = [
-    ["DGT", "Diagnostic Tools"],
-    ["ELE", "Electrical"],
-    ["ENG", "Engines"],
-    ["EPG", "Electric Power Generation"],
-    ["FUE", "Fuel Systems"],
-    ["HAC", "Heating & Conditioning"],
-    ["HYD", "Hydraulics"],
-    ["MNT", "Maintenance"],
-    ["NTO", "New Hire Technician Onboarding"],
-    ["PRD", "Product Information"],
-    ["PWT", "Powertrain"],
-    ["SAF", "Safety"],
-    ["SAG", "Seals & Gaskets"],
-    ["SIS", "Service Information System"],
-    ["SRW", "Service Report Writing"],
-    ["TCH", "Technology"],
-    ["TDV", "Technician Development"],
-    ["TRB", "Troubleshooting"],
-    ["WMH", "Welding and Metal Handling"]
-  ];
+async function loadCapabilities() {
+  const snapshot =
+    await getDocs(
+      query(
+        collection(db, "catalog"),
+        where("isActive", "==", true)
+      )
+    );
 
-  return items
-    .map(([val, label]) => 
-      `<label><input type="checkbox" value="${val}"> ${label}</label>`
-    )
-    .join("");
+  return snapshot.docs.map(
+    doc => doc.data().name
+  );
 }
 
 // =========================
@@ -235,8 +340,8 @@ async function loadUsers() {
       <span>
         ${data.email}
         ${data.role === "pending"
-          ? "<em style='color: orange;'>(Pending)</em>"
-          : ""}
+        ? "<em style='color: orange;'>(Pending)</em>"
+        : ""}
       </span>
 
       <select>
@@ -263,7 +368,7 @@ async function loadUsers() {
       }, { merge: true });
 
       //  create instructor profile
-      
+
 
 
       console.log(`Updated ${data.email} → ${newRole}`);

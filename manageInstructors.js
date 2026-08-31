@@ -103,27 +103,81 @@ async function loadInstructors() {
   listEl.innerHTML = "Loading instructors...";
 
   const [catalogCapabilities, instructorSnap] =
-  await Promise.all([
-    loadCapabilities(),
-    getDocs(collection(db, "instructors"))
-  ]);
+    await Promise.all([
+      loadCapabilities(),
+      getDocs(collection(db, "instructors"))
+    ]);
 
   listEl.innerHTML = "";
 
   instructorSnap.forEach(docSnap => {
-   const instructorId = docSnap.id;
+    const instructorId = docSnap.id;
     const data = docSnap.data();
 
     const card = document.createElement("div");
     card.className = "instructor-card";
 
     const title = document.createElement("h3");
-    title.textContent = data.name || data.email || instructorId;
+    title.textContent =
+      data.name ||
+      data.email ||
+      instructorId;
+
+    const profile = document.createElement("div");
+    profile.className = "profile-section";
+
+    profile.innerHTML = `
+      <label>Name</label>
+      <input
+        class="nameInput"
+        value="${data.name ?? ""}"
+      >
+
+      <label>Email</label>
+      <input
+        class="emailInput"
+        value="${data.email ?? ""}"
+      >
+
+      <label>Home Location</label>
+
+      <select class="locationInput">
+        <option
+          value="IN"
+          ${data.homeLocation === "IN" ? "selected" : ""}
+        >
+          IN
+        </option>
+
+        <option
+          value="MI"
+          ${data.homeLocation === "MI" ? "selected" : ""}
+        >
+          MI
+        </option>
+      </select>
+
+      <label>Max Classes</label>
+
+      <input
+        type="number"
+        class="maxClassesInput"
+        value="${data.maxClasses ?? 20}"
+      >
+
+      <label>
+        <input
+          type="checkbox"
+          class="travelInput"
+          ${data.canTravel ? "checked" : ""}
+        >
+        Can Travel
+      </label>
+    `;
 
     const form = document.createElement("div");
     form.className = "capability-form";
 
-    //  Build checkboxes from CATALOG (not categories)
     catalogCapabilities.forEach(cap => {
       const label = document.createElement("label");
       label.style.display = "block";
@@ -131,7 +185,9 @@ async function loadInstructors() {
       const cb = document.createElement("input");
       cb.type = "checkbox";
       cb.value = cap;
-      cb.checked = data.capabilities?.includes(cap) ?? false;
+
+      cb.checked =
+        data.capabilities?.includes(cap) ?? false;
 
       label.appendChild(cb);
       label.append(` ${cap}`);
@@ -139,24 +195,51 @@ async function loadInstructors() {
     });
 
     const saveBtn = document.createElement("button");
-    saveBtn.textContent = "Save Capabilities";
+    saveBtn.textContent = "Save Instructor";
+
     saveBtn.onclick = async () => {
+
       const selected = [
-        ...form.querySelectorAll("input:checked")
+        ...form.querySelectorAll(
+          "input:checked"
+        )
       ].map(cb => cb.value);
 
       await setDoc(
         doc(db, "instructors", instructorId),
-        { capabilities: selected },
-        { merge: true }
+        {
+          name:
+            profile.querySelector(".nameInput").value.trim(),
+
+          email:
+            profile.querySelector(".emailInput").value.trim(),
+
+          homeLocation:
+            profile.querySelector(".locationInput").value,
+
+          maxClasses:
+            Number(
+              profile.querySelector(".maxClassesInput").value
+            ),
+
+          canTravel:
+            profile.querySelector(".travelInput").checked,
+
+          capabilities: selected
+        },
+        {
+          merge: true
+        }
       );
 
-      alert("Capabilities updated");
+      alert("Instructor updated");
     };
 
     card.appendChild(title);
+    card.appendChild(profile);
     card.appendChild(form);
     card.appendChild(saveBtn);
+
     listEl.appendChild(card);
   });
 }

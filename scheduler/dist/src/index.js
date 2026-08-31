@@ -7,6 +7,7 @@ const express_1 = __importDefault(require("express"));
 const generateSchedule_1 = require("./engine/generateSchedule");
 const verifyAdmin_1 = require("./middleware/verifyAdmin");
 const firestoreLoaders_1 = require("./firestoreLoaders");
+/* for anyone whose reading this, this entire file is dead code. however, I'm leaving it here for now because it was a useful reference for how to wire up the schedule generation code to an express endpoint. Ignore this file if your trying to make edits to the actual scheduler code. */
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.get("/schedule", verifyAdmin_1.verifyAdmin, async (_req, res) => {

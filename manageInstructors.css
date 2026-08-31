@@ -181,3 +181,23 @@ h2 {
     grid-template-columns: 1fr;
   }
 }
+
+.profile-section {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.profile-section input,
+.profile-section select {
+  width: 100%;
+}
+
+.capability-form {
+  margin-top: 12px;
+}
+
+.saveBtn,
+button {
+  margin-top: 12px;
+}

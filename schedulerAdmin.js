@@ -768,6 +768,8 @@ function serializeCalendarToSlots() {
       instructorId || ""
     ].join("|");
 
+    /* Im taking out this dupe checker
+    
     const alreadyExists =
       slots.some(s =>
         [
@@ -781,6 +783,7 @@ function serializeCalendarToSlots() {
     if (alreadyExists) {
       return;
     }
+      */
 
     slots.push({
       className,
@@ -1106,10 +1109,12 @@ function buildFixedClassTitle(slot) {
     .join("");
 
   const cohort =
-    slot.cohortNumber
+  slot.cohortDisplay
+    ? `-${slot.cohortDisplay}`
+    : slot.cohortNumber
       ? `-C${String(
-        slot.cohortNumber
-      ).padStart(2, "0")}`
+          slot.cohortNumber
+        ).padStart(2, "0")}`
       : "";
 
   const locationText =
@@ -1138,8 +1143,55 @@ function renderCalendarFromSchedule(schedule, clearFirst = true) {
   if (clearFirst) {
     adminCalendar.removeAllEvents();
   }
+  const mergedSchedule = [];
+const groups = new Map();
 
-  schedule.forEach(slot => {
+schedule.forEach(slot => {
+
+  if (!slot.locked) {
+    mergedSchedule.push(slot);
+    return;
+  }
+
+  const key = [
+    slot.className,
+    slot.classAcronym,
+    slot.courseNumber,
+    slot.location,
+    slot.weekStartDate
+  ].join("|");
+
+  if (!groups.has(key)) {
+    groups.set(key, []);
+  }
+
+  groups.get(key).push(slot);
+});
+
+groups.forEach(group => {
+
+  const first = {
+    ...group[0]
+  };
+
+  const cohorts = group
+    .map(s => s.cohortNumber)
+    .filter(Boolean)
+    .map(c =>
+      `C${String(c).padStart(2, "0")}`
+    )
+    .sort();
+
+  if (cohorts.length > 1) {
+    first.cohortDisplay =
+      cohorts.join("/");
+  }
+
+  mergedSchedule.push(first);
+});
+
+
+  mergedSchedule.forEach(slot => {
     const instructorKey =
       slot.instructorId ||
       "";
@@ -1147,16 +1199,29 @@ function renderCalendarFromSchedule(schedule, clearFirst = true) {
     const bg = getInstructorColor(instructorKey);
     const tc = getContrastTextColor(bg);
 
-    if (slot.category === "NTO") {
-      for (let w = 0; w < slot.durationWeeks; w++) {
+    if (
+      slot.category === "NTO" &&
+      !slot.locked
+    ) {
+
+      for (
+        let w = 0;
+        w < slot.durationWeeks;
+        w++
+      ) {
+
         const start = new Date(
           slot.weekStartDate + "T00:00:00"
         );
 
-        start.setDate(start.getDate() + w * 7);
+        start.setDate(
+          start.getDate() + w * 7
+        );
 
         if (w === 0) {
-          start.setDate(start.getDate() + 1);
+          start.setDate(
+            start.getDate() + 1
+          );
         }
 
         const end = new Date(start);
@@ -1182,7 +1247,9 @@ function renderCalendarFromSchedule(schedule, clearFirst = true) {
           }
         });
       }
-    } else {
+
+    }
+    else {
       const start = new Date(
         slot.weekStartDate + "T00:00:00"
       );
@@ -1839,6 +1906,37 @@ function exportSchedule() {
 
 }
 
+async function renderTimeOffCalendar() {
+
+  const res = await fetch(
+    `${API_URL}/instructorTimeOff`,
+    {
+      headers: await getAuthHeaders()
+    }
+  );
+
+  const entries = await res.json();
+
+  entries.forEach(entry => {
+
+    adminCalendar.addEvent({
+      title:
+        `${entry.instructorName} - ${entry.reason}`,
+      start: entry.startDate,
+      end: entry.endDate,
+
+      allDay: true,
+
+      backgroundColor: "#dbeafe",
+      borderColor: "#3b82f6",
+      textColor: "#000",
+
+      editable: false
+    });
+
+  });
+}
+
 function formatFirestoreDate(date) {
 
   if (!date) {
@@ -1901,6 +1999,8 @@ async function autoSaveSchedule() {
     if (response.status === 409) {
 
       await loadSavedSchedule();
+      await renderTimeOffCalendar();
+
       return;
 
     }
@@ -2836,6 +2936,8 @@ window.addEventListener("DOMContentLoaded", () => {
     await loadGenerationConfig();
     const loaded =
       await loadSavedSchedule();
+    await renderTimeOffCalendar();
+
     await startScheduleListener();
 
     if (!loaded) {
@@ -2923,6 +3025,7 @@ Object.assign(window, {
   redoSchedule,
   loadCatalog,
   loadSavedSchedule,
+  renderTimeOffCalendar,
   saveCatalogClass,
   renderScheduleAnalytics,
   renderCourseAnalytics,

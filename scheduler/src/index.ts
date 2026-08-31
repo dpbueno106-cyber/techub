@@ -9,6 +9,8 @@ import {
 } from "./firestoreLoaders";
 import type { Instructor } from "./types";
 
+
+/* for anyone whose reading this, this entire file is dead code. however, I'm leaving it here for now because it was a useful reference for how to wire up the schedule generation code to an express endpoint. Ignore this file if your trying to make edits to the actual scheduler code. */
 const app = express();
 app.use(express.json());
 
