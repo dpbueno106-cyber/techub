@@ -1109,13 +1109,13 @@ function buildFixedClassTitle(slot) {
     .join("");
 
   const cohort =
-  slot.cohortDisplay
-    ? `-${slot.cohortDisplay}`
-    : slot.cohortNumber
-      ? `-C${String(
+    slot.cohortDisplay
+      ? `-${slot.cohortDisplay}`
+      : slot.cohortNumber
+        ? `-C${String(
           slot.cohortNumber
         ).padStart(2, "0")}`
-      : "";
+        : "";
 
   const locationText =
     slot.className ===
@@ -1144,52 +1144,66 @@ function renderCalendarFromSchedule(schedule, clearFirst = true) {
     adminCalendar.removeAllEvents();
   }
   const mergedSchedule = [];
-const groups = new Map();
+  const groups = new Map();
 
-schedule.forEach(slot => {
+  schedule.forEach(slot => {
 
-  if (!slot.locked) {
-    mergedSchedule.push(slot);
-    return;
-  }
+    if (!slot.locked) {
+      mergedSchedule.push(slot);
+      return;
+    }
 
-  const key = [
-    slot.className,
-    slot.classAcronym,
-    slot.courseNumber,
-    slot.location,
-    slot.weekStartDate
-  ].join("|");
+    const key = [
+      slot.className,
+      slot.classAcronym,
+      slot.courseNumber,
+      slot.location,
+      slot.weekStartDate
+    ].join("|");
 
-  if (!groups.has(key)) {
-    groups.set(key, []);
-  }
+    if (!groups.has(key)) {
+      groups.set(key, []);
+    }
 
-  groups.get(key).push(slot);
-});
+    groups.get(key).push(slot);
+  });
 
-groups.forEach(group => {
+  groups.forEach(group => {
 
-  const first = {
-    ...group[0]
-  };
+    const first = {
+      ...group[0]
+    };
 
-  const cohorts = group
-    .map(s => s.cohortNumber)
-    .filter(Boolean)
-    .map(c =>
-      `C${String(c).padStart(2, "0")}`
-    )
-    .sort();
+    const cohorts = group
+      .map(s => s.cohortNumber)
+      .filter(Boolean)
+      .map(c =>
+        `C${String(c).padStart(2, "0")}`
+      )
+      .sort();
 
-  if (cohorts.length > 1) {
-    first.cohortDisplay =
-      cohorts.join("/");
-  }
+    if (cohorts.length > 1) {
+      first.cohortDisplay =
+        cohorts.join("/");
+    }
 
-  mergedSchedule.push(first);
-});
+    mergedSchedule.push(first);
+  });
 
+  console.log(
+    "Original schedule count:",
+    schedule.length
+  );
+
+  console.log(
+    "Merged schedule count:",
+    mergedSchedule.length
+  );
+
+  console.log(
+    "Merged away:",
+    schedule.length - mergedSchedule.length
+  );
 
   mergedSchedule.forEach(slot => {
     const instructorKey =
@@ -1681,7 +1695,21 @@ async function generateSchedule() {
         data?.error ||
         "The schedule API did not return an array."
       );
+      console.log("Fixed slots:",
+        slots.filter(s => s.locked).length
+      );
 
+      console.log("Total slots before sort:",
+        assigned.length
+      );
+
+      console.log(
+        "Breakdown:",
+        assigned.reduce((a, s) => {
+          a[s.category] = (a[s.category] || 0) + 1;
+          return a;
+        }, {})
+      );
       return;
     }
 
@@ -2204,10 +2232,21 @@ function getLogicalScheduleEvents() {
         );
       }
     });
+  console.log(
+    "Calendar events:",
+    adminCalendar.getEvents().length
+  );
+
+  console.log(
+    "Logical events:",
+    uniqueEvents.size
+  );
+
 
   return [
     ...uniqueEvents.values()
   ];
+
 }
 
 function renderScheduleAnalytics() {

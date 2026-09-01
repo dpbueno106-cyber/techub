@@ -138,6 +138,20 @@ export function generateSchedule(
     "Generated non-NTO slots:",
     nonNTOSlots.length
   );
+  console.log(
+  "Generated NTO slots:",
+  generatedNTOCount
+);
+
+console.log(
+  "Fixed slots:",
+  slots.filter(s => s.locked).length
+);
+
+console.log(
+  "Expected total:",
+  slots.length + nonNTOSlots.length
+);
 
   slots = [
     ...slots,
