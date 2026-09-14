@@ -185,7 +185,7 @@ async function startScheduleListener() {
         data.slots || [],
         true
       );
-await renderTimeOffCalendar();
+ renderTimeOffCalendar();
       applyInstructorFilter();
       renderInstructorWorkloadFromCalendar();
       renderScheduleAnalytics();
