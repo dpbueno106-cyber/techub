@@ -1942,23 +1942,35 @@ async function renderTimeOffCalendar() {
     .forEach(e => e.remove());
 
   const res = await fetch(
-  `${API_URL}/instructorTimeOff`,
-  {
-    headers: await getAuthHeaders()
-  }
-);
+    `${API_URL}/instructorTimeOff`,
+    {
+      headers: await getAuthHeaders()
+    }
+  );
+
   const entries = await res.json();
 
+  console.log("PTO entries:", entries);
+
   entries.forEach(entry => {
+
     adminCalendar.addEvent({
       title: `${entry.instructorName} - ${entry.reason}`,
       start: entry.startDate,
       end: entry.endDate,
+      allDay: true,
+
+      backgroundColor: "#fee2e2",
+      borderColor: "#dc2626",
+      textColor: "#000",
+
+      editable: false,
 
       extendedProps: {
         isPTO: true
       }
     });
+
   });
 }
 
@@ -2211,39 +2223,26 @@ function getLogicalScheduleEvents() {
   adminCalendar
     .getEvents()
     .forEach(event => {
-      const props =
-        event.extendedProps;
+
+      if (event.extendedProps?.isPTO) {
+        return;
+      }
+
+      const props = event.extendedProps;
 
       const key = [
-        props.classId ||
-        props.className,
+        props.classId || props.className,
         props.location,
         props.weekStartDate,
         props.instructorId || ""
       ].join("|");
 
       if (!uniqueEvents.has(key)) {
-        uniqueEvents.set(
-          key,
-          event
-        );
+        uniqueEvents.set(key, event);
       }
     });
-  console.log(
-    "Calendar events:",
-    adminCalendar.getEvents().length
-  );
 
-  console.log(
-    "Logical events:",
-    uniqueEvents.size
-  );
-
-
-  return [
-    ...uniqueEvents.values()
-  ];
-
+  return [...uniqueEvents.values()];
 }
 
 function renderScheduleAnalytics() {
