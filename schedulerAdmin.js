@@ -185,7 +185,7 @@ async function startScheduleListener() {
         data.slots || [],
         true
       );
-
+await renderTimeOffCalendar();
       applyInstructorFilter();
       renderInstructorWorkloadFromCalendar();
       renderScheduleAnalytics();
@@ -216,6 +216,7 @@ function restoreHistoryState(state) {
     true
   );
 
+  await renderTimeOffCalendar();
   applyInstructorFilter();
   renderInstructorWorkloadFromCalendar();
   renderScheduleAnalytics();
@@ -1717,7 +1718,7 @@ async function generateSchedule() {
       data,
       true
     );
-
+await renderTimeOffCalendar();
     console.log(
       "FullCalendar events rendered:",
       adminCalendar
@@ -2183,7 +2184,7 @@ async function loadSavedSchedule() {
     data.slots,
     true
   );
-
+await renderTimeOffCalendar();
   const firstSlot = data.slots?.[0];
 
   if (firstSlot) {
