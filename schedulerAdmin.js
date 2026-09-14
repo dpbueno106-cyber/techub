@@ -154,7 +154,7 @@ async function startScheduleListener() {
 
   onSnapshot(
     scheduleRef,
-    snapshot => {
+     snapshot => {
 
       if (!snapshot.exists()) {
         return;
@@ -185,7 +185,7 @@ async function startScheduleListener() {
         data.slots || [],
         true
       );
- renderTimeOffCalendar();
+  renderTimeOffCalendar();
       applyInstructorFilter();
       renderInstructorWorkloadFromCalendar();
       renderScheduleAnalytics();
@@ -1937,32 +1937,28 @@ function exportSchedule() {
 
 async function renderTimeOffCalendar() {
 
-  const res = await fetch(
-    `${API_URL}/instructorTimeOff`,
-    {
-      headers: await getAuthHeaders()
-    }
-  );
+  adminCalendar.getEvents()
+    .filter(e => e.extendedProps?.isPTO)
+    .forEach(e => e.remove());
 
+  const res = await fetch(
+  `${API_URL}/instructorTimeOff`,
+  {
+    headers: await getAuthHeaders()
+  }
+);
   const entries = await res.json();
 
   entries.forEach(entry => {
-
     adminCalendar.addEvent({
-      title:
-        `${entry.instructorName} - ${entry.reason}`,
+      title: `${entry.instructorName} - ${entry.reason}`,
       start: entry.startDate,
       end: entry.endDate,
 
-      allDay: true,
-
-      backgroundColor: "#dbeafe",
-      borderColor: "#3b82f6",
-      textColor: "#000",
-
-      editable: false
+      extendedProps: {
+        isPTO: true
+      }
     });
-
   });
 }
 
@@ -2028,7 +2024,7 @@ async function autoSaveSchedule() {
     if (response.status === 409) {
 
       await loadSavedSchedule();
-      await renderTimeOffCalendar();
+      
 
       return;
 
@@ -2976,7 +2972,7 @@ window.addEventListener("DOMContentLoaded", () => {
     await loadGenerationConfig();
     const loaded =
       await loadSavedSchedule();
-    await renderTimeOffCalendar();
+    
 
     await startScheduleListener();
 
