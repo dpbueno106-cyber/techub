@@ -216,7 +216,7 @@ function restoreHistoryState(state) {
     true
   );
 
-  await renderTimeOffCalendar();
+  renderTimeOffCalendar();
   applyInstructorFilter();
   renderInstructorWorkloadFromCalendar();
   renderScheduleAnalytics();
