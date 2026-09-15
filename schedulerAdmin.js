@@ -14,6 +14,7 @@ let currentScheduleVersion = null;
 let scheduleMetadata = {};
 let scheduleListenerStarted = false;
 let isSavingSchedule = false;
+let hiddenCategories = new Set();
 
 /*const defaultInstructorNames = [
   "Aaron", "Jesse", "Marc", "Leon",
@@ -102,6 +103,81 @@ const db = getFirestore(app);
 // INSTRUCTOR HELPERS
 // =========================
 
+function renderCategoryLegend() {
+
+  const legend =
+    document.getElementById(
+      "categoryLegend"
+    );
+
+  if (!legend) return;
+
+  legend.innerHTML = "";
+
+  const categories = [
+    ...new Set(
+      getLogicalScheduleEvents()
+        .map(e => e.extendedProps.category)
+        .filter(Boolean)
+    )
+  ].sort();
+
+  categories.forEach(category => {
+
+    const row =
+      document.createElement("div");
+row.addEventListener(
+  "dblclick",
+  () => {
+
+    hiddenCategories.clear();
+
+    renderCategoryLegend();
+
+    applyAllFilters();
+
+  }
+);
+    row.textContent = category;
+
+    row.style.cursor = "pointer";
+    row.style.padding = "4px";
+    row.style.background = "#2f2f2f";
+row.style.borderRadius = "4px";
+row.style.marginBottom = "4px";
+row.style.userSelect = "none";
+
+    if (
+      hiddenCategories.has(category)
+    ) {
+      row.style.opacity = 0.4;
+    }
+
+    row.onclick = () => {
+
+      if (
+        hiddenCategories.has(category)
+      ) {
+        hiddenCategories.delete(
+          category
+        );
+      } else {
+        hiddenCategories.add(
+          category
+        );
+      }
+
+      applyAllFilters();
+      renderCategoryLegend();
+
+    };
+
+    legend.appendChild(row);
+  });
+}
+
+
+
 async function getAuthHeaders() {
 
   const user = auth.currentUser;
@@ -185,8 +261,11 @@ async function startScheduleListener() {
         data.slots || [],
         true
       );
+      
+      renderCategoryLegend();
       renderTimeOffCalendar();
-      applyInstructorFilter();
+     
+      applyAllFilters();
       renderInstructorWorkloadFromCalendar();
       renderScheduleAnalytics();
       renderCourseAnalytics();
@@ -217,7 +296,7 @@ function restoreHistoryState(state) {
   );
 
   renderTimeOffCalendar();
-  applyInstructorFilter();
+ applyAllFilters();
   renderInstructorWorkloadFromCalendar();
   renderScheduleAnalytics();
   renderCourseAnalytics();
@@ -471,7 +550,8 @@ async function restoreVersion(
     version.slots,
     true
   );
-
+  renderCategoryLegend();
+  applyAllFilters();
   await autoSaveSchedule();
 
 
@@ -1017,7 +1097,8 @@ function initCalendar() {
 
       e.remove();
       renderCalendarFromSchedule([slot], false);
-      applyInstructorFilter();
+      renderCategoryLegend();
+     applyAllFilters();
       renderInstructorWorkloadFromCalendar();
       renderScheduleAnalytics();
       renderCourseAnalytics();
@@ -1329,7 +1410,7 @@ function renderInstructorLegend() {
     row.addEventListener("dblclick", () => {
       hiddenInstructors.clear();
       renderInstructorLegend();
-      applyInstructorFilter();
+      applyAllFilters();
     });
 
     row.addEventListener("mousedown", () => {
@@ -1342,7 +1423,7 @@ function renderInstructorLegend() {
         );
 
         renderInstructorLegend();
-        applyInstructorFilter();
+        applyAllFilters();
 
       }, 700); // hold for 0.7 seconds
     });
@@ -1363,7 +1444,7 @@ function renderInstructorLegend() {
       }
 
       renderInstructorLegend();
-      applyInstructorFilter();
+      applyAllFilters();
     };
 
     if (hiddenInstructors.has(instructor.id)) {
@@ -1378,21 +1459,45 @@ function renderInstructorLegend() {
 // WORKLOAD
 // =========================
 
-function applyInstructorFilter() {
+function applyAllFilters() {
+
   adminCalendar.getEvents().forEach(event => {
+
+    // PTO always visible
+    if (event.extendedProps?.isPTO) {
+      return;
+    }
+
     const instructorId =
       event.extendedProps.instructorId;
 
-    if (
+    const category =
+      event.extendedProps.category;
+
+    const hiddenByInstructor =
       instructorId &&
-      hiddenInstructors.has(instructorId)
-    ) {
-      event.setProp("display", "none");
-    } else {
-      event.setProp("display", "auto");
-    }
+      hiddenInstructors.has(
+        instructorId
+      );
+
+    const hiddenByCategory =
+      category &&
+      hiddenCategories.has(
+        category
+      );
+
+    event.setProp(
+      "display",
+      hiddenByInstructor ||
+      hiddenByCategory
+        ? "none"
+        : "auto"
+    );
+
   });
+
 }
+
 
 function renderInstructorWorkloadFromCalendar() {
   instructorWorkloadEl.innerHTML = "";
@@ -1725,8 +1830,8 @@ async function generateSchedule() {
         .getEvents()
         .length
     );
-
-    applyInstructorFilter();
+renderCategoryLegend();
+   applyAllFilters();
     renderInstructorWorkloadFromCalendar();
     renderScheduleAnalytics();
     renderCourseAnalytics();
@@ -2192,6 +2297,7 @@ async function loadSavedSchedule() {
     data.slots,
     true
   );
+  renderCategoryLegend();
   await renderTimeOffCalendar();
   const firstSlot = data.slots?.[0];
 
@@ -2206,7 +2312,7 @@ async function loadSavedSchedule() {
       .getEvents()
       .length
   );
-  applyInstructorFilter();
+  applyAllFilters();
   renderInstructorWorkloadFromCalendar();
   renderScheduleAnalytics();
   renderCourseAnalytics();
@@ -2976,7 +3082,8 @@ window.addEventListener("DOMContentLoaded", () => {
     const loaded =
       await loadSavedSchedule();
 
-
+    renderInstructorLegend();
+renderCategoryLegend();
     await startScheduleListener();
 
     if (!loaded) {
@@ -3076,6 +3183,8 @@ Object.assign(window, {
   showVersions,
   saveVersion,
   deleteVersion,
+  applyAllFilters,
+  renderCategoryLegend,
   hideVersions,
   clearFixedPlacements,
   clearSchedule: () => {
