@@ -154,7 +154,7 @@ async function startScheduleListener() {
 
   onSnapshot(
     scheduleRef,
-     snapshot => {
+    snapshot => {
 
       if (!snapshot.exists()) {
         return;
@@ -185,7 +185,7 @@ async function startScheduleListener() {
         data.slots || [],
         true
       );
-  renderTimeOffCalendar();
+      renderTimeOffCalendar();
       applyInstructorFilter();
       renderInstructorWorkloadFromCalendar();
       renderScheduleAnalytics();
@@ -1718,7 +1718,7 @@ async function generateSchedule() {
       data,
       true
     );
-await renderTimeOffCalendar();
+    await renderTimeOffCalendar();
     console.log(
       "FullCalendar events rendered:",
       adminCalendar
@@ -2036,7 +2036,7 @@ async function autoSaveSchedule() {
     if (response.status === 409) {
 
       await loadSavedSchedule();
-      
+
 
       return;
 
@@ -2192,7 +2192,7 @@ async function loadSavedSchedule() {
     data.slots,
     true
   );
-await renderTimeOffCalendar();
+  await renderTimeOffCalendar();
   const firstSlot = data.slots?.[0];
 
   if (firstSlot) {
@@ -2568,7 +2568,11 @@ function findScheduleConflicts() {
         const overlaps =
           aStart < bEnd && bStart < aEnd;
 
-        if (overlaps) {
+        const sameLocation =
+          a.extendedProps.location ===
+          b.extendedProps.location;
+
+        if (overlaps && sameLocation) {
           conflicts.push({
             type: "double_booking",
             severity: "error",
@@ -2971,7 +2975,7 @@ window.addEventListener("DOMContentLoaded", () => {
     await loadGenerationConfig();
     const loaded =
       await loadSavedSchedule();
-    
+
 
     await startScheduleListener();
 
