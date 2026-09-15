@@ -115,12 +115,16 @@ function renderCategoryLegend() {
   legend.innerHTML = "";
 
   const categories = [
-    ...new Set(
-      getLogicalScheduleEvents()
-        .map(e => e.extendedProps.category)
-        .filter(Boolean)
-    )
-  ].sort();
+  ...new Set(
+    getLogicalScheduleEvents()
+      .map(
+        e =>
+          e.extendedProps.displayCategory ||
+          e.extendedProps.category
+      )
+      .filter(Boolean)
+  )
+].sort();
 
   categories.forEach(category => {
 
@@ -1472,7 +1476,8 @@ function applyAllFilters() {
       event.extendedProps.instructorId;
 
     const category =
-      event.extendedProps.category;
+  event.extendedProps.displayCategory ||
+  event.extendedProps.category;
 
     const hiddenByInstructor =
       instructorId &&
