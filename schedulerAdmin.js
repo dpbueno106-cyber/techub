@@ -130,6 +130,32 @@ function renderCategoryLegend() {
 
     const row =
       document.createElement("div");
+      let holdTimer;
+      row.addEventListener("mousedown", () => {
+
+  holdTimer = setTimeout(() => {
+
+    hiddenCategories = new Set(
+      categories.filter(
+        c => c !== category
+      )
+    );
+
+    renderCategoryLegend();
+    applyAllFilters();
+
+  }, 700);
+
+});
+
+row.addEventListener("mouseup", () => {
+  clearTimeout(holdTimer);
+});
+
+row.addEventListener("mouseleave", () => {
+  clearTimeout(holdTimer);
+});
+
 row.addEventListener(
   "dblclick",
   () => {
