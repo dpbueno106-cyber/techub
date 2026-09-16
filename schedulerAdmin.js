@@ -1266,12 +1266,13 @@ function renderCalendarFromSchedule(schedule, clearFirst = true) {
     }
 
     const key = [
-      slot.className,
-      slot.classAcronym,
-      slot.courseNumber,
-      slot.location,
-      slot.weekStartDate
-    ].join("|");
+  slot.className,
+  slot.classAcronym,
+  slot.courseNumber,
+  slot.location,
+  slot.weekStartDate,
+  slot.instructorId || ""
+].join("|");
 
     if (!groups.has(key)) {
       groups.set(key, []);
