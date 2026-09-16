@@ -2680,47 +2680,7 @@ function findScheduleConflicts() {
     const instructorName =
       instructor?.name || instructorId;
 
-    // ---- Double booking: any two classes with overlapping weeks ----
-    for (let i = 0; i < instructorEvents.length; i++) {
-      for (let j = i + 1; j < instructorEvents.length; j++) {
-
-        const a = instructorEvents[i];
-        const b = instructorEvents[j];
-
-        const aStart =
-          new Date(a.extendedProps.weekStartDate);
-        const aEnd = new Date(aStart);
-        aEnd.setDate(
-          aEnd.getDate() +
-          (a.extendedProps.durationWeeks || 1) * 7
-        );
-
-        const bStart =
-          new Date(b.extendedProps.weekStartDate);
-        const bEnd = new Date(bStart);
-        bEnd.setDate(
-          bEnd.getDate() +
-          (b.extendedProps.durationWeeks || 1) * 7
-        );
-
-        const overlaps =
-          aStart < bEnd && bStart < aEnd;
-
-        const sameLocation =
-          a.extendedProps.location ===
-          b.extendedProps.location;
-
-        if (overlaps && sameLocation) {
-          conflicts.push({
-            type: "double_booking",
-            severity: "error",
-            message:
-              `${instructorName} is double-booked: "${a.extendedProps.className}" and "${b.extendedProps.className}" overlap the week of ${a.extendedProps.weekStartDate}.`,
-            events: [a, b]
-          });
-        }
-      }
-    }
+    
 
     // ---- Max classes hard cap ----
     const max = instructor?.maxClasses;
